@@ -52,8 +52,8 @@ class Taged(RidgeDitect):
 
                         updates[union_key][tag] = True
                         updates[union_key].update(target_tags)
-                    if not member_sets in sub_clusters:
-                        target_clusters[member_sets][tag] = True
+
+                    target_clusters[member_sets][tag] = True
 
                     for k, v in updates.items():
                         target_clusters[k].update(v)
