@@ -7,7 +7,7 @@ class Taged(RidgeDitect):
     def fit(self, tags_map: dict, vectors: np.ndarray, sample=4):
         self._tags_map = tags_map
         ret = super().fit(vectors, sample)
-        self._postoprocess(self.clusters)
+        self._postprocess(self.clusters)
         return ret
 
     def _get_masks(self, nearbys, scores, sorted_args, samples, nearby_vectors, vectors):
@@ -17,7 +17,7 @@ class Taged(RidgeDitect):
 
         return ret
 
-    def _postoprocess(self, clusters):
+    def _postprocess(self, clusters):
         tag_index = {}
 
         new_clusters = {}
