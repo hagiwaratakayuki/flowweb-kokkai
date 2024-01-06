@@ -1,24 +1,83 @@
 from db.model import put_multi
 from collections import deque
+import asyncio
+import time
+import math
+
+START_LIMIT = 500
+LIMIT_INCREASE_STEP = 1.5
+LIMIT_INCREASE_TIME = 5.0 * 60.0
+
+
 class Chunker:
-    def __init__(self, limit:int=30):
-        self.chunk = deque()
-        self.chunk_count = 0
-        self.limit = limit
+    def __init__(self, size: int = 30):
+
+        self.size = size
+
+        self._write_start = 0
+        self._write_limit = 500
+        self._prev_call_time = 0.0
+        self._clear_weigtings()
+        self._clear_chunk()
+
     def put(self, model):
-        self.chunk.append(model)
+        self._chunk.append(model)
         self.chunk_count += 1
-        if self.chunk_count >= self.limit:
-            ret = put_multi(self.chunk)
-            self.chunk = deque()
-            self.chunk_count = 0
-            return ret
+        if self.chunk_count >= self.size:
+            return self._put_chunk()
+
     def close(self):
         if self.chunk_count > 0:
-            return put_multi(self.chunk)
-        
+            return self._put_chunk(True)
 
+    def _put_chunk(self, is_force=False):
+        now = time.time()
 
+        chunk = self._clear_chunk()
+        self._weightings.append(chunk)
+        self._weightings_count += self.size
 
+        if is_force == False and self._weightings_count + self.size < self._write_limit:
+            return
+        if self._write_start == 0:
+            self._write_start = now
+        else:
+            self._write_limit = START_LIMIT * \
+                LIMIT_INCREASE_STEP ** math.floor(
+                    (now - self._write_start) / LIMIT_INCREASE_TIME)
+        weightings = self._clear_weigtings()
+        return asyncio.run(self._put_waitings(weightings=weightings))
 
-    
+    async def _put_waitings(self, weightings):
+        now = time.time()
+        from_prev_time = now - self._prev_call_time
+        if from_prev_time < 1.0:
+            await asyncio.sleep(from_prev_time)
+            now = time.time()
+        self._prev_call_time = now
+        chunks = await asyncio.gather(*[self._put_multi(weight) for weight in weightings])
+
+        ret = deque()
+        for chunk in chunks:
+            for entity in chunk:
+                ret.append(entity)
+        return ret
+
+    def _clear_chunk(self):
+
+        chunk = getattr(self, '_chunk', [])
+        self._chunk = deque()
+        self.chunk_count = 0
+        return chunk
+
+    def _clear_weigtings(self):
+
+        weightings = getattr(self, '_weightings', [])
+        self._weightings = []
+        self._weightings_count = 0
+        return weightings
+
+    async def _put_multi(self, chunk):
+
+        await asyncio.sleep(0)
+        return put_multi(chunk)
