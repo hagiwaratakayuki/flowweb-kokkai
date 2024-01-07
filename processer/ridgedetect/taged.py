@@ -22,7 +22,7 @@ class Taged(RidgeDitect):
 
         new_clusters = {}
         cluster_id = 0
-        member_to_clusters = defaultdict(dict)
+        member_to_clusters = defaultdict(deque)
         for cluster_members in clusters.values():
             tag_2_members = defaultdict(deque)
 
@@ -33,11 +33,13 @@ class Taged(RidgeDitect):
 
                     tag_2_members[tag].append(member)
             sub_clusters = defaultdict(deque)
+            empty_set = frozenset()
             for tag, members in tag_2_members.items():
                 member_set = frozenset(members)
+
                 for sub_member_set in sub_clusters.keys():
                     canditate_members = member_set & sub_member_set
-                    if len(canditate_members) == 0:
+                    if canditate_members == empty_set:
                         continue
                     sub_clusters[canditate_members].append(tag)
                 sub_clusters[member_set].append(tag)
@@ -46,7 +48,7 @@ class Taged(RidgeDitect):
                 new_clusters[cluster_id] = members
                 tag_index[cluster_id] = tags
                 for member in members:
-                    member_to_clusters[member][cluster_id] = True
+                    member_to_clusters[member].append(cluster_id)
                 cluster_id += 1
 
         self.clusters = new_clusters

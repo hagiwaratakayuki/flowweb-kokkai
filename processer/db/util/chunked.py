@@ -9,7 +9,7 @@ LIMIT_INCREASE_STEP = 1.5
 LIMIT_INCREASE_TIME = 5.0 * 60.0
 LIMIT_MAP = {}
 PREV_CALL_TIMES = {}
-WRITE_
+WRITE_START_MAP = {}
 
 
 class Chunker:
@@ -42,16 +42,16 @@ class Chunker:
         self._weightings.append(chunk)
         self._weightings_count += self.size
         write_limit = LIMIT_MAP.get(self._model.get_kind(), START_LIMIT)
-
-        if is_force == False and self._weightings_count + self.size < write_limit:
+        is_time_over = self._prev_call_time > 0.0 and now - self._prev_call_time > 1.0
+        if is_force == False and is_time_over == False and self._prev_call_timeself._weightings_count + self.size < write_limit:
             return
-
-        if self._write_start == 0:
-            self._write_start = now
+        write_start = WRITE_START_MAP.get(self._model.get_kind(), 0)
+        if write_start == 0:
+            WRITE_START_MAP[self._model.get_kind()] = now
         else:
-            self._write_limit = START_LIMIT * \
+            LIMIT_MAP[self._model.get_kind()] = START_LIMIT * \
                 LIMIT_INCREASE_STEP ** math.floor(
-                    (now - self._write_start) / LIMIT_INCREASE_TIME)
+                (now - write_start) / LIMIT_INCREASE_TIME)
         weightings = self._clear_weigtings()
         return asyncio.run(self._put_waitings(weightings=weightings))
 
