@@ -1,6 +1,6 @@
 from .basic import RidgeDitect
 import numpy as np
-from collections import defaultdict, Counter
+from collections import defaultdict, deque
 
 
 class Taged(RidgeDitect):
@@ -24,43 +24,23 @@ class Taged(RidgeDitect):
         cluster_id = 0
         member_to_clusters = defaultdict(dict)
         for cluster_members in clusters.values():
-            tag_2_members = defaultdict(dict)
+            tag_2_members = defaultdict(deque)
 
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
 
                 for tag in tags:
 
-                    tag_2_members[tag][cluster_member] = True
-            tag_2_members_set = {tag: frozenset(
-                members) for tag, members in tag_2_members.items()}
-            sub_clusters = {}
-
-            for cluster_member in cluster_members:
-                target_clusters = defaultdict(dict)
-                tags = self._tags_map[cluster_member]
-
-                for tag in tags:
-
-                    member_sets = tag_2_members_set[tag]
-
-                    updates = defaultdict(dict)
-                    for target_member, target_tags in target_clusters.items():
-                        union_key = target_member & member_sets
-                        if union_key in sub_clusters:
-                            continue
-
-                        updates[union_key][tag] = True
-                        updates[union_key].update(target_tags)
-
-                    target_clusters[member_sets][tag] = True
-
-                    for k, v in updates.items():
-                        target_clusters[k].update(v)
-                for k, v in target_clusters.items():
-                    if k in sub_clusters:
+                    tag_2_members[tag].append(member)
+            sub_clusters = defaultdict(deque)
+            for tag, members in tag_2_members.items():
+                member_set = frozenset(members)
+                for sub_member_set in sub_clusters.keys():
+                    canditate_members = member_set & sub_member_set
+                    if len(canditate_members) == 0:
                         continue
-                    sub_clusters[k] = v
+                    sub_clusters[canditate_members].append(tag)
+                sub_clusters[member_set].append(tag)
 
             for members, tags in sub_clusters.items():
                 new_clusters[cluster_id] = members

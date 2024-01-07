@@ -7,6 +7,9 @@ import math
 START_LIMIT = 500
 LIMIT_INCREASE_STEP = 1.5
 LIMIT_INCREASE_TIME = 5.0 * 60.0
+LIMIT_MAP = {}
+PREV_CALL_TIMES = {}
+WRITE_
 
 
 class Chunker:
@@ -23,6 +26,7 @@ class Chunker:
     def put(self, model):
         self._chunk.append(model)
         self.chunk_count += 1
+        self._model = model
         if self.chunk_count >= self.size:
             return self._put_chunk()
 
@@ -31,14 +35,17 @@ class Chunker:
             return self._put_chunk(True)
 
     def _put_chunk(self, is_force=False):
+        global LIMIT_MAP, PREV_CALL_TIMES
         now = time.time()
 
         chunk = self._clear_chunk()
         self._weightings.append(chunk)
         self._weightings_count += self.size
+        write_limit = LIMIT_MAP.get(self._model.get_kind(), START_LIMIT)
 
-        if is_force == False and self._weightings_count + self.size < self._write_limit:
+        if is_force == False and self._weightings_count + self.size < write_limit:
             return
+
         if self._write_start == 0:
             self._write_start = now
         else:

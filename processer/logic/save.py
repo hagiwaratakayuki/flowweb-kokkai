@@ -21,6 +21,7 @@ from multiprocessing import Pool
 class TextModel(Chunker):
 
     def save(self, id, data, vector, sentiment_result: SentimentResult, linked_to: list[str], linked_count: int):
+
         textEntity = text.Text(id=id)
         direction_vector = sentiment_result.vectors.positive - \
             sentiment_result.vectors.negative
@@ -138,6 +139,8 @@ class Logic:
             members_chunk.append(cluster_members)
 
             if entities != None:
+                logging.info('start cluster data save')
+
                 self._put_cluster_data(
                     entities=entities,
                     members_chunk=members_chunk,
@@ -156,6 +159,7 @@ class Logic:
 
         entities = cluster_chunker.close()
         if entities != None:
+            logging.info('start cluster data save')
             self._put_cluster_data(
                 entities=entities,
                 members_chunk=members_chunk,
@@ -210,10 +214,11 @@ class Logic:
             member_positions_chunk: deque
 
     ):
-
+        loop_count = 0
         for entity, members, keywords, positions in zip(entities, members_chunk, cluster_keyword_chunk, member_positions_chunk):
 
             for member, position in zip(members, positions):
+                loop_count += 1
                 member_model = cluster_member.ClusterMember()
                 member_model.cluster_id = entity.id
                 member_model.text_id = index2id[member]
@@ -225,6 +230,7 @@ class Logic:
 
                 member_model_chunk.put(member_model)
             for keyword in keywords:
+                loop_count += 1
                 keyword_model = cluster_keyword.ClusterKeyword()
                 keyword_model.keyword = keyword
                 keyword_model.cluster_id = entity.id
