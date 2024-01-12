@@ -1,0 +1,9 @@
+# Copyright 2021 Google LLC
+
+
+runtime: python39
+
+handlers:
+
+- url: /.*
+  script: auto
