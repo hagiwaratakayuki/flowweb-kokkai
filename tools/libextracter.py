@@ -67,7 +67,8 @@ for root, dirs, files in os.walk(args.target):
 output = subprocess.check_output('pip freeze',  text=True)
 output_lines = []
 for line in output.splitlines():
-    name = re.split('\W', line.split('==')[0])[0]
+
+    name = re.split('\W', line.split('==')[0])[0].lower()
 
     if name in canditates:
         output_lines.append(line)
