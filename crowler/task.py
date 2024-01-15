@@ -4,22 +4,25 @@ from google.protobuf import timestamp_pb2
 import datetime
 import json
 import os
+from get_metadata import get_metadata
 
-
-# TODO(developer): Uncomment these lines and replace with your values.
 project = os.environ.get('GOOGLE_CLOUD_PROJECT')
 queue = 'default'
-location = 'us-central1'
+LOCATION = None
+
+
+def get_location():
+    if LOCATION is None:
+        LOCATION = '-'.join(get_metadata("zone").split('-')[:-1])
+    return LOCATION
 
 
 def create_task(pyload, uri=CROWL_PAST, in_seconds=1):
-    # Create a client.
+
     client = tasks_v2.CloudTasksClient()
 
-    # Construct the fully qualified queue name.
-    parent = client.queue_path(project, location, queue)
+    parent = client.queue_path(project, get_location(), queue)
 
-    # Construct the request body.
     task = {
         "app_engine_http_request": {  # Specify the type of request.
             "http_method": tasks_v2.HttpMethod.POST,

@@ -11,7 +11,7 @@ import urllib.parse
 import re
 import unicodedata
 from lib.webapi import rest
-
+from typing import Union, Literal, List
 
 import datetime
 import itertools
@@ -39,137 +39,6 @@ kansuuji = {u'零': '0', u'一': '1', u'壱': '1', u'二': '2', u'弐': '2', u'�
 
 
 lineParserClasses = []
-
-
-class MeetingRecords(object):
-    def __init__(self, result: Element):
-
-        data = result
-
-        self.total = int(data.findtext('numberOfRecords'))
-        self.now = int(data.findtext('startRecord'))
-        self.next = int(data.findtext('nextRecordPosition') or False)
-        self.records = []
-
-        for record in data.findall('records/record/recordData/meetingRecord'):
-
-            self.records.append(MeetingRecord(record))
-
-
-class MeetingRecord(object):
-    def __init__(self, record: Element):
-        self.session = record.findtext('session')
-        self.house = record.findtext('nameOfHouse')
-        self.name = record.findtext('nameOfMeeting')
-        self.date = record.findtext('date')
-        self.issue = record.findtext('issue').replace(u'号', u'')
-        self.url = record.findtext('meetingURL')
-        self.pdf = record.findtext('pdfURL')
-        self.speakerMap = {}
-        self.speeches = {}
-        year, month, date = [int(token)
-                             for token in re.split(u'[^\d]+', self.date)]
-        maxorder = -1
-
-        speeches: Dict[Any, SpeechRecord] = {}
-        speakers: Dict[str, Speaker] = {}
-        prevSpeech = None
-
-        for speechRecord in record.findall('speechRecord'):
-            order = int(speechRecord.findtext('speechOrder'))
-            speaker = speechRecord.findtext('speaker')
-
-            if order == 0:
-                self.parseHeaderLog(speechRecord, year, month, date)
-                continue
-
-            if order == 1:
-
-                self.moderator = speaker
-            speech = speechRecord.findtext('speech')
-            speakerData = speakers.get(speaker) or Speaker(
-                speechRecord=speechRecord, speech=speech, name=speaker)
-            speakers[speaker] = speakerData
-            speechRecord = SpeechRecord(
-                speechRecord, order, speakerData, speech)
-            speeches[order] = speechRecord
-            if speechRecord.isAsModerator == True:
-                speechRecord.setResponseTo(prevSpeech)
-                prevSpeech = order
-            endRecord = speechRecord
-
-        hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
-
-        self.end = datetime.datetime(year, month, date, hour, minutes)
-
-        self.speeches = speeches
-
-    def parseHeaderLog(self, speechRecord, year, month, date):
-
-        self.participants = {}
-        # sentence = re.sub(u'([^\s]+)\s+([^\s]+)\s*君',u'\\1\\2君',speechRecord.findtext('speech'),re.U)
-
-        sentence = speechRecord.findtext('speech')
-        self.headerRecord = sentence
-        hour, minutes = self.getKanjiTime(sentence)
-
-        self.start = datetime.datetime(year, month, date, hour, minutes)
-
-    def getKanjiTime(self, text, isClose=False):
-        if text.count(u'正午'):
-            return 12, 0
-
-        pt = u'(午前|午後)(.+)時(.+分)?'
-
-        allm = re.findall(pt, text)
-        ampm, hour, minute = allm.pop()
-        hour = self._parseKanjiNumber(hour)
-        if ampm == u'午後':
-            hour += 12
-        try:
-
-            minute = self._parseKanjiNumber(minute.replace(u'分', '')) or 0
-        except Exception:
-            print(text)
-        return hour, minute
-
-    def _parseKanjiNumber(self, text):
-        if not text:
-            return
-
-        numText = ''
-        match = re.search(u'^.十.$', text)
-
-        if match:
-            targets = text.replace(u'十', '')
-            for target in targets:
-                numString = kansuuji[target]
-                numText += numString
-            return int(numText)
-
-        match = re.search(u'^.十$', text)
-        if match:
-            target = text.replace(u'十', '')
-            numString = kansuuji[target]
-            numText += numString
-            numText += '0'
-            return int(numText)
-
-        match = re.search(u'^十.$', text)
-        if match:
-            target = text.replace(u'十', '')
-            numText += '1'
-            numString = kansuuji[target]
-            numText += numString
-            return int(numText)
-        if text == u'十':
-            return 10
-        for target in text:
-
-            numString = kansuuji[target]
-            numText += numString
-
-        return int(numText)
 
 
 class Speaker:
@@ -274,6 +143,157 @@ class SpeechRecord(object):
         if self.responseTo != None:
             ret['responseTo'] = self.responseTo
         return ret
+
+
+class MeetingRecord(object):
+    def __init__(self, record: Element):
+        self.session = record.findtext('session')
+        self.id = record.findtext('issueID')
+        self.house = record.findtext('nameOfHouse')
+        self.name = record.findtext('nameOfMeeting')
+        self.date = record.findtext('date')
+        self.issue = record.findtext('issue').replace(u'号', u'')
+        self.url = record.findtext('meetingURL')
+        self.pdf = record.findtext('pdfURL')
+        self.speakerMap = {}
+        self.speeches = {}
+        year, month, date = [int(token)
+                             for token in re.split(u'[^\d]+', self.date)]
+        maxorder = -1
+
+        speeches: Dict[Any, SpeechRecord] = {}
+        speakers: Dict[str, Speaker] = {}
+        prevSpeech = None
+
+        for speechRecord in record.findall('speechRecord'):
+            order = int(speechRecord.findtext('speechOrder'))
+            speaker = speechRecord.findtext('speaker')
+
+            if order == 0:
+                self.parseHeaderLog(speechRecord, year, month, date)
+                continue
+
+            if order == 1:
+
+                self.moderator = speaker
+            speech = speechRecord.findtext('speech')
+            speakerData = speakers.get(speaker) or Speaker(
+                speechRecord=speechRecord, speech=speech, name=speaker)
+            speakers[speaker] = speakerData
+            speechRecord = SpeechRecord(
+                speechRecord, order, speakerData, speech)
+            speeches[order] = speechRecord
+            if speechRecord.isAsModerator == True:
+                speechRecord.setResponseTo(prevSpeech)
+                prevSpeech = order
+            endRecord = speechRecord
+
+        hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
+
+        self.end = datetime.datetime(
+            year, month, date, hour, minutes).isoformat()
+
+        self.speeches = speeches
+
+    def toDict(self):
+        ret = {}
+        for key, value in self.__dict__:
+            if key in ['speeches', 'speakers']:
+                ret[key] = {k: obj.toDict() for k, obj in value.items()}
+            elif hasattr(value, 'toDict'):
+                ret[key] = value.toDict()
+            else:
+                ret[key] = value
+        return ret
+
+    def parseHeaderLog(self, speechRecord, year, month, date):
+
+        self.participants = {}
+        # sentence = re.sub(u'([^\s]+)\s+([^\s]+)\s*君',u'\\1\\2君',speechRecord.findtext('speech'),re.U)
+
+        sentence = speechRecord.findtext('speech')
+        self.headerRecord = sentence
+        hour, minutes = self.getKanjiTime(sentence)
+
+        self.start = datetime.datetime(year, month, date, hour, minutes)
+
+    def getKanjiTime(self, text, isClose=False):
+        if text.count(u'正午'):
+            return 12, 0
+
+        pt = u'(午前|午後)(.+)時(.+分)?'
+
+        allm = re.findall(pt, text)
+        ampm, hour, minute = allm.pop()
+        hour = self._parseKanjiNumber(hour)
+        if ampm == u'午後':
+            hour += 12
+        try:
+
+            minute = self._parseKanjiNumber(minute.replace(u'分', '')) or 0
+        except Exception:
+            print(text)
+        return hour, minute
+
+    def _parseKanjiNumber(self, text):
+        if not text:
+            return
+
+        numText = ''
+        match = re.search(u'^.十.$', text)
+
+        if match:
+            targets = text.replace(u'十', '')
+            for target in targets:
+                numString = kansuuji[target]
+                numText += numString
+            return int(numText)
+
+        match = re.search(u'^.十$', text)
+        if match:
+            target = text.replace(u'十', '')
+            numString = kansuuji[target]
+            numText += numString
+            numText += '0'
+            return int(numText)
+
+        match = re.search(u'^十.$', text)
+        if match:
+            target = text.replace(u'十', '')
+            numText += '1'
+            numString = kansuuji[target]
+            numText += numString
+            return int(numText)
+        if text == u'十':
+            return 10
+        for target in text:
+
+            numString = kansuuji[target]
+            numText += numString
+
+        return int(numText)
+
+
+class MeetingRecords(object):
+    total: int
+    now: int
+    next: Union[Literal[False], int]
+    records: List[MeetingRecord]
+
+    def __init__(self, result: Element):
+
+        data = result
+
+        self.total = int(data.findtext('numberOfRecords'))
+        self.now = int(data.findtext('startRecord'))
+        self.next = int(data.findtext('nextRecordPosition') or False)
+
+        self.records = []
+        self.sessions
+
+        for record in data.findall('records/record/recordData/meetingRecord'):
+
+            self.records.append(MeetingRecord(record))
 
 
 def search(params):

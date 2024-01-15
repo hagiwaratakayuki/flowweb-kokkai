@@ -2,7 +2,7 @@ from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List, Literal, Any
+from typing import List, Literal, Any, Union
 import time
 import asyncio
 
@@ -88,7 +88,7 @@ class Model(object):
         return get_client().get(key)
 
     @classmethod
-    def get_multi(cls, params, is_trict: bool = False) -> List[datastore.Entity] | None:
+    def get_multi(cls, params, is_trict: bool = False) -> Union[List[datastore.Entity], None]:
         if params == None or not isinstance(Iterable, params):
             return None
         keys = [cls._get_key(**param) for param in params]

@@ -1,1 +1,1 @@
-CROWL_PAST = 'crowler/past'
+CROWL_PAST = '/crowler/past'
