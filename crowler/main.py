@@ -16,8 +16,8 @@ def root():
 @app.route(CROWL_PAST, methods=["POST"])
 def crowl():
     request_paylod = request.get_json(force=True)
-    next_payload = kokkai_pastlog.crowl(request_paylod)
-    if next_payload != False:
+    isEnd, next_payload = kokkai_pastlog.crowl(request_paylod)
+    if isEnd != True:
         create_task(pyload=next_payload)
 
-    return 'ok'
+    return ''
