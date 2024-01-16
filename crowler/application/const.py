@@ -1,5 +1,1 @@
-HOUSES = [
-    '衆議院',
-    '参議院',
-    '両院'
-]
+LATEST_SESSION = 212

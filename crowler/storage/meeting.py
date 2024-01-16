@@ -28,8 +28,8 @@ class Meeting(Model):
 
         return ret
 
-    def upload(self, session, file, data):
-        filename = self._getDir(session) + '/' + file
+    def upload(self, session, filename, data):
+        filename = self._getDir(session) + '/' + filename
         blob = self.bucket.blob(filename)
         upload_gzip(blob=blob, data=data)
 
