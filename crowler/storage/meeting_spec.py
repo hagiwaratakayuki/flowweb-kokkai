@@ -4,7 +4,6 @@ from .meeting import Meeting
 
 
 class MyTest(unittest.TestCase):
-
     @patch('storage.meeting.download')
     @patch('storage.basic.storage')
     @patch('storage.basic.get_metadata')

@@ -3,11 +3,10 @@ Created on 2016/01/02
 
 @author: master
 '''
-from __init__ import search
+from .__init__ import search
 
 
 def crowl(startRecord=None, sessionTo=None):
-    backHalfYear = int(backHalfYear)
 
     params = {'maximumRecords': 10}
 

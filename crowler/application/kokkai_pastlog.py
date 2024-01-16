@@ -2,7 +2,7 @@ from storage.meeting import Meeting
 from storage.speechlog import SpeechLog
 from core.kokkai import pastlog
 from core.kokkai import MeetingRecord
-from .const import HOUSES, LATEST_SESSION
+from .const import LATEST_SESSION
 from storage.meeting import Meeting
 from typing import List
 import hashlib
@@ -38,6 +38,7 @@ def crowl(params: dict):
 
     if startRecord is not None:
         ret['startRecord'] = startRecord
+
     return isEnd, ret
 
 

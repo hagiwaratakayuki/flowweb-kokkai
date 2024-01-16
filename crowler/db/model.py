@@ -1,4 +1,4 @@
-from google.cloud import datastore
+
 import re
 
 from collections.abc import Iterable
@@ -13,13 +13,23 @@ high_bulk_limit_base = 500
 high_bulk_step_range = 0.5
 high_bulk_limit = high_bulk_limit_base
 high_bulk_start = 0
+DATASTORE = None
 
 
 def get_client():
     global client
     if client is None:
-        client = datastore.Client()
+
+        client = getDatastoreModule().Client()
     return client
+
+
+def getDatastoreModule():
+    global DATASTORE
+    if DATASTORE is None:
+        from google.cloud import datastore
+        DATASTORE = datastore
+    return DATASTORE
 
 
 def start_high_bulk():
@@ -32,13 +42,13 @@ PT = re.compile('^_')
 
 class Model(object):
     _entity_options: dict
-    _entity = None
 
     def __init__(self, id=None, entity_options={}, path_args=[], kwargs={}) -> None:
         self._path_args = path_args
         self._kwargs = kwargs
         self._entity_options = entity_options
         self._id = id
+        self._entity = None
 
     @classmethod
     def query(cls):
@@ -71,7 +81,7 @@ class Model(object):
             options = self._entity_options
             key = self.__class__._get_key(
                 path_args or self._path_args, kwargs or self._kwargs, id or self._id)
-            entity = datastore.Entity(key=key, **options)
+            entity = getDatastoreModule().Entity(key=key, **options)
         data = {key: getattr(self, key)
                 for key in filter(self._filter, dir(self))}
 
@@ -88,7 +98,7 @@ class Model(object):
         return get_client().get(key)
 
     @classmethod
-    def get_multi(cls, params, is_trict: bool = False) -> Union[List[datastore.Entity], None]:
+    def get_multi(cls, params, is_trict: bool = False):
         if params == None or not isinstance(Iterable, params):
             return None
         keys = [cls._get_key(**param) for param in params]

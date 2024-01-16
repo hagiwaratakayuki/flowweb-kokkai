@@ -1,5 +1,5 @@
-from .const import CROWL_PAST
-from google.cloud import tasks_v2
+from const import CROWL_PAST
+
 from google.protobuf import timestamp_pb2
 import datetime
 import json
@@ -9,23 +9,33 @@ from get_metadata import get_metadata
 project = os.environ.get('GOOGLE_CLOUD_PROJECT')
 queue = 'default'
 LOCATION = None
+TV2 = None
+
+
+def getTV2():
+    global TV2
+    if TV2 is None:
+        from google.cloud import tasks_v2
+        TV2 = tasks_v2
+    return TV2
 
 
 def get_location():
+    global LOCATION
     if LOCATION is None:
         LOCATION = '-'.join(get_metadata("zone").split('-')[:-1])
     return LOCATION
 
 
-def create_task(pyload, uri=CROWL_PAST, in_seconds=1):
+def create_task(payload, uri=CROWL_PAST, in_seconds=1):
 
-    client = tasks_v2.CloudTasksClient()
+    client = getTV2().CloudTasksClient()
 
     parent = client.queue_path(project, get_location(), queue)
 
     task = {
         "app_engine_http_request": {  # Specify the type of request.
-            "http_method": tasks_v2.HttpMethod.POST,
+            "http_method": getTV2().HttpMethod.POST,
             "relative_uri": uri
         }
     }
@@ -59,5 +69,4 @@ def create_task(pyload, uri=CROWL_PAST, in_seconds=1):
     # Use the client to build and send the task.
     response = client.create_task(parent=parent, task=task)
 
-    print(f"Created task {response.name}")
     return response

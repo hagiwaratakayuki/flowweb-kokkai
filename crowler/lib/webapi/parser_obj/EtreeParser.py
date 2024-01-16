@@ -19,6 +19,7 @@ RE_XML_ILLEGAL_PATTERN = re.compile(RE_XML_ILLEGAL)
 
 class ParserObject(object):
     def execute(self, response):
+        response = response
         response = RE_XML_ILLEGAL_PATTERN.sub("", response)
 
         return ElementTree.fromstring(response)

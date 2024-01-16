@@ -18,6 +18,6 @@ def crowl():
     request_paylod = request.get_json(force=True)
     isEnd, next_payload = kokkai_pastlog.crowl(request_paylod)
     if isEnd != True:
-        create_task(pyload=next_payload)
+        create_task(payload=next_payload)
 
     return ''

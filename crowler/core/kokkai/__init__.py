@@ -68,6 +68,7 @@ class SpeechRecord(object):
         self.order = order
         self.speaker = speaker
         self.url = speechRecord.findtext('speechURL')
+        self.id = speechRecord.findtext('speechID')
         isAsModerator = False
         headNotes = re.split('\s+', speech, flags=re.U)[0]
         for headNote in re.split('\W', headNotes, re.U):
@@ -76,7 +77,7 @@ class SpeechRecord(object):
                 isAsModerator = '理事' in headNote or re.search(
                     '長$', headNote.strip()) is not None
         self.isAsModerator = isAsModerator
-
+        self.responseTo = None
         self.speech = re.sub(u'^[^\s]+\s+', u'　', speech, flags=re.U)
 
     def setResponseTo(self, order):
@@ -197,7 +198,7 @@ class MeetingRecord(object):
 
     def toDict(self):
         ret = {}
-        for key, value in self.__dict__:
+        for key, value in self.__dict__.items():
             if key in ['speeches', 'speakers']:
                 ret[key] = {k: obj.toDict() for k, obj in value.items()}
             elif hasattr(value, 'toDict'):
@@ -289,7 +290,6 @@ class MeetingRecords(object):
         self.next = int(data.findtext('nextRecordPosition') or False)
 
         self.records = []
-        self.sessions
 
         for record in data.findall('records/record/recordData/meetingRecord'):
 
