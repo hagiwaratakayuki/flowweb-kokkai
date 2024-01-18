@@ -12,7 +12,7 @@ import re
 import unicodedata
 from lib.webapi import rest
 from typing import Union, Literal, List
-
+import logging
 import datetime
 import itertools
 
@@ -287,7 +287,11 @@ class MeetingRecords(object):
 
         self.total = int(data.findtext('numberOfRecords'))
         self.now = int(data.findtext('startRecord'))
-        self.next = int(data.findtext('nextRecordPosition') or False)
+        next = data.findtext('nextRecordPosition')
+        if next is not None:
+            self.next = int(next)
+        else:
+            self.next = False
 
         self.records = []
 
@@ -304,6 +308,6 @@ def search(params):
 
     if not status:
 
-        print(result)
+        logging.error(result)
         return False
     return MeetingRecords(result)
