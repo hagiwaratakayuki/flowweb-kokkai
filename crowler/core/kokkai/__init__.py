@@ -190,7 +190,7 @@ class MeetingRecord(object):
 
             if speechRecord.isAsModerator == False:
                 speechRecord.setResponseTo(prevSpeech)
-                if questioner != speakerData.name and speechRecord.speaker.isDietMember === True:
+                if questioner != speakerData.name and speechRecord.speaker.isDietMember == True:
                     cand = ""
 
                     for token in speaker:
@@ -200,13 +200,10 @@ class MeetingRecord(object):
                             questioner = speakerData
                             prevSpeech = None
                             break
-                            
+
                 else:
                     prevSpeech = speechRecord.id
 
-
-
-                
                 moderatorSpeech = ""
 
             else:
