@@ -39,6 +39,7 @@ kansuuji = {u'零': '0', u'一': '1', u'壱': '1', u'二': '2', u'弐': '2', u'�
 
 
 lineParserClasses = []
+QUESTIONS_PT = re.search(u'質疑|質問|討議|討論|尋問|審議|論議|論弁|論辯|論判|附議|訊問|審尋|鞫問|借問|趣旨')
 
 
 class Speaker:
@@ -46,14 +47,14 @@ class Speaker:
         speech = speechRecord.findtext('speech')
         self.name = name
 
-        self.isWitness = re.search(u'^[^\s]+証人\s', speech, re.U) != None
-        self.isUnswornWitness = re.search(
-            u'^[^\s]+参考人\s', speech, re.U) != None
+        self.isWitness = speechRecord.findtext('speakerRole') != None
+        self.isUnswornWitness = speechRecord.findtext('speakerRole') == "参考人"
         self.isRequested = self.isUnswornWitness or self.isWitness
         self.isCouncil = re.search(u'^[^\s]+参事\s', speech, re.U) != None
-        self.isLeader = re.search(u'^[^\s]+[^房]長\s', speech, re.U) != None
+        self.position = speechRecord.findtext('speakerPosition')
         self.speakerGroup = speechRecord.findtext('speakerGroup')
         self.speakerRole = speechRecord.findtext('speakerRole')
+        self.isDietMember = not self.isWitness and not self.isCouncil and self.position == None
 
 
 class SpeechRecord(object):
@@ -71,6 +72,7 @@ class SpeechRecord(object):
         self.id = speechRecord.findtext('speechID')
         isAsModerator = False
         headNotes = re.split('\s+', speech, flags=re.U)[0]
+
         for headNote in re.split('\W', headNotes, re.U):
             striped = headNote.strip()
             if re.search('君$', striped) is None:
@@ -160,33 +162,55 @@ class MeetingRecord(object):
         self.speeches = {}
         year, month, date = [int(token)
                              for token in re.split(u'[^\d]+', self.date)]
-        maxorder = -1
 
         speeches: Dict[Any, SpeechRecord] = {}
         speakers: Dict[str, Speaker] = {}
         prevSpeech = None
+        questioner = None
+        moderatorSpeech = None
 
-        for speechRecord in record.findall('speechRecord'):
-            order = int(speechRecord.findtext('speechOrder'))
-            speaker = speechRecord.findtext('speaker')
+        for speechRecordNode in record.findall('speechRecord'):
+            order = int(speechRecordNode.findtext('speechOrder'))
+            speaker = speechRecordNode.findtext('speaker')
 
             if order == 0:
-                self.parseHeaderLog(speechRecord, year, month, date)
+                self.parseHeaderLog(speechRecordNode, year, month, date)
                 continue
 
             if order == 1:
 
                 self.moderator = speaker
-            speech = speechRecord.findtext('speech')
+            speech = speechRecordNode.findtext('speech')
             speakerData = speakers.get(speaker) or Speaker(
-                speechRecord=speechRecord, speech=speech, name=speaker)
+                speechRecord=speechRecordNode, speech=speech, name=speaker)
             speakers[speaker] = speakerData
             speechRecord = SpeechRecord(
-                speechRecord, order, speakerData, speech)
+                speechRecordNode, order, speakerData, speech)
             speeches[order] = speechRecord
-            if speechRecord.isAsModerator == True:
+
+            if speechRecord.isAsModerator == False:
                 speechRecord.setResponseTo(prevSpeech)
-                prevSpeech = order
+                if questioner != speakerData.name and speechRecord.speaker.isDietMember === True:
+                    cand = ""
+
+                    for token in speaker:
+                        cand += token
+                        check = cand + "君"
+                        if check in moderatorSpeech:
+                            questioner = speakerData
+                            prevSpeech = None
+                            break
+                            
+                else:
+                    prevSpeech = speechRecord.id
+
+
+
+                
+                moderatorSpeech = ""
+
+            else:
+                moderatorSpeech += speechRecord
             endRecord = speechRecord
 
         hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
