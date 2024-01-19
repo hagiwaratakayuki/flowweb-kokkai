@@ -59,11 +59,17 @@ def crowl(params: dict):
 
 def upload(session: int, meetingRecordList: List[MeetingRecord]):
 
+    meetingRecordDict, idStringList = createDataAndFileName(
+        meetingRecordList=meetingRecordList)
+    file = hashlib.md5('+'.join(idStringList).encode()).hexdigest()
+    meeting = Meeting()
+    meeting.upload(session=session, filename=file, data=meetingRecordDict)
+
+
+def createDataAndFileName(meetingRecordList: List[MeetingRecord]):
     meetingRecordDict = {}
     idStringList = []
     for meetingRecord in meetingRecordList:
         meetingRecordDict[meetingRecord.id] = meetingRecord.toDict()
         idStringList.append(meetingRecord.id)
-    file = hashlib.md5('+'.join(idStringList).encode()).hexdigest()
-    meeting = Meeting()
-    meeting.upload(session=session, filename=file, data=meetingRecordDict)
+    return meetingRecordDict, idStringList

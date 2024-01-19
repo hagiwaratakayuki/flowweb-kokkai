@@ -39,7 +39,6 @@ kansuuji = {u'零': '0', u'一': '1', u'壱': '1', u'二': '2', u'弐': '2', u'�
 
 
 lineParserClasses = []
-QUESTIONS_PT = re.compile(u'質疑|質問|討議|討論|尋問|審議|論議|論弁|論辯|論判|附議|訊問|審尋|鞫問|借問|趣旨')
 
 
 class Speaker:
@@ -52,18 +51,21 @@ class Speaker:
         self.isRequested = self.isUnswornWitness or self.isWitness
         self.isCouncil = re.search(u'^[^\s]+参事\s', speech, re.U) != None
         self.position = speechRecord.findtext('speakerPosition')
-        self.speakerGroup = speechRecord.findtext('speakerGroup')
-        self.speakerRole = speechRecord.findtext('speakerRole')
+        self.group = speechRecord.findtext('speakerGroup')
+        self.role = speechRecord.findtext('speakerRole')
+        self.isModerater = False
         self.isDietMember = not self.isWitness and not self.isCouncil and self.position == None
 
     def toDict(self):
         ret = dict(name=self.name)
-        if self.position is not None:
+        if self.position is not None and bool(self.position) == True:
             ret['position'] = self.position
-        if self.speakerGroup is not None:
-            ret['group'] = self.speakerGroup
-        if self.speakerRole is not None:
-            ret['role'] = self.speakerRole
+        if self.group is not None and bool(self.group) == True:
+            ret['group'] = self.group
+        if self.role is not None and bool(self.role) == True:
+            ret['role'] = self.role
+        if self.isModerater == True:
+            ret['isModerater'] = True
         return ret
 
 
@@ -71,7 +73,7 @@ class SpeechRecord(object):
     order: Any
     speaker: Speaker
     url: str
-    isAsModerator: bool
+    isAsModerator: Union[bool, None]
     speech: str
     responseTo: Any
 
@@ -85,9 +87,13 @@ class SpeechRecord(object):
 
         for headNote in re.split('\W', headNotes, re.U):
             striped = headNote.strip()
-            if re.search('君$', striped) is None:
+
+            if re.search('君$', striped, re.U) is None:
+
                 isAsModerator = '理事' in headNote or re.search(
                     '長$', headNote.strip()) is not None
+                if isAsModerator == True:
+                    break
         self.isAsModerator = isAsModerator
         self.responseTo = None
         self.speech = re.sub(u'^[^\s]+\s+', u'　', speech, flags=re.U)
@@ -95,64 +101,9 @@ class SpeechRecord(object):
     def setResponseTo(self, order):
         self.responseTo = order
 
-    def _normalizeSpeech(self, speech):
-        speech = unicodedata.normalize("NFKC", speech)
-        speech = speech.upper()
-
-        readed = {}
-        for target in KANSUUJI_PATTERN.findall(speech):
-            if target in readed:
-                continue
-            readed[target] = True
-            new = ''
-            if KANJI_COUNT_ONLY.search(target):
-                for token in target:
-                    new += kansuuji[token]
-            else:
-                value = 0
-                keta = 1
-                extend_keta = 1
-
-                tal = list(target)
-                tal.reverse()
-                lastten = False
-
-                lastbbasekata = 0
-                for token in tal:
-                    if lastten:
-                        nowten = token in KANJI_KETA_MAP
-                        if nowten or token in KANJI_KETA_EXTEND_MAP:
-                            value += lastbbasekata * extend_keta
-                        lastten = nowten
-
-                    if KANSUUJI_ZERO_PATTEN.match(token):
-
-                        keta *= 10
-                        continue
-
-                    else:
-                        lastten = token in KANJI_KETA_MAP
-
-                    if lastten:
-                        keta = extend_keta * KANJI_KETA_MAP[token]
-                        lastbbasekata = KANJI_KETA_MAP[token]
-                        continue
-                    if token in KANJI_KETA_EXTEND_MAP:
-                        keta = extend_keta = KANJI_KETA_EXTEND_MAP[token]
-                        continue
-
-                    value += int(kansuuji[token]) * keta
-                    keta *= 10
-                if lastten:
-                    value += extend_keta * KANJI_KETA_MAP[token]
-                new = value
-            speech = speech.replace(target, new)
-
-        return speech
-
     def toDict(self):
         ret = dict(speaker=self.speaker.name,
-                   speech=self.speech, url=self.url, id=self.id)
+                   speech=self.speech, url=self.url, id=self.id, order=self.order)
         if self.responseTo != None:
             ret['responseTo'] = self.responseTo
         return ret
@@ -165,11 +116,11 @@ class MeetingRecord(object):
         self.house = record.findtext('nameOfHouse')
         self.name = record.findtext('nameOfMeeting')
         self.date = record.findtext('date')
-        self.issue = record.findtext('issue').replace(u'号', u'')
+        self.issue = record.findtext('issue').replace(u'\D+', u'', re.U)
         self.url = record.findtext('meetingURL')
         self.pdf = record.findtext('pdfURL')
-        self.speakerMap = {}
         self.speeches = {}
+        self.moderators = []
         year, month, date = [int(token)
                              for token in re.split(u'[^\d]+', self.date)]
 
@@ -189,16 +140,16 @@ class MeetingRecord(object):
 
             if order == 1:
 
-                self.moderator = speaker
+                self.moderators.append(speaker)
             speech = speechRecordNode.findtext('speech')
             speakerData = speakers.get(speaker) or Speaker(
                 speechRecord=speechRecordNode, speech=speech, name=speaker)
             speakers[speaker] = speakerData
             speechRecord = SpeechRecord(
                 speechRecordNode, order, speakerData, speech)
-            speeches[order] = speechRecord
 
             if speechRecord.isAsModerator == False:
+                speeches[order] = speechRecord
                 speechRecord.setResponseTo(prevSpeech)
                 if questioner != speakerData.name and speechRecord.speaker.isDietMember == True:
                     cand = ""
@@ -218,6 +169,9 @@ class MeetingRecord(object):
 
             else:
                 moderatorSpeech += speechRecord.speech
+                if speakerData.name not in self.moderators:
+                    self.moderators.append(speakerData.name)
+                    speakerData.isModerater = True
             endRecord = speechRecord
 
         hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
@@ -230,25 +184,25 @@ class MeetingRecord(object):
 
     def toDict(self):
         ret = {}
-        for key, value in self.__dict__.items():
+        for key, prop in self.__dict__.items():
             if key in ['speeches', 'speakers']:
-                ret[key] = {k: obj.toDict() for k, obj in value.items()}
-            elif hasattr(value, 'toDict'):
-                ret[key] = value.toDict()
+                ret[key] = [obj.toDict() for obj in prop.values()]
+            elif hasattr(prop, 'toDict'):
+                ret[key] = prop.toDict()
             else:
-                ret[key] = value
+                ret[key] = prop
         return ret
 
     def parseHeaderLog(self, speechRecord, year, month, date):
 
-        self.participants = {}
         # sentence = re.sub(u'([^\s]+)\s+([^\s]+)\s*君',u'\\1\\2君',speechRecord.findtext('speech'),re.U)
 
         sentence = speechRecord.findtext('speech')
         self.headerRecord = sentence
         hour, minutes = self.getKanjiTime(sentence)
 
-        self.start = datetime.datetime(year, month, date, hour, minutes)
+        self.start = datetime.datetime(
+            year, month, date, hour, minutes).isoformat()
 
     def getKanjiTime(self, text, isClose=False):
         if text.count(u'正午'):
