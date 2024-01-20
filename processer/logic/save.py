@@ -1,11 +1,12 @@
 
 import numpy as np
 import logging
-from db import text, cluster, cluster_member, model as db_model, edge, cluster_keyword
+from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
-from db import text_keyword
+from processer.db import node_keyword
 from typing import Iterable
+from processer.db import node
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
@@ -18,33 +19,29 @@ from cluster.get_position import get_position
 from multiprocessing import Pool
 
 
-class TextModel(Chunker):
+class NodeModel(Chunker):
 
     def save(self, id, data, vector, sentiment_result: SentimentResult, linked_to: list[str], linked_count: int):
 
-        textEntity = text.Text(id=id)
+        textEntity = node.Node(id=id)
         direction_vector = sentiment_result.vectors.positive - \
             sentiment_result.vectors.negative
         if sum(direction_vector) == 0:
             direction_vector = sentiment_result.vectors.neutral
         sentiment = {'position': sentiment_result.vectors.neutral.tolist(), 'direction': (
             sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
-        textEntity.setProperty(title=data.title,
-                               body=data.body,
-                               data=dict(vector=vector.tolist(),
+        textEntity.setProperty(data=dict(vector=vector.tolist(),
                                          sentiment=sentiment),
                                linked_to=linked_to,
                                linked_count=linked_count,
                                published=data.published,
                                author=data.author,
-                               # author_id=data.author_id
-                               author_id=""
                                )
         return self.put(textEntity)
 
 
 def buildModel():
-    return TextModel()
+    return NodeModel()
 
 
 def buildVectaizer():
@@ -57,7 +54,7 @@ class Logic:
     # クラスタリング　+ キーワード抽出
     # 保存
 
-    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseDataDTO]], model: TextModel):
+    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseDataDTO]], model: NodeModel):
 
         index2tag = {}
         index2id = {}
@@ -177,7 +174,7 @@ class Logic:
         keyword_model_chunk.close()
 
         index = 0
-        model = TextModel()
+        model = NodeModel()
         keyword_chunk = Chunker()
         logging.info('start text save')
         for vector, sentimentResult, keywords, data in datas:
@@ -188,7 +185,7 @@ class Logic:
             model.save(id=id, data=data, vector=vector, sentiment_result=sentimentResult,
                        linked_to=link_to, linked_count=linked_count)
             for keyword in keywords:
-                keyword_model = text_keyword.TextKeyword()
+                keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published
                 keyword_model.linked_count = linked_count
                 keyword_model.keyword = keyword
