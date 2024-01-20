@@ -7,7 +7,7 @@ from doc2vec.vectaizer.gensim_fasttext import Vectaizer, MODEL_PATH
 from doc2vec.sentiment.nltk_analizer import NLTKAnalizer
 from collections import deque
 
-from data_loader.dto import BaseDataDTO
+from data_loader.dto import DTO
 
 
 class Doc2Vec:
@@ -20,7 +20,7 @@ class Doc2Vec:
         self._indexer = Indexer(tokenaizer=tokenaizer,
                                 sentimentAnalyzer=analizer)
 
-    def exec(self, pool: Pool,  datas: Iterable[BaseDataDTO]):
+    def exec(self, pool: Pool,  datas: Iterable[DTO]):
         data_dict = {}
         generater = self.get_data_itr(datas=datas, data_dict=data_dict)
 
@@ -34,7 +34,7 @@ class Doc2Vec:
         for vector, sentimentResults, scored_keywords, dataid in compupteds:
             yield vector, sentimentResults, scored_keywords, data_dict[dataid]
 
-    def get_data_itr(self, datas: Iterable[BaseDataDTO], data_dict: dict):
+    def get_data_itr(self, datas: Iterable[DTO], data_dict: dict):
         counted_id = 0
         for data in datas:
             data_dict[counted_id] = data

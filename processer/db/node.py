@@ -13,20 +13,23 @@ class Node(Model):
     linked_count: int
     published: datetime
     weight: float
+    session: int
 
     def __init__(self, *args, **kwargs) -> None:
 
         super(Node, self).__init__(entity_options={
-            "exclude_from_indexes": ("data", "body", "title", )}, *args, **kwargs)
+            "exclude_from_indexes": ("data", "title", )}, *args, **kwargs)
 
-    def setProperty(self,  data, linked_to: list[str], linked_count: int, published: datetime, author: str, author_id: str):
+    def setProperty(self,  session, data, linked_to: list[str], linked_count: int, published: datetime, author: str, author_id: str):
         self.link_to = linked_to
+        self.session = session
         if type(published) == str:
             published = datetime.fromisoformat()
 
         self.published = published
         self.data = json.dumps(data)
         self.linked_count = linked_count
+        self.author_id = author_id
         if linked_count == 0:
             weight = 0.0
         else:

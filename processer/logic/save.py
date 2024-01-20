@@ -5,7 +5,7 @@ from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
 from processer.db import node_keyword
-from typing import Iterable
+from typing import Iterable, Dict
 from processer.db import node
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
@@ -14,14 +14,14 @@ from logic.data import date_converter
 from db.util.chunked import Chunker
 from doc2vec.indexer.dto import SentimentResult
 
-from data_loader.dto import BaseDataDTO
+from data_loader.kokkai import DTO
 from cluster.get_position import get_position
 from multiprocessing import Pool
 
 
 class NodeModel(Chunker):
 
-    def save(self, id, data, vector, sentiment_result: SentimentResult, linked_to: list[str], linked_count: int):
+    def save(self, id, dto, vector, sentiment_result: SentimentResult, linked_to: list[str], linked_count: int):
 
         textEntity = node.Node(id=id)
         direction_vector = sentiment_result.vectors.positive - \
@@ -34,8 +34,8 @@ class NodeModel(Chunker):
                                          sentiment=sentiment),
                                linked_to=linked_to,
                                linked_count=linked_count,
-                               published=data.published,
-                               author=data.author,
+                               published=dto.published,
+                               author=dto.author,
                                )
         return self.put(textEntity)
 
@@ -54,7 +54,7 @@ class Logic:
     # クラスタリング　+ キーワード抽出
     # 保存
 
-    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], BaseDataDTO]], model: NodeModel):
+    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], DTO]], model: NodeModel):
 
         index2tag = {}
         index2id = {}
@@ -126,11 +126,9 @@ class Logic:
             positions = get_position(
                 index2sentiments=index2sentiments, cluster_members=cluster_members)
             member_positions_chunk.append(positions)
-            cluster_model = cluster.Cluster()
-            cluster_model.member_count = len(cluster_members)
-            cluster_model.short_keywords = list(
-                taged.tag_index[cluster_id])[:10]
 
+            cluster_model = self._get_cluster_model(
+                cluster_id=cluster_id, taged=taged,  cluster_members=cluster_members)
             entities = cluster_chunker.put(cluster_model)
             cluster_keyword_chunk.append(taged.tag_index[cluster_id])
             members_chunk.append(cluster_members)
@@ -182,7 +180,7 @@ class Logic:
             id = index2id[index]
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
-            model.save(id=id, data=data, vector=vector, sentiment_result=sentimentResult,
+            model.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
                        linked_to=link_to, linked_count=linked_count)
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
@@ -197,6 +195,13 @@ class Logic:
         keyword_chunk.close()
         logging.info('done')
 
+    def _get_cluster_model(self, taged, cluster_id, cluster_members):
+        cluster_model = cluster.Cluster()
+        cluster_model.member_count = len(cluster_members)
+        cluster_model.short_keywords = list(
+            taged.tag_index[cluster_id])[:5]
+
+        return cluster_model
     def _put_cluster_data(
             self,
             entities,

@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, call
 from doc2vec import Doc2Vec
 import numpy as np
 from multiprocessing import Pool
-from data_loader.dto import BaseDataDTO
+from data_loader.dto import DTO
 
 
 class MyTestCase(unittest.TestCase):
@@ -15,7 +15,7 @@ class MyTestCase(unittest.TestCase):
             [1, 2]), 'paper': np.array([3, 4]), 'ink': np.array([5, 6])}
         vectaizer = Doc2Vec()
 
-        datas = [BaseDataDTO(
+        datas = [DTO(
             title='', body='heare is a pen , paper, and ink', data={})]
         with Pool() as pool:
             computed = vectaizer.exec(datas=datas, pool=pool)

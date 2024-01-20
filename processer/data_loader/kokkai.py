@@ -2,11 +2,11 @@ from storage.meeting import Meeting
 from itertools import chain
 from typing import Any, Dict
 from .reguraizer import regraizers
-from .dto import BaseDataDTO
+from .dto import DTO
 import hashlib
 
 
-class DTO(BaseDataDTO):
+class DTO(DTO):
     def __init__(self, id: Any = '', body: Any = '', author: Any = '', author_id: Any = '', published: Any = None, data: Any = {}, meeting_id: str = ''):
         super().__init__(id, body, author, author_id, published, data)
         self.meeting_id = meeting_id
@@ -36,7 +36,7 @@ def processDownlod(meeting: Dict, globalSpeakerMap={}):
         speechText = speechData['speech']
         for reguraizer in reguraizer:
             speechText = reguraizer(speechText)
-        dto = BaseDataDTO()
+        dto = DTO()
         dto.body = speechText
         dto.id = speechData['id']
         dto.author = speechData['name']

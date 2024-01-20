@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 
 
-class BaseDataDTO:
+class DTO:
     def __init__(self,
                  id: Any = '',
                  body: Any = '',

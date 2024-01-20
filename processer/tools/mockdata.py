@@ -3,7 +3,7 @@ import string
 from logic.save import buildModel, _save
 
 import numpy as np
-from data_loader.dto import BaseDataDTO
+from data_loader.dto import DTO
 from doc2vec.indexer.dto import build_mock_sentiment_result
 import datetime
 import calendar
@@ -27,7 +27,7 @@ def main():
 
         for i in range(n_samples)
     ]
-    datas = [BaseDataDTO(body=lorem.sentence(), title='', data={}, speaker=create_dummy_string(
+    datas = [DTO(body=lorem.sentence(), title='', data={}, speaker=create_dummy_string(
     ), authorid=create_dummy_string(), published=get_random_date(2014, 2023)) for i in range(n_samples)]
     vectors = np.random.rand(n_samples, 10)
     sentiments = [build_mock_sentiment_result(d1=10) for i in range(n_samples)]
