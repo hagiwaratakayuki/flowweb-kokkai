@@ -17,27 +17,36 @@ from doc2vec.indexer.dto import SentimentResult
 from data_loader.kokkai import DTO
 from cluster.get_position import get_position
 from multiprocessing import Pool
+import numpy as np
 
 
 class NodeModel(Chunker):
+    def __init__(self, nodeModel: node.Node,  size: int = 30):
+        super().__init__(size)
+        self.nodeModel = nodeModel
 
-    def save(self, id, dto, vector, sentiment_result: SentimentResult, linked_to: list[str], linked_count: int):
+    def save(self, id, dto, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
 
-        textEntity = node.Node(id=id)
+        nodeEntity: node.Node = self.nodeModel(id=id)
         direction_vector = sentiment_result.vectors.positive - \
             sentiment_result.vectors.negative
         if sum(direction_vector) == 0:
             direction_vector = sentiment_result.vectors.neutral
         sentiment = {'position': sentiment_result.vectors.neutral.tolist(), 'direction': (
             sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
-        textEntity.setProperty(data=dict(vector=vector.tolist(),
+        self.setEntityProperty(
+            dto=dto, nodeEntity=nodeEntity, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
+        return self.put(nodeEntity)
+
+    def setEntityProperty(self, dto, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
+        nodeEntity.setProperty(data=dict(vector=vector.tolist(),
                                          sentiment=sentiment),
-                               linked_to=linked_to,
+                               link_to=link_to,
                                linked_count=linked_count,
                                published=dto.published,
                                author=dto.author,
+
                                )
-        return self.put(textEntity)
 
 
 def buildModel():
@@ -181,7 +190,7 @@ class Logic:
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
             model.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                       linked_to=link_to, linked_count=linked_count)
+                       link_to=link_to, linked_count=linked_count)
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published

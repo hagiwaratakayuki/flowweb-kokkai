@@ -4,6 +4,8 @@ from typing import Any, Dict
 from .reguraizer import regraizers
 from .dto import DTO
 import hashlib
+from collections import deque
+from db
 
 
 class DTO(DTO):
@@ -31,7 +33,7 @@ def processDownlod(meeting: Dict, globalSpeakerMap={}):
         role = speaker.get('role', '')
         speakerMap[name] = {'id': hashlib.md5('_'.join(
             [session, house, name, group, position, role]).encode()).hexdigest(), 'data': speaker}
-
+    speeches = deque()
     for speechData in meeting['speeches']:
         speechText = speechData['speech']
         for reguraizer in reguraizer:
@@ -42,3 +44,5 @@ def processDownlod(meeting: Dict, globalSpeakerMap={}):
         dto.author = speechData['name']
         dto.author_id = speakerMap[speechData['name']]['id']
         yield dto
+        speeches.append(speechData)
+    
