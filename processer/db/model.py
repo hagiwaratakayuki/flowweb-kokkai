@@ -119,9 +119,13 @@ class Model(object):
     def from_entity(cls, entity):
         ret = cls()
         for k, v in entity.items():
-            setattr(ret, k, v)
+            cls._set_attr(ret, k, v)
         ret._entity = entity
         return ret
+
+    @classmethod
+    def _set_attr(cls, target, k, v):
+        setattr(target, k, v)
 
 
 def put_multi(models: Iterable[Model]):

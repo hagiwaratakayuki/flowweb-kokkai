@@ -3,6 +3,23 @@ import time
 import os
 
 
+class Hoge:
+    pass
+
+
+class Fuga:
+    t: int
+
+    def test(self):
+        class Hoge(type(self)):
+            pass
+        Hoge.__annotations__['c'] = str
+        return Hoge()
+
+
+Fuga().test().c
+
+
 def example(x):
     return x * 2
 

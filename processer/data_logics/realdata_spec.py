@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, call
 from doc2vec import Doc2Vec
 import numpy as np
 from data_loader.dto import DTO
-from logic import save
+from data_logics import save
 from data_loader import nasa_sti
 
 

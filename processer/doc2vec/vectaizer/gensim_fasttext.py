@@ -1,9 +1,10 @@
-import datetime
+from typing import Union
+
 from gensim.models import KeyedVectors
 import os
 import logging
 logging.basicConfig(level=logging.INFO)
-kv: KeyedVectors | None = None
+kv: Union[KeyedVectors,  None] = None
 
 
 MODEL_PATH = 'example/fasttext_model/wiki-news-300d-1M.vec'

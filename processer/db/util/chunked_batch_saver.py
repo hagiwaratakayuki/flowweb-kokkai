@@ -12,7 +12,7 @@ PREV_CALL_TIMES = {}
 WRITE_START_MAP = {}
 
 
-class Chunker:
+class ChunkedBatchSaver:
     def __init__(self, size: int = 30):
 
         self.size = size

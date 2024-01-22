@@ -1,17 +1,12 @@
 from model import Model
 
 
-class Speech(Model):
+class Speaker(Model):
+    name: str
+    position: str
     session: int
-    issue: int
-    meeting_id: str
-    text: str
-    speaker: str
-    speaker_id: str
-    response_to: str
-    response_from: str
-    url: str
-    order: int
+    role: str
+    house: str
 
     def __init__(self, id=None) -> None:
         entity_options = {

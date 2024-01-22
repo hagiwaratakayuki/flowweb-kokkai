@@ -10,8 +10,8 @@ from processer.db import node
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
-from logic.data import date_converter
-from db.util.chunked import Chunker
+from data_logics.data import date_converter
+from processer.db.util.chunked_batch_saver import ChunkedBatchSaver
 from doc2vec.indexer.dto import SentimentResult
 
 from data_loader.kokkai import DTO
@@ -20,7 +20,7 @@ from multiprocessing import Pool
 import numpy as np
 
 
-class NodeModel(Chunker):
+class NodeModel(ChunkedBatchSaver):
     def __init__(self, nodeModel: node.Node,  size: int = 30):
         super().__init__(size)
         self.nodeModel = nodeModel
@@ -122,14 +122,14 @@ class Logic:
         edge_chunk = None
         """
 
-        cluster_chunker = Chunker()
+        cluster_chunker = ChunkedBatchSaver()
         members_chunk = deque()
 
-        member_model_chunk = Chunker()
+        member_model_chunk = ChunkedBatchSaver()
 
         cluster_keyword_chunk = deque()
         member_positions_chunk = deque()
-        keyword_model_chunk = Chunker()
+        keyword_model_chunk = ChunkedBatchSaver()
         logging.info('start cluster save')
         for cluster_id, cluster_members in taged.clusters.items():
             positions = get_position(
@@ -182,7 +182,7 @@ class Logic:
 
         index = 0
         model = NodeModel()
-        keyword_chunk = Chunker()
+        keyword_chunk = ChunkedBatchSaver()
         logging.info('start text save')
         for vector, sentimentResult, keywords, data in datas:
 
@@ -218,10 +218,10 @@ class Logic:
             cluster_keyword_chunk,
             index2id,
             linked_counts_map,
-            member_model_chunk: Chunker,
+            member_model_chunk: ChunkedBatchSaver,
             index2published,
             taged,
-            keyword_model_chunk: Chunker,
+            keyword_model_chunk: ChunkedBatchSaver,
             member_positions_chunk: deque
 
     ):

@@ -1,6 +1,6 @@
 import random
 import string
-from logic.save import buildModel, _save
+from data_logics.save import buildModel, _save
 
 import numpy as np
 from data_loader.dto import DTO
