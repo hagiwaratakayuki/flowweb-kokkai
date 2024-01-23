@@ -11,14 +11,14 @@ from data_loader.dto import DTO
 
 
 class Doc2Vec:
-    def __init__(self, modelfile: str = MODEL_PATH, workers: int = 1) -> None:
-        tokenaizer = NLTKTokenazer()
-        vectaizer = Vectaizer(modelfile)
-        analizer = NLTKAnalizer()
-        self._workers = workers
+    def __init__(self, modelfile: str = MODEL_PATH, TokenaizerClass=NLTKTokenazer, VectaizerClass=Vectaizer, AnalizerClass=NLTKAnalizer, IndexerClass=Indexer) -> None:
+        tokenaizer = TokenaizerClass()
+        vectaizer = VectaizerClass(modelfile)
+        analizer = AnalizerClass()
+
         self._vectaizer = vectaizer
-        self._indexer = Indexer(tokenaizer=tokenaizer,
-                                sentimentAnalyzer=analizer)
+        self._indexer = IndexerClass(tokenaizer=tokenaizer,
+                                     sentimentAnalyzer=analizer)
 
     def exec(self, pool: Pool,  datas: Iterable[DTO]):
         data_dict = {}
