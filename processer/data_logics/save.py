@@ -12,7 +12,7 @@ from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 from data_logics.data import date_converter
 from processer.db.util.chunked_batch_saver import ChunkedBatchSaver
-from doc2vec.indexer.dto import SentimentResult
+
 
 from data_loader.kokkai import DTO
 from cluster.get_position import get_position
@@ -28,15 +28,23 @@ class NodeModel(ChunkedBatchSaver):
     def save(self, id, dto, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
 
         nodeEntity: node.Node = self.nodeModel(id=id)
-        direction_vector = sentiment_result.vectors.positive - \
-            sentiment_result.vectors.negative
-        if sum(direction_vector) == 0:
-            direction_vector = sentiment_result.vectors.neutral
-        sentiment = {'position': sentiment_result.vectors.neutral.tolist(), 'direction': (
-            sentiment_result.vectors.positive - sentiment_result.vectors.negative).tolist()}
+        sentiment = self.set_vectors(sentiment_result=sentiment_result)
         self.setEntityProperty(
             dto=dto, nodeEntity=nodeEntity, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
         return self.put(nodeEntity)
+
+    def set_vectors(self, sentiment_result: SentimentResult):
+        direction_vector = sentiment_result.vectors.positive - \
+            sentiment_result.vectors.negative
+
+        if sum(direction_vector) == 0:
+            direction_vector = sentiment_result.vectors.neutral
+
+        sentiment = {
+            'position': sentiment_result.vectors.neutral.tolist(),
+            'direction': direction_vector
+        }
+        return sentiment
 
     def setEntityProperty(self, dto, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
         nodeEntity.setProperty(data=dict(vector=vector.tolist(),
