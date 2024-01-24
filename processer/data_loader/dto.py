@@ -4,12 +4,14 @@ from typing import Any
 
 class DTO:
     def __init__(self,
+                 title: '',
                  id: Any = '',
                  body: Any = '',
                  author: Any = '',
                  author_id: Any = '',
                  published: Any = None,
                  data: Any = {}):
+        self.title = title
         self.id = id
         self.body = body
         self.data = data.copy()

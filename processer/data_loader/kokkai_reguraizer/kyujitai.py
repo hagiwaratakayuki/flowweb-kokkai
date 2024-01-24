@@ -8,7 +8,7 @@ old_kanjis_pt = re.compile("[" + old_kanjis + "]")
 old_2_new_map = dict(zip(old_kanjis, new_kanjis))
 
 
-def convert(text: str):
+def convert(text: str, speechData):
     ret = text
     matches = old_kanjis_pt.findall(text)
     checked = {}

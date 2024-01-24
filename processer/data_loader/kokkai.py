@@ -1,19 +1,18 @@
 from storage.meeting import Meeting
 from itertools import chain
 from typing import Any, Dict
-from .reguraizer import regraizers
+
 from .dto import DTO as Base
 import hashlib
 from collections import deque
 from data_logics import kokkai_meeting, kokkai_speaker, kokkai_speech
+from .util import list_runner
+from data_loader.kokkai_reguraizer import reguraizers
 
 
 class DTO(Base):
     meeting_id: str
     house: str
-
-    def __init__(self, id: Any = '', body: Any = '', author: Any = '', author_id: Any = '', published: Any = None, data: Any = {}):
-        super().__init__(id, body, author, author_id, published, data)
 
 
 def load(speakerSaver=kokkai_speaker.Saver(), speechSaver=kokkai_speech.Saver(), meetingSaver=kokkai_meeting.Saver()):
@@ -50,10 +49,10 @@ def processDownlod(meeting: Dict, speakerMap: Dict, speeches: deque, meetings: d
                              for name in meeting['moderators']}
     meetings.append(meeting)
     for speechData in meeting['speeches']:
-        speechText = speechData['speech']
-        for reguraizer in reguraizer:
-            speechText = reguraizer(speechText)
+        speechText = list_runner.run(speechData['speech'], speechData)
+
         dto = DTO()
+        dto.title = speechData['speech'][0:20]
         dto.body = speechText
         dto.id = speechData['id']
         dto.author = speechData['name']

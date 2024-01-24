@@ -11,10 +11,11 @@ from data_loader.dto import DTO
 
 
 class Doc2Vec:
-    def __init__(self, modelfile: str = MODEL_PATH, TokenaizerClass=NLTKTokenazer, VectaizerClass=Vectaizer, AnalizerClass=NLTKAnalizer, IndexerClass=Indexer) -> None:
+    def __init__(self, modelfile: str = MODEL_PATH, chunksize=1000, TokenaizerClass=NLTKTokenazer, VectaizerClass=Vectaizer, AnalizerClass=NLTKAnalizer, IndexerClass=Indexer) -> None:
         tokenaizer = TokenaizerClass()
         vectaizer = VectaizerClass(modelfile)
         analizer = AnalizerClass()
+        self._chunk_size = chunksize
 
         self._vectaizer = vectaizer
         self._indexer = IndexerClass(tokenaizer=tokenaizer,
@@ -30,8 +31,8 @@ class Doc2Vec:
         with_word_vector = self.get_word_vector(parsed)
 
         compupteds = pool.imap_unordered(
-            func=self._indexer.compute, iterable=with_word_vector, chunksize=1000)
-        for vector, sentimentResults, scored_keywords, dataid in compupteds:
+            func=self._indexer.compute, iterable=with_word_vector, chunksize=self._chunk_size)
+        for vector, sentimentResults, scored_keywords, special_keywords,  dataid in compupteds:
             yield vector, sentimentResults, scored_keywords, data_dict[dataid]
 
     def get_data_itr(self, datas: Iterable[DTO], data_dict: dict):
@@ -42,6 +43,6 @@ class Doc2Vec:
             counted_id += 1
 
     def get_word_vector(self, parse_itr):
-        for first, keywords, third in parse_itr:
+        for first, keywords, third, force in parse_itr:
 
-            yield first, self._vectaizer.exec_dict(keywords), third
+            yield first, self._vectaizer.exec_dict(keywords), third, force

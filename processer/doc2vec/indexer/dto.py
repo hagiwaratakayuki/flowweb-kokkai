@@ -1,20 +1,25 @@
 import numpy as np
 import random
-class SentimentWeights:
-    neutral:float
-    positive:float
-    negative:float
 
-class SentinmentVector:
-    neutral:np.ndarray
-    positive:np.ndarray
-    negative:np.ndarray
+
+class SentimentWeights:
+    neutral: float
+    positive: float
+    negative: float
+
+
+class SentimentVector:
+    neutral: np.ndarray
+    positive: np.ndarray
+    negative: np.ndarray
+
 
 class SentimentResult:
-    vectors:SentinmentVector
-    weights:SentimentWeights
+    vectors: SentimentVector
+    weights: SentimentWeights
 
-def build_mock_sentiment_result(d1:int):
+
+def build_mock_sentiment_result(d1: int):
     neutral = random.random()
     positive = random.random()
     negative = random.random()
@@ -26,17 +31,12 @@ def build_mock_sentiment_result(d1:int):
     neutral = np.random.rand(d1)
     positive = np.random.rand(d1)
     negative = np.random.rand(d1)
-    vectors = SentinmentVector()
+    vectors = SentimentVector()
 
-    vectors.neutral = neutral 
-    vectors.positive = positive 
+    vectors.neutral = neutral
+    vectors.positive = positive
     vectors.negative = negative
     result = SentimentResult()
     result.vectors = vectors
     result.weights = weights
     return result
-
-
-
-
-    

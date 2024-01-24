@@ -2,7 +2,7 @@ from collections import defaultdict, deque
 import math
 import numpy as np
 
-from .dto import SentimentWeights, SentinmentVector, SentimentResult
+from .dto import SentimentWeights, SentimentVector, SentimentResult
 
 
 def WeightMap():
@@ -18,16 +18,16 @@ class Indexer:
 
         text,  data = args
 
-        token_lines = self._tokenaizer.exec(text)
+        token_lines, specifickeywords = self._tokenaizer.exec(text)
         token_map = {}
         for verbs, line in token_lines:
             for verb in verbs:
                 token_map[verb] = True
 
-        return token_lines, list(token_map.keys()), data
+        return token_lines, list(token_map.keys()), specifickeywords, data
 
     def compute(self, args):
-        token_lines, vector_map, data = args
+        token_lines, vector_map, specifickeywords, data = args
         nodes = []
         count = 0
         for subnodes, line in token_lines:
@@ -76,10 +76,10 @@ class Indexer:
         scored_keywords: list[str] = [word_index[i]
                                       for i in sorted_array if norms[i] <= avg]
 
-        return vector, sentimentResults, scored_keywords, data
+        return vector, sentimentResults, scored_keywords, specifickeywords, data
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
-        sentimentVectors = SentinmentVector()
+        sentimentVectors = SentimentVector()
 
         for sentiment, sentimentWords in sentimentWordMap.items():
 

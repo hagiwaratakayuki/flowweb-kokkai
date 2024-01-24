@@ -19,7 +19,7 @@ kansuuji = {u'零': '0', u'一': '1', u'壱': '1', u'二': '2', u'弐': '2', u'�
             u'四': '4', u'五': '5', u'六': '6', u'七': u'7', u'八': '8', u'九': '9'}
 
 
-def convert(speech):
+def convert(speech, speechData):
     speech = unicodedata.normalize("NFKC", speech)
     speech = speech.upper()
 
