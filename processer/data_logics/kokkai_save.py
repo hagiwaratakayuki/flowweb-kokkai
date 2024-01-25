@@ -37,7 +37,7 @@ class KokkaiLogic(Logic):
 
     def save(self, datas: Iterable[tuple[ndarray, SentimentResult, Iterable[str], DTO]], model: NodeModel):
         super().save(datas, model)
-        self._cluster_links_batch.close()
+        self._cluster_links_batch.close(False)
 
         self._link_map.update(self._next_link)
         return self._link_map()
@@ -51,7 +51,7 @@ class KokkaiLogic(Logic):
         super()._put_cluster_data(entities, members_chunk, cluster_keyword_chunk, index2id, linked_counts_map,
                                   member_model_chunk, index2published, taged, keyword_model_chunk, member_positions_chunk)
         for entity, keywords in zip(entities, members_chunk):
-            eid = str(entity.id)
+            eid = entity.id
             self._next_link[keywords].append((self.session, eid,))
             if keywords in self._link_map:
 

@@ -30,9 +30,9 @@ class ChunkedBatchSaver:
         if self.chunk_count >= self.size:
             return self._put_chunk(is_return=is_return)
 
-    def close(self):
+    def close(self, is_return=True):
         if self.chunk_count > 0:
-            return self._put_chunk(True)
+            return self._put_chunk(is_force=True, is_return=is_return)
 
     def _put_chunk(self, is_force=False, is_return=True):
         global LIMIT_MAP, PREV_CALL_TIMES
