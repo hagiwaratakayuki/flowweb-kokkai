@@ -23,18 +23,18 @@ class ChunkedBatchSaver:
         self._clear_weigtings()
         self._clear_chunk()
 
-    def put(self, model):
+    def put(self, model, is_return=True):
         self._chunk.append(model)
         self.chunk_count += 1
         self._model = model
         if self.chunk_count >= self.size:
-            return self._put_chunk()
+            return self._put_chunk(is_return=is_return)
 
     def close(self):
         if self.chunk_count > 0:
             return self._put_chunk(True)
 
-    def _put_chunk(self, is_force=False):
+    def _put_chunk(self, is_force=False, is_return=True):
         global LIMIT_MAP, PREV_CALL_TIMES
         now = time.time()
 
@@ -53,9 +53,9 @@ class ChunkedBatchSaver:
                 LIMIT_INCREASE_STEP ** math.floor(
                 (now - write_start) / LIMIT_INCREASE_TIME)
         weightings = self._clear_weigtings()
-        return asyncio.run(self._put_waitings(weightings=weightings))
+        return asyncio.run(self._put_waitings(weightings=weightings, is_return))
 
-    async def _put_waitings(self, weightings):
+    async def _put_waitings(self, weightings,is_return=True):
         now = time.time()
         from_prev_time = now - self._prev_call_time
         if from_prev_time < 1.0:
@@ -63,7 +63,8 @@ class ChunkedBatchSaver:
             now = time.time()
         self._prev_call_time = now
         chunks = await asyncio.gather(*[self._put_multi(weight) for weight in weightings])
-
+        if is_return == False:
+            return
         ret = deque()
         for chunk in chunks:
             for entity in chunk:

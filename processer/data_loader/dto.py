@@ -4,7 +4,7 @@ from typing import Any
 
 class DTO:
     def __init__(self,
-                 title: '',
+                 title: str = '',
                  id: Any = '',
                  body: Any = '',
                  author: Any = '',

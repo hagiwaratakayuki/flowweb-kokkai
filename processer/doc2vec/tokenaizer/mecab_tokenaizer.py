@@ -20,18 +20,26 @@ class MeCabTokenazier:
         filter = ["", "EOS"]
         results = deque()
 
-        for line in text.splitlines():
-            verbs = deque()
-            for resultline in self._tagger.parse(line).splitlines():
-                if resultline in filter:
-                    continue
-                face, datast = KUUHAKU.split(resultline, 2)
-                data = datast.split(",")
-                if data[0] == "名詞":
-                    verbs.append(face)
+        verbs = deque()
+        sentences = text.split("。")
+        senetence_number = 0
 
-            if len(verbs) == 0:
+        for resultline in self._tagger.parse(text).splitlines():
+            if resultline in filter:
                 continue
-            results.append((verbs, line,))
+            face, datast = KUUHAKU.split(resultline, 2)
+            data = datast.split(",")
+            if data[0] == "名詞":
+                verbs.append(face)
+            if face == "。":
+                if len(verbs) == 0:
+                    senetence_number += 1
+                else:
+                    results.append((verbs, sentences[senetence_number],))
+                    senetence_number += 1
+                verbs = deque()
+
+        if len(verbs) != 0:
+            results.append((verbs, sentences[senetence_number],))
 
         return results

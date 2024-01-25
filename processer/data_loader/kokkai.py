@@ -26,7 +26,7 @@ def load(speakerSaver=kokkai_speaker.Saver(), speechSaver=kokkai_speech.Saver(),
         speechSaver.save(speeches=speeches)
         meetingSaver.save(meeting=meetings)
     speakerSaver.close()
-    speakerSaver.close()
+    meetingSaver.close()
     speechSaver.close()
 
 

@@ -66,6 +66,8 @@ def buildVectaizer():
 
 
 class Logic:
+    def __init__(self, ClusterModelClass=cluster.Cluster) -> None:
+        self._cluster_model_class = ClusterModelClass
     # ファイルを読む
     # パース
     # クラスタリング　+ キーワード抽出
@@ -213,7 +215,7 @@ class Logic:
         logging.info('done')
 
     def _get_cluster_model(self, taged, cluster_id, cluster_members):
-        cluster_model = cluster.Cluster()
+        cluster_model = self._cluster_model_class()
         cluster_model.member_count = len(cluster_members)
         cluster_model.short_keywords = list(
             taged.tag_index[cluster_id])[:5]
