@@ -27,17 +27,16 @@ class KokkaiNodeModel(NodeModel):
 
 
 class KokkaiLogic(Logic):
-    def __init__(self, session, link_map) -> None:
+    def __init__(self, session, link_map, cluster_links_batch: ChunkedBatchSaver) -> None:
         self.session = session
         self._link_map = link_map
         self._next_link = defaultdict(deque)
-        self._cluster_links_batch = ChunkedBatchSaver()
+        self._cluster_links_batch = cluster_links_batch
 
         super().__init__(self, ClusterModelClass=KokkaiCluster)
 
     def save(self, datas: Iterable[tuple[ndarray, SentimentResult, Iterable[str], DTO]], model: NodeModel):
         super().save(datas, model)
-        self._cluster_links_batch.close(False)
 
         self._link_map.update(self._next_link)
         return self._link_map()
