@@ -53,9 +53,9 @@ class ChunkedBatchSaver:
                 LIMIT_INCREASE_STEP ** math.floor(
                 (now - write_start) / LIMIT_INCREASE_TIME)
         weightings = self._clear_weigtings()
-        return asyncio.run(self._put_waitings(weightings=weightings, is_return))
+        return asyncio.run(self._put_waitings(weightings=weightings, is_return=is_return))
 
-    async def _put_waitings(self, weightings,is_return=True):
+    async def _put_waitings(self, weightings, is_return=True):
         now = time.time()
         from_prev_time = now - self._prev_call_time
         if from_prev_time < 1.0:

@@ -17,11 +17,11 @@ class Fuga:
         return Hoge()
 
 
-Fuga().test().c
+print(__name__)
 
 
-def example(x):
-    return x * 2
+def example():
+    print("ok")
 
 
 def test(itr):

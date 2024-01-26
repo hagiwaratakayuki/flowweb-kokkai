@@ -25,30 +25,52 @@ class Taged(RidgeDitect):
         member_to_clusters = defaultdict(deque)
         for cluster_members in clusters.values():
             tag_2_members = defaultdict(deque)
+            tag_links = defaultdict(frozenset)
 
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
+                tags_set = set(tags)
 
                 for tag in tags:
+                    tag_links[tag] += tags_set - set([tag])
 
-                    tag_2_members[tag].append(member)
+                    tag_2_members[tag].append(cluster_member)
+            tag_2_members = {tag: frozenset(member)
+                             for tag, member in tag_2_members}
+
             sub_clusters = defaultdict(deque)
-            empty_set = frozenset()
-            for tag, members in tag_2_members.items():
-                member_set = frozenset(members)
 
-                for sub_member_set in sub_clusters.keys():
-                    canditate_members = member_set & sub_member_set
-                    if canditate_members == empty_set:
-                        continue
-                    sub_clusters[canditate_members].append(tag)
-                sub_clusters[member_set].append(tag)
+            checked_links = defaultdict(set)
+            tag_2_sub_clusters = defaultdict(dict)
+            for tag, members in tag_2_members.items():
+                linked_tags = tag_links[tag] - checked_links[tag]
+                tag_set = set([tag])
+                for linked_tag in linked_tags:
+                    add_linked_tag = False
+                    for target_clusters in [tag_2_sub_clusters[linked_tag], [tag_2_members[linked_tag]]]:
+
+                        for target_cluster in target_clusters:
+                            new_cluster = target_cluster & members
+                            new_tags = sub_clusters[target_cluster].copy()
+                            tag_2_sub_clusters[linked_tag][new_cluster] = True
+
+                            new_tags.append(tag)
+                            if add_linked_tag == True:
+                                new_tags.append(linked_tag)
+                            sub_clusters[new_cluster] = new_tags
+                        add_linked_tag = True
+
+                    checked_links[linked_tag] += tag_set
+
+                sub_clusters[members].append(tag)
 
             for members, tags in sub_clusters.items():
                 new_clusters[cluster_id] = members
-                tag_index[cluster_id] = tags
+                tag_index[cluster_id] = frozenset(tags)
+                """
                 for member in members:
                     member_to_clusters[member].append(cluster_id)
+                """
                 cluster_id += 1
 
         self.clusters = new_clusters
