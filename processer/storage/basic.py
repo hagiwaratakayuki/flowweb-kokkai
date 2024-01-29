@@ -20,11 +20,13 @@ def get_location():
 
 
 def set_project_id(project_id='test'):
+    global PROJECT_ID
     PROJECT_ID = project_id
 
 
 def get_project_id():
     global PROJECT_ID
+
     if PROJECT_ID is None:
         PROJECT_ID = get_metadata("project_id")
 

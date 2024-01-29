@@ -10,10 +10,10 @@ with open(os.path.join(os.path.dirname(__file__), 'stopwords.txt'), mode='r', en
     for row in fp:
         _stopwords[row.lower().strip()] = True
 
+tagger = MeCab.Tagger()
+
 
 class MeCabTokenazier:
-    def __init__(self) -> None:
-        self._tagger = MeCab.Tagger()
 
     def exec(self, text: str):
 
@@ -24,10 +24,11 @@ class MeCabTokenazier:
         sentences = text.split("。")
         senetence_number = 0
 
-        for resultline in self._tagger.parse(text).splitlines():
+        for resultline in tagger.parse(text).splitlines():
             if resultline in filter:
                 continue
-            face, datast = KUUHAKU.split(resultline, 2)
+
+            face, datast = KUUHAKU.split(resultline, 1)
             data = datast.split(",")
             if data[0] == "名詞":
                 verbs.append(face)
@@ -42,4 +43,4 @@ class MeCabTokenazier:
         if len(verbs) != 0:
             results.append((verbs, sentences[senetence_number],))
 
-        return results
+        return results, []

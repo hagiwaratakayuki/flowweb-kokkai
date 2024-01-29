@@ -18,13 +18,14 @@ class DTO(Base):
 def load(speakerSaver=kokkai_speaker.Saver(), speechSaver=kokkai_speech.Saver(), meetingSaver=kokkai_meeting.Saver()):
     storagemodel = Meeting()
     for session,  meetingChunks in storagemodel.downloadAll():
+
         speaker_id_map = {}
         speeches = deque()
         meetings = deque()
         yield session, chain.from_iterable((processDownlod(meeting, speakerMap=speaker_id_map, speeches=speeches, meetings=meetings) for meeting in chain.from_iterable(meetingChunks)))
         speakerSaver.save(speaker_id_map=speaker_id_map)
-        speechSaver.save(speeches=speeches)
-        meetingSaver.save(meeting=meetings)
+        speechSaver.save(session=session, speeches=speeches)
+        meetingSaver.save(meetings=meetings)
     speakerSaver.close()
     meetingSaver.close()
     speechSaver.close()
@@ -49,16 +50,19 @@ def processDownlod(meeting: Dict, speakerMap: Dict, speeches: deque, meetings: d
                              for name in meeting['moderators']}
     meetings.append(meeting)
     for speechData in meeting['speeches']:
-        speechText = list_runner.run(speechData['speech'], speechData)
+
+        speechText = list_runner.run(
+            reguraizers, speechData['speech'], speechData)
 
         dto = DTO()
         dto.title = speechData['speech'][0:20]
         dto.body = speechText
         dto.id = speechData['id']
-        dto.author = speechData['name']
-        dto.author_id = _speakerMap[speechData['name']]['id']
+        dto.author = speechData['speaker']
+        dto.author_id = _speakerMap[speechData['speaker']]['id']
         yield dto
         speechData['speaker_id'] = dto.author_id
+        speechData['meeting_id'] = meeting["id"]
         speeches.append(speechData)
     for v in _speakerMap.values():
         speakerMap[v['id']] = v['speaker']

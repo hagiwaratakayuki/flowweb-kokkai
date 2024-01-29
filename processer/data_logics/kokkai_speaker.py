@@ -9,8 +9,8 @@ class Saver:
     def __init__(self) -> None:
         self.saver = ChunkedBatchSaver()
 
-    def save(self, speaker_id_map: [str, Dict]):
-        for speaker_id, speaker in speaker_id_map:
+    def save(self, speaker_id_map: Dict[str, Dict]):
+        for speaker_id, speaker in speaker_id_map.items():
             model = Speaker(id=speaker_id)
             model.session = speaker['session']
 

@@ -1,5 +1,6 @@
 from db.model import put_multi
 from collections import deque
+
 import asyncio
 import time
 import math
@@ -43,7 +44,7 @@ class ChunkedBatchSaver:
         self._weightings_count += self.size
         write_limit = LIMIT_MAP.get(self._model.get_kind(), START_LIMIT)
         is_time_over = self._prev_call_time > 0.0 and now - self._prev_call_time > 1.0
-        if is_force == False and is_time_over == False and self._prev_call_timeself._weightings_count + self.size < write_limit:
+        if is_force == False and is_time_over == False and self._weightings_count + self.size < write_limit:
             return
         write_start = WRITE_START_MAP.get(self._model.get_kind(), 0)
         if write_start == 0:

@@ -69,7 +69,7 @@ def convert(speech, speechData):
                 keta *= 10
             if lastten:
                 value += extend_keta * KANJI_KETA_MAP[token]
-            new = value
+            new = str(value)
         speech = speech.replace(target, new)
 
     return speech

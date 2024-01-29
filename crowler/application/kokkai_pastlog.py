@@ -67,9 +67,9 @@ def upload(session: int, meetingRecordList: List[MeetingRecord]):
 
 
 def createDataAndFileName(meetingRecordList: List[MeetingRecord]):
-    meetingRecords = {}
+    meetingRecords = []
     idStringList = []
-    for meetingRecords in meetingRecordList:
-        meetingRecords.append(meetingRecords.toDict())
-        idStringList.append(meetingRecords.id)
+    for meetingRecord in meetingRecordList:
+        meetingRecords.append(meetingRecord.toDict())
+        idStringList.append(meetingRecord.id)
     return meetingRecords, idStringList

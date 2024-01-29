@@ -4,14 +4,14 @@ import logging
 from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
-from processer.db import node_keyword
+from db import node_keyword
 from typing import Iterable, Dict
-from processer.db import node
+from db import node
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 from data_logics.data import date_converter
-from processer.db.util.chunked_batch_saver import ChunkedBatchSaver
+from db.util.chunked_batch_saver import ChunkedBatchSaver
 
 
 from data_loader.kokkai import DTO
@@ -20,10 +20,10 @@ from multiprocessing import Pool
 import numpy as np
 
 
-class NodeModel(ChunkedBatchSaver):
-    def __init__(self, nodeModel: node.Node,  size: int = 30):
+class NodeModelLogic(ChunkedBatchSaver):
+    def __init__(self, NodeModelClass: node.Node = node.Node,  size: int = 30):
         super().__init__(size)
-        self.nodeModel = nodeModel
+        self.nodeModel = NodeModelClass
 
     def save(self, id, dto, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
 
@@ -58,7 +58,7 @@ class NodeModel(ChunkedBatchSaver):
 
 
 def buildModel():
-    return NodeModel()
+    return NodeModelLogic()
 
 
 def buildVectaizer():
@@ -73,7 +73,7 @@ class Logic:
     # クラスタリング　+ キーワード抽出
     # 保存
 
-    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], DTO]], model: NodeModel):
+    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: NodeModelLogic):
 
         index2tag = {}
         index2id = {}
@@ -88,8 +88,10 @@ class Logic:
         logging.info('start saving')
         vector_dtype = None
         vector_dimention = None
-        for vector, sentimentResult, keywords, data in datas:
 
+        for vector, sentimentResult, keywords, specific_keywords, data in datas:
+            if vector is None:
+                continue
             if is_first == True:
                 is_first = False
                 vector_dimention = vector.shape[0]
@@ -104,6 +106,7 @@ class Logic:
 
         vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=index)
+
         logging.info('start create graph')
         taged = Taged()
         taged.fit(tags_map=index2tag, vectors=vectors, sample=32)
@@ -191,7 +194,7 @@ class Logic:
         keyword_model_chunk.close()
 
         index = 0
-        model = NodeModel()
+
         keyword_chunk = ChunkedBatchSaver()
         logging.info('start text save')
         for vector, sentimentResult, keywords, data in datas:
@@ -199,8 +202,8 @@ class Logic:
             id = index2id[index]
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
-            model.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                       link_to=link_to, linked_count=linked_count)
+            nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
+                           link_to=link_to, linked_count=linked_count)
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published
@@ -210,7 +213,7 @@ class Logic:
                 keyword_chunk.put(keyword_model)
             index += 1
 
-        entities = model.close()
+        entities = nodeLogic.close()
         keyword_chunk.close()
         logging.info('done')
 

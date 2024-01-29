@@ -1,12 +1,12 @@
 import oseti
 
+analyzer = oseti.Analyzer()
+
 
 class OsetiAnalizer:
-    def __init__(self) -> None:
-        self._analyzer = oseti.Analyzer()
 
     def exec(self, text: str) -> dict:
-        ret = self._analyzer.analyze(text)
+        ret = analyzer.analyze(text)
         positive = sum(ret) / len(ret)
         negative = 1.0 - positive
         if negative == 0 and positive == 0:

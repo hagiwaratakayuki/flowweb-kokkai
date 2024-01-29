@@ -53,12 +53,15 @@ class Vectaizer:
             else:
                 vec = self._kv[word]
                 dt = vec.dtype
+                dimn = vec.shape[0]
+
                 unprojected_vecs.append(vec)
                 unprojected_words.append(word)
                 unprojected_count += 1
         if unprojected_count > 0:
+
             unprojected_mat = np.fromiter(
-                unprojected_vecs, dtype=dt, count=unprojected_count)
+                unprojected_vecs, dtype=(dt, dimn, ), count=unprojected_count)
             projected_mat = projection(unprojected_mat)
             for word, projected_vec in zip(unprojected_words, projected_mat):
                 projected[word] = projected_vec

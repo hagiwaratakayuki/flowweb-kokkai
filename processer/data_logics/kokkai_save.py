@@ -2,21 +2,21 @@ from collections import deque, defaultdict
 from typing import Iterable
 from numpy import ndarray
 
-from processer.db.node import Node
+from db.node import Node
 from data_loader.kokkai import DTO
-from processer.db.util.chunked_batch_saver import ChunkedBatchSaver
-from processer.doc2vec.indexer.dto import SentimentResult
-from .save import Logic, NodeModel
+from db.util.chunked_batch_saver import ChunkedBatchSaver
+from doc2vec.indexer.dto import SentimentResult
+from .save import Logic, NodeModelLogic
 from db.node_kokkai import NodeKokkai
 from db.kokkai_cluster import KokkaiCluster
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.cluster_link import ClusterLink
 
 
-class KokkaiNodeModel(NodeModel):
+class KokkaiNodeLogic(NodeModelLogic):
     session: int
 
-    def __init__(self, session, nodeModel: NodeKokkai, size: int = 30):
+    def __init__(self, session, nodeModel: NodeKokkai = NodeKokkai, size: int = 30):
         self.session = session
         super().__init__(nodeModel, size)
 
@@ -33,13 +33,13 @@ class KokkaiLogic(Logic):
         self._next_link = defaultdict(deque)
         self._cluster_links_batch = cluster_links_batch
 
-        super().__init__(self, ClusterModelClass=KokkaiCluster)
+        super().__init__(ClusterModelClass=KokkaiCluster)
 
-    def save(self, datas: Iterable[tuple[ndarray, SentimentResult, Iterable[str], DTO]], model: NodeModel):
-        super().save(datas, model)
+    def save(self, datas: Iterable[tuple[ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: KokkaiNodeLogic):
+        super().save(datas, nodeLogic=nodeLogic)
 
         self._link_map.update(self._next_link)
-        return self._link_map()
+        return self._link_map
 
     def _get_cluster_model(self, taged, cluster_id, cluster_members):
         cluster_model = super()._get_cluster_model(taged, cluster_id, cluster_members)
@@ -49,10 +49,11 @@ class KokkaiLogic(Logic):
     def _put_cluster_data(self, entities, members_chunk, cluster_keyword_chunk, index2id, linked_counts_map, member_model_chunk: ChunkedBatchSaver, index2published, taged, keyword_model_chunk: ChunkedBatchSaver, member_positions_chunk: deque):
         super()._put_cluster_data(entities, members_chunk, cluster_keyword_chunk, index2id, linked_counts_map,
                                   member_model_chunk, index2published, taged, keyword_model_chunk, member_positions_chunk)
-        for entity, keywords in zip(entities, members_chunk):
+        for entity, keywords in zip(entities, cluster_keyword_chunk):
             eid = entity.id
-            self._next_link[keywords].append((self.session, eid,))
-            if keywords in self._link_map:
+            keywords_fset = frozenset(keywords)
+            self._next_link[keywords_fset].append((self.session, eid,))
+            if keywords_fset in self._link_map:
 
                 for session, cluster_id in self._link_map[keywords]:
                     link_model = ClusterLink()

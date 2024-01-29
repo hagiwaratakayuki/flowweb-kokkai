@@ -1,4 +1,4 @@
-from processer.db.util.chunked_batch_saver import ChunkedBatchSaver
+from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.meeting import Meeting
 
 
@@ -12,13 +12,13 @@ class Saver:
             model.session = meeting['session']
 
             model.name = meeting['name']
-            model.moderator_ids
+
             model.url = meeting['url']
-            model.pdf = meeting['order']
-            model.header_text = meeting['header_text']
+            model.pdf = meeting['pdf']
+            model.header_text = meeting['headerRecord']
             moderaters = meeting['moderators']
             model.set_moderators(moderaters)
-            model.moderator_ids = list(meeting['moderaters'].values())
+            model.moderator_ids = list(meeting['moderators'].values())
             self.saver.put(model)
 
     def close(self):

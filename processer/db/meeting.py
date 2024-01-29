@@ -1,6 +1,6 @@
 
 from typing import Union
-from model import Model
+from .model import Model
 from typing import List
 import json
 

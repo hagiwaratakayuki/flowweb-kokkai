@@ -19,6 +19,7 @@ class Indexer:
         text,  data = args
 
         token_lines, specifickeywords = self._tokenaizer.exec(text)
+
         token_map = {}
         for verbs, line in token_lines:
             for verb in verbs:
@@ -27,6 +28,7 @@ class Indexer:
         return token_lines, list(token_map.keys()), specifickeywords, data
 
     def compute(self, args):
+
         token_lines, vector_map, specifickeywords, data = args
         nodes = []
         count = 0
@@ -40,7 +42,8 @@ class Indexer:
             nodes.append((scored_subnodes, count, line, ))
             count += 1
         if count == 0:
-            return None, None, None, data
+
+            return None, None, None, None, data
         nodeslen = count - int(count > 1)
         key_map = defaultdict(float)
         sentimentWordMap = defaultdict(WeightMap)

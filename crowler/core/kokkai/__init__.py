@@ -95,17 +95,29 @@ class SpeechRecord(object):
                 if isAsModerator == True:
                     break
         self.isAsModerator = isAsModerator
-        self.responseTo = None
+        self.response_to = None
+        self.response_from = None
+        self.discussion_id = None
         self.speech = re.sub(u'^[^\s]+\s+', u'　', speech, flags=re.U)
 
-    def setResponseTo(self, order):
-        self.responseTo = order
+    def setResponseTo(self, prevSpeech):
+        self.response_to = prevSpeech
+
+    def setResponseFrom(self, nextSpeech):
+        self.response_from = nextSpeech
+
+    def setDiscussionId(self, discussionId):
+        self.discussion_id = discussionId
 
     def toDict(self):
         ret = dict(speaker=self.speaker.name,
                    speech=self.speech, url=self.url, id=self.id, order=self.order)
-        if self.responseTo != None:
-            ret['responseTo'] = self.responseTo
+        if self.response_to is not None:
+            ret['response_to'] = self.response_to
+        if self.response_from is not None:
+            ret['response_from'] = self.response_from
+        if self.discussion_id is not None:
+            ret['discussion_id'] = self.discussion_id
         return ret
 
 
@@ -128,7 +140,9 @@ class MeetingRecord(object):
         speakers: Dict[str, Speaker] = {}
         prevSpeech = None
         questioner = None
+        discussion_id = None
         moderatorSpeech = ""
+        self.is_freequestion = False
 
         for speechRecordNode in record.findall('speechRecord'):
             order = int(speechRecordNode.findtext('speechOrder'))
@@ -137,11 +151,11 @@ class MeetingRecord(object):
             if order == 0:
                 self.parseHeaderLog(speechRecordNode, year, month, date)
                 continue
-
-            if order == 1:
-
-                self.moderators.append(speaker)
             speech = speechRecordNode.findtext('speech')
+            if order == 1:
+                self.is_freequestion = "自由討議" in speech
+                self.moderators.append(speaker)
+
             speakerData = speakers.get(speaker) or Speaker(
                 speechRecord=speechRecordNode, speech=speech, name=speaker)
             speakers[speaker] = speakerData
@@ -149,8 +163,9 @@ class MeetingRecord(object):
                 speechRecordNode, order, speakerData, speech)
 
             if speechRecord.isAsModerator == False:
+
                 speeches[order] = speechRecord
-                speechRecord.setResponseTo(prevSpeech)
+
                 if questioner != speakerData.name and speechRecord.speaker.isDietMember == True:
                     cand = ""
 
@@ -160,11 +175,14 @@ class MeetingRecord(object):
                         if check in moderatorSpeech:
                             questioner = speakerData
                             prevSpeech = None
+                            discussion_id = speechRecord.id
                             break
 
                 else:
-                    prevSpeech = speechRecord.id
-
+                    prevSpeech = speechRecord
+                if prevSpeech is not None:
+                    speechRecord.setResponseTo(prevSpeech.id)
+                    prevSpeech.setResponseFrom(speechRecord.id)
                 moderatorSpeech = ""
 
             else:
@@ -172,6 +190,9 @@ class MeetingRecord(object):
                 if speakerData.name not in self.moderators:
                     self.moderators.append(speakerData.name)
                     speakerData.isModerater = True
+                if self.is_freequestion is True:
+                    speeches[order] = speechRecord
+
             endRecord = speechRecord
 
         hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
