@@ -75,16 +75,19 @@ class Indexer:
         return vector, sentimentResults, scored_keywords, data
 
     def _extract_keywords(self, filtered_map, vector, specific_keywords):
-        word_index = list(filtered_map.keys())
+        word_index = dict(enumerate(filtered_map.keys()))
+        word_length = max(list(word_index.key())) + 1
         norms = np.linalg.norm(
-            np.array([v['vector'] for v in filtered_map.values()]) - vector, axis=1)
+            np.array([word_index[i]['vector'] for i in range(word_length)]) - vector, axis=1)
         avg = np.average(norms)
         std = np.std(norms)
         sorted_array = np.argsort(norms)
         limit = avg - std
-
-        scored_keywords: list[str] = [word_index[i]
-                                      for i in sorted_array if norms[i] <= limit][:5]
+        if word_length <= 5:
+            scored_keywords = word_index[sorted_array[0]]
+        else:
+            scored_keywords: list[str] = [word_index[i]
+                                          for i in sorted_array if norms[i] <= limit][:5]
         return scored_keywords
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
