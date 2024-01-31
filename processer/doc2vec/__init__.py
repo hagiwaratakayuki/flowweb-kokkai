@@ -5,7 +5,7 @@ from multiprocessing.pool import Pool
 
 from doc2vec.vectaizer.gensim_fasttext import Vectaizer, MODEL_PATH
 from doc2vec.sentiment.nltk_analizer import NLTKAnalizer
-from collections import deque
+
 
 from data_loader.dto import DTO
 
@@ -35,9 +35,9 @@ class Doc2Vec:
         compupteds = pool.imap_unordered(
             func=self._indexer.compute, iterable=with_word_vector, chunksize=self._chunk_size)
 
-        for vector, sentimentResults, scored_keywords, special_keywords,  dataid in compupteds:
+        for vector, sentimentResults, scored_keywords,  dataid in compupteds:
 
-            yield vector, sentimentResults, scored_keywords, special_keywords, data_dict[dataid]
+            yield vector, sentimentResults, scored_keywords, data_dict[dataid]
 
     def get_data_itr(self, datas: Iterable[DTO], data_dict: dict):
         counted_id = 0

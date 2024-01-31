@@ -89,7 +89,7 @@ class Logic:
         vector_dtype = None
         vector_dimention = None
 
-        for vector, sentimentResult, keywords, specific_keywords, data in datas:
+        for vector, sentimentResult, keywords, data in datas:
             if vector is None:
                 continue
             if is_first == True:
@@ -114,26 +114,10 @@ class Logic:
 
         # edge_chunk = Chunker()
         linked_counts_map = defaultdict(int)
-        for ind, vertexs in taged.graph.items():
+        for vertexs in taged.graph.values():
             for vertex in vertexs:
                 link_to = index2id[vertex]
                 linked_counts_map[link_to] += 1
-        """
-        for ind, vertexs in taged.graph.items():
-            linked_from =  index2id[ind]
-            published = index2published[ind]
-            for vertex in vertexs:
-                edge_model = edge.Edge()
-                edge_model.linked_from = linked_from
-                edge_model.published = published             
-                edge_model.link_to = index2id[vertex]
-                edge_model.linked_count = linked_counts_map[vertex]
-                edge_chunk.put(edge_model)          
-            
-        
-        edge_chunk.close()
-        edge_chunk = None
-        """
 
         cluster_chunker = ChunkedBatchSaver()
         members_chunk = deque()

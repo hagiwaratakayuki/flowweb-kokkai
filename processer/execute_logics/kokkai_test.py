@@ -16,7 +16,7 @@ class MockKeyedVector:
         if key in self._items:
             return self._items[key]
         else:
-            self._items[key] = np.random.random(300)
+            self._items[key] = (np.random.random(300) - 0.5) * 2
             return self._items[key]
 
     def __contains__(self, item):

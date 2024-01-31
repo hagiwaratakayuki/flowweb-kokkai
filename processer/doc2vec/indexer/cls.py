@@ -43,7 +43,7 @@ class Indexer:
             count += 1
         if count == 0:
 
-            return None, None, None, None, data
+            return None, None, None, data
         nodeslen = count - int(count > 1)
         key_map = defaultdict(float)
         sentimentWordMap = defaultdict(WeightMap)
@@ -69,17 +69,23 @@ class Indexer:
 
         sentimentResults = self._process_senti_total(
             vector_map, vector, sentimentWordMap=sentimentWordMap, sentimentRatio=sentimentRatio)
-        word_index = list(filtered_map.keys())
 
+        scored_keywords = self._extract_keywords(
+            filtered_map=filtered_map, vector=vector, specific_keywords=specifickeywords)
+        return vector, sentimentResults, scored_keywords, data
+
+    def _extract_keywords(self, filtered_map, vector, specific_keywords):
+        word_index = list(filtered_map.keys())
         norms = np.linalg.norm(
             np.array([v['vector'] for v in filtered_map.values()]) - vector, axis=1)
         avg = np.average(norms)
-        # std = np.std(norms)
+        std = np.std(norms)
         sorted_array = np.argsort(norms)
-        scored_keywords: list[str] = [word_index[i]
-                                      for i in sorted_array if norms[i] <= avg]
+        limit = avg - std
 
-        return vector, sentimentResults, scored_keywords, specifickeywords, data
+        scored_keywords: list[str] = [word_index[i]
+                                      for i in sorted_array if norms[i] <= limit][:5]
+        return scored_keywords
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
         sentimentVectors = SentimentVector()

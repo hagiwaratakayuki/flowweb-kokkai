@@ -1,6 +1,7 @@
 from .basic import RidgeDitect
 import numpy as np
 from collections import defaultdict, deque
+from itertools import combinations
 
 
 class Taged(RidgeDitect):
@@ -26,33 +27,29 @@ class Taged(RidgeDitect):
 
         for cluster_members in clusters.values():
 
-            tag_2_members = defaultdict(deque)
-            sub_clusters = defaultdict(deque)
-            sub_tags = {}
+            tags_2_members = defaultdict(deque)
+            sub_clusters = defaultdict(set)
+
             tag_2_tag = defaultdict(set)
 
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
-                tags_set = set(tags)
-                for tag in tags:
-                    tag_2_tag[tag].update(tags_set - {tag})
-                    tag_2_members[tag].append(cluster_member)
+                print(len(tags))
+                continue
 
-            for tag, members in tag_2_members.items():
+                for i in range(1, len(tags) + 1):
+                    for combination in combinations(tags, i):
+                        tags_2_members[frozenset(combination)].append(
+                            cluster_member)
+            continue
+            for tags, members in tags_2_members.items():
                 members_set = frozenset(members)
-                sub_clusters[members_set].append(tag)
+                sub_clusters[members_set].update(tags)
 
-            for tags in sub_clusters.values():
-                tags_set = set(tags)
-
-                sub_tags_set = set()
-                for tag in tags_set:
-                    sub_tags_set.update(tag_2_tag[tag])
-                sub_tags_set.difference_update(tags_set)
-                sub_tags[cluster_id] = sub_tags_set
+            for members, tags in sub_clusters.items():
 
                 new_clusters[cluster_id] = members
-                tag_index[cluster_id] = tags_set
+                tag_index[cluster_id] = tags
                 """
                 for member in members:
                     member_to_clusters[member].append(cluster_id)
@@ -61,7 +58,8 @@ class Taged(RidgeDitect):
 
         self.clusters = new_clusters
         self.tag_index = tag_index
-        self.sub_tags = sub_tags
+        exit()
+        # self.sub_tags = sub_tags
         # self.member_to_clusters = member_to_clusters
 
         # self.member_to_clusters = {member: list(_clusters) for member, _clusters in member_to_clusters} /
