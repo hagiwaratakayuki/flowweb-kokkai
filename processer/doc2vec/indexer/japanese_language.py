@@ -2,25 +2,42 @@ from .cls import Indexer
 from typing import Dict, Tuple, List, Union
 from collections import deque
 from .japanese_language.stopwords import remove_stopwords
+from doc2vec.util.specific_keyword import SpecificKeyword
+
 
 class JapaneseLanguageIndexer(Indexer):
-    def _extract_keywords(self, filtered_map:Dict, vector, specific_keywords:List[Union[Tuple[str], Tuple[str,str]]]):
-       
-        
-    
-            
-
+    def _extract_keywords(self, filtered_map: Dict, vector, specific_keywords: List[SpecificKeyword]):
 
         cand_words = remove_stopwords([super()._extract_keywords(
             filtered_map, vector, specific_keywords)])
-        cand_words = remove_stopwords(cand_words)
-        cut_keywords = deque()
-        for specific_keyword in specific_keywords:
-            cut_keywords.extend(specific_keyword)
-        ret = deque()
-        for word in cand_words:
-            
 
-    
-        
-        return cand_words
+        keywords_canditates = deque()
+
+        ret = deque()
+        for specific_keyword in specific_keywords:
+            if specific_keyword.is_force == False:
+                continue
+            keywords_canditate.append((specific_keyword.headword, ))
+            keywords_canditate.append(specific_keyword.to_tuple())
+        for word in cand_words:
+            is_cut = False
+            for specific_keyword in specific_keywords:
+                if word in specific_keyword:
+                    is_cut = True
+                    keywords_canditates.append((specific_keyword.headword,))
+                    keywords_canditates.append(specific_keyword.to_tuple())
+                    break
+
+                if is_cut is True:
+                    break
+            if is_cut is False:
+                keywords_canditates.append((word,))
+
+        appended_keywords = set()
+        keywords = []
+        for keywords_canditate in keywords_canditates:
+            if keywords_canditate not in appended_keywords:
+                keywords.append(keywords_canditate)
+                appended_keywords.update(keywords_canditate)
+
+        return keywords

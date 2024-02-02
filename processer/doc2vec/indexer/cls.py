@@ -83,11 +83,12 @@ class Indexer:
         std = np.std(norms)
         sorted_array = np.argsort(norms)
         limit = avg - std
-        if word_length <= 5:
+
+        scored_keywords: list[str] = [word_index[i]
+                                      for i in sorted_array if norms[i] <= limit][:5]
+        if len(scored_keywords) == 0:
             scored_keywords = word_index[sorted_array[0]]
-        else:
-            scored_keywords: list[str] = [word_index[i]
-                                          for i in sorted_array if norms[i] <= limit][:5]
+
         return scored_keywords
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
