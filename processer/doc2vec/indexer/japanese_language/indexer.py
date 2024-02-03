@@ -1,31 +1,29 @@
-from .cls import Indexer
+from ..cls import Indexer
 from typing import Dict, Tuple, List, Union
 from collections import deque
-from .japanese_language.stopwords import remove_stopwords
+from .stopwords import remove_stopwords
 from doc2vec.util.specific_keyword import SpecificKeyword
 
 
 class JapaneseLanguageIndexer(Indexer):
     def _extract_keywords(self, filtered_map: Dict, vector, specific_keywords: List[SpecificKeyword]):
 
-        cand_words = remove_stopwords([super()._extract_keywords(
-            filtered_map, vector, specific_keywords)])
+        cand_words = remove_stopwords(super()._extract_keywords(
+            filtered_map, vector, specific_keywords))
 
         keywords_canditates = deque()
 
-        ret = deque()
         for specific_keyword in specific_keywords:
             if specific_keyword.is_force == False:
                 continue
-            keywords_canditate.append((specific_keyword.headword, ))
-            keywords_canditate.append(specific_keyword.to_tuple())
+            keywords_canditates.extend(specific_keyword.to_extender())
+
         for word in cand_words:
             is_cut = False
             for specific_keyword in specific_keywords:
                 if word in specific_keyword:
                     is_cut = True
-                    keywords_canditates.append((specific_keyword.headword,))
-                    keywords_canditates.append(specific_keyword.to_tuple())
+                    keywords_canditates.extend(specific_keyword.to_extender())
                     break
 
                 if is_cut is True:

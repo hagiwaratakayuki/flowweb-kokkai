@@ -20,13 +20,14 @@ class Remover:
     def __init__(self, patterns: List) -> None:
         self._patterns = []
         for pattern in patterns:
+
             if isinstance(pattern, (regex.Pattern, re.Pattern,)):
                 self._patterns.append(Pattern(pattern=pattern))
             elif isinstance(pattern, list):
                 self._patterns.append(Pattern(*pattern))
             else:
-                self._patterns.append(pattern(**pattern))
+                self._patterns.append(Pattern(**pattern))
 
     def __call__(self, words: List[str]) -> List[str]:
 
-        return [word for word in words if words not in self._patterns]
+        return [word for word in words if word not in self._patterns]

@@ -2,7 +2,7 @@ from data_logics.kokkai_save import KokkaiLogic, KokkaiNodeLogic
 from doc2vec import Doc2Vec
 from doc2vec.sentiment.oseti_analizer import OsetiAnalizer
 from doc2vec.tokenaizer.mecab_tokenaizer import MeCabTokenazier
-from processer.doc2vec.indexer.japanese_language import JapaneseLanguageIndexer
+from doc2vec.indexer.japanese_language.indexer import JapaneseLanguageIndexer
 from data_loader import kokkai
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from multiprocessing.pool import Pool

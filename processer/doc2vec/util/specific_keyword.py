@@ -25,6 +25,9 @@ class SpecificKeyword:
     def __eq__(self, __value: object) -> bool:
         return __value in self.headword or __value in self._subwords
 
+    def to_extender(self):
+        return [(self.headword, ), self.to_tuple()]
+
     def to_tuple(self):
         if self._tuple is None:
             self._tuple = tuple([self.headword] + self._subwords)

@@ -34,14 +34,11 @@ class Taged(RidgeDitect):
 
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
-                print(len(tags))
-                continue
-
                 for i in range(1, len(tags) + 1):
                     for combination in combinations(tags, i):
                         tags_2_members[frozenset(combination)].append(
                             cluster_member)
-            continue
+
             for tags, members in tags_2_members.items():
                 members_set = frozenset(members)
                 sub_clusters[members_set].update(tags)
@@ -58,7 +55,7 @@ class Taged(RidgeDitect):
 
         self.clusters = new_clusters
         self.tag_index = tag_index
-        exit()
+
         # self.sub_tags = sub_tags
         # self.member_to_clusters = member_to_clusters
 
