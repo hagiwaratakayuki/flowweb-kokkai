@@ -30,8 +30,6 @@ class Taged(RidgeDitect):
             tags_2_members = defaultdict(deque)
             sub_clusters = defaultdict(set)
 
-            tag_2_tag = defaultdict(set)
-
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
                 for i in range(1, len(tags) + 1):
