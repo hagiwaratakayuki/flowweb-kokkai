@@ -3,14 +3,12 @@ import MeCab
 from collections import deque
 import os
 import re
-
+from utillib import envinit
 
 KUUHAKU = re.compile('\s+')
 
-_stopwords = {}
 
-
-tagger = MeCab.Tagger()
+tagger = MeCab.Tagger(envinit.read('MeCab').get('config', ''))
 
 
 class MeCabTokenazier:
@@ -23,14 +21,17 @@ class MeCabTokenazier:
         verbs = deque()
         sentences = text.split("。")
         senetence_number = 0
+        parses = deque()
 
         for resultline in tagger.parse(text).splitlines():
+
             if resultline in filter:
                 continue
 
             face, datast = KUUHAKU.split(resultline, 1)
-            data = datast.split(",")
-            if data[0] == "名詞":
+            datas = datast.split(",")
+
+            if datas[0] == "名詞":
                 verbs.append(face)
             if face == "。":
                 if len(verbs) == 0:

@@ -16,21 +16,22 @@ MODEL_PATH = 'example/fasttext_model/wiki-news-300d-1M.vec'
 
 def loadVectors(filepath=MODEL_PATH, basepath=os.getcwd()) -> KeyedVectors:
     global kv
-    if type(kv) == type(None):
+    if kv is None:
 
         targetpath = os.path.join(basepath, filepath)
 
         kv = KeyedVectors.load_word2vec_format(targetpath)
         logging.info('model load ' + targetpath)
 
-    return kv  # type: ignore
+    return kv
 
 
 class Vectaizer:
     _kv: KeyedVectors
 
     def __init__(self, filepath=MODEL_PATH, basepath=os.getcwd()) -> None:
-        self._kv = loadVectors(filepath=filepath, basepath=basepath)
+        self._filepath = filepath
+        self._basepath = basepath
 
     def exec(self, word):
         if word in self._kv:
@@ -39,6 +40,8 @@ class Vectaizer:
 
     def exec_dict(self, words):
         global projected
+        kv = loadVectors(filepath=self._filepath, basepath=self._basepath)
+
         ret = {}
         unprojected_vecs = deque()
         unprojected_words = deque()
@@ -48,10 +51,10 @@ class Vectaizer:
 
             if word in projected is True:
                 ret[word] = projected[word]
-            elif word not in self._kv:
+            elif word not in kv:
                 continue
             else:
-                vec = self._kv[word]
+                vec = kv[word]
                 dt = vec.dtype
                 dimn = vec.shape[0]
 

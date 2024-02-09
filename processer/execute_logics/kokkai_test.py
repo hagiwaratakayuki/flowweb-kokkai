@@ -5,6 +5,7 @@ import numpy as np
 from storage.basic import set_project_id
 import os
 
+
 set_project_id()
 
 

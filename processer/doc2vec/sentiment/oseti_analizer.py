@@ -1,6 +1,6 @@
 import oseti
-
-analyzer = oseti.Analyzer()
+from utillib import envinit
+analyzer = oseti.Analyzer(mecab_args=envinit.read('MeCab').get('config', ''))
 
 
 class OsetiAnalizer:
