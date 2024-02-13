@@ -1,10 +1,20 @@
 from multiprocessing import Pool, TimeoutError
 import time
 import os
+from multiprocessing.pool import Pool
+
+import unittest
+from unittest.mock import patch, MagicMock, call
 
 
-class Hoge:
-    pass
+class MyTestCase(unittest.TestCase):
+    def test_basic(self):
+        with Pool() as pool:
+            imap = pool.imap_unordered(example, range(10), chunksize=100)
+            itr = test(imap)
+            imap2 = pool.imap_unordered(example, itr, chunksize=100)
+            t = [i for i in imap2]
+            print(t)
 
 
 class Fuga:
@@ -20,7 +30,7 @@ class Fuga:
 print(__name__)
 
 
-def example():
+def example(i):
     print("ok")
 
 
@@ -29,14 +39,14 @@ def test(itr):
         yield i
 
 
-def test2(pool: Pool):
-    return
+def test2():
+    return 1
 
 
 def runner(pool):
     # print same numbers in arbitrary order
     for i in pool.imap_unordered(example, test(pool.imap_unordered(example, range(10)))):
-        print(i)
+
         return 1, 2, 3, 4
 
 
@@ -44,14 +54,5 @@ def runner(pool):
 if __name__ == '__main__':
     # start 4 worker processes
     with Pool(5) as pool:
-        runner(pool=pool)
+        imap = pool.imap_unordered(example, range(10))
 """
-
-
-def test3(flag):
-    if flag:
-        for i in [1]:
-            yield i
-
-
-print(list(test3(False)))

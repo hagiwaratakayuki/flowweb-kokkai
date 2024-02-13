@@ -103,7 +103,7 @@ class Logic:
             index2tag[index] = keywords
             index2published[index] = data.published
             index += 1
-
+        logging.info('create vectors')
         vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=index)
 

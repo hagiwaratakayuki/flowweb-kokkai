@@ -24,34 +24,34 @@ class Doc2Vec:
 
     def exec(self, pool: Pool,  datas: Iterable[DTO]):
 
-        data_dict = {}
-        generater = self.get_data_itr(datas=datas, data_dict=data_dict)
+        generater = self.get_data_itr(datas=datas)
 
         parsed = pool.imap_unordered(
             func=self._indexer.parse, iterable=generater, chunksize=self._chunk_size)
+        return self.get_word_vector(parsed)
 
+        """
         with_word_vector = self.get_word_vector(parsed)
-
+        
         compupteds = pool.imap_unordered(
             func=self._indexer.compute, iterable=with_word_vector, chunksize=self._chunk_size)
 
         for vector, sentimentResults, scored_keywords,  dataid in compupteds:
 
             yield vector, sentimentResults, scored_keywords, data_dict[dataid]
+        """
 
-    def get_data_itr(self, datas: Iterable[DTO], data_dict: dict):
-        counted_id = 0
+    def get_data_itr(self, datas: Iterable[DTO]):
+
         for data in datas:
-            data_dict[counted_id] = data
+
             if self._is_use_title:
                 text = data.title + '\n' + data.body
             else:
                 text = data.body
 
-            yield (text, counted_id, )
-            counted_id += 1
+            yield (text, data, )
 
     def get_word_vector(self, parse_itr):
         for first, keywords, third, force in parse_itr:
-
-            yield first, self._vectaizer.exec_dict(keywords), third, force
+            yield self._indexer.compute([first, self._vectaizer.exec_dict(keywords), third, force])
