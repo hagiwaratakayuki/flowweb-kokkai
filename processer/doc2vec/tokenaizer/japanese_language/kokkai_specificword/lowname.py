@@ -3,7 +3,15 @@ from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 import os
 import json
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
+from operator import itemgetter
+
+sortkey = itemgetter(1)
+
+section_text = "編章条項節款目"
+section_pt = re.compile('\d+(' + section_text + ')')
+section_rank = OrderedDict()
+section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
 name_index_path = os.path.realpath(
     'doc2vec/tokenaizer/japanese_language/kokkai_specificword/nameindex.json')
@@ -14,24 +22,24 @@ ryakusyou_path = os.path.realpath(
 with open(file=name_index_path, mode='r', encoding="utf-8") as fp:
     name_index = json.load(fp)
 with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
-    ryakusyou = json.load(fp)
+    ryakusyou_dict = json.load(fp)
 
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
 
-section_pt = re.compile('\d+条')
-empty_set = set()
-
 
 def extract(results: List[SpecificKeyword], parse_results: List):
 
-    target_lows = defaultdict(set)
-    prev_lows = {}
+    target_low = []
+    waiting_sections = []
+    tail_rank = None
+    low_set = set()
+    lowword_set = set()
 
     for line, tokens in parse_results:
         canditates_set = set()
         ryakusyou_canditates_set = set()
-        line_lows = set()
+        line_lows = []
         for i in range(len(line)-1):
             gram = line[i:i+2]
             canditates = name_index.get(gram)
@@ -40,36 +48,47 @@ def extract(results: List[SpecificKeyword], parse_results: List):
             ryakusyou_canditates = ryakusyou_tench.get(gram)
             if ryakusyou_canditates is not None:
                 ryakusyou_canditates_set.update(ryakusyou_canditates)
-            line_lows.update([(canditate, line.find(canditate), )
-                             for canditate in canditates if canditate in line])
-            line_lows.update([(ryakusyou[canditate],  line.find(canditate),)
-                             for canditate in ryakusyou_canditates if canditate in line])
+        line_lows.extend([(canditate, line.find(canditate), 0, )
+                          for canditate in canditates_set if canditate in line])
+        ryakusyous = [
+            canditate for canditate in ryakusyou_canditates_set if canditate in line]
+        lowword_set.update(ryakusyous)
+        line_lows.extend([(ryakusyou_dict[ryakusyou],  line.find(
+            ryakusyou), 0) for ryakusyou in ryakusyous])
 
-        is_empty = line_lows == empty_set
-        if not is_empty:
-            _prev_lows = {}
-            for line_low in line_lows:
-                low_name = line_low[0]
-                target_low = target_lows[low_name]
-                _prev_lows[line_low] = target_low
-            prev_lows = _prev_lows
+        line_lows.extend([(m.group(0), line.find(
+            m.group(0), section_rank[m.group(1)], )) for m in section_pt.finditer(line)])
+        line_lows.sort(key=sortkey)
+        for face, position, rank in line_lows:
+            if tail_rank is None:
+                if rank > 0:
+                    waiting_sections.append((face, rank,))
+                    continue
+                tail_rank = 0
+                target_low.append((face, 0,))
+                waiting_length = len(waiting_sections)
+                if waiting_length > 0:
+                    waiting_sections.sort(key=sortkey)
+                    target_low.extend([r[0] for r in waiting_sections])
+                    tail_rank = waiting_sections[waiting_length - 1][1]
+                continue
+            if rank <= tail_rank:
+                low_set.add(tuple(r[0] for r in target_low))
+                target_low = [
+                    r for r, target_rank in target_low if target_rank < rank]
+                target_low.append((face, rank, ))
+                tail_rank = rank
+                continue
+            target_low.append((face, rank, ))
+    kws = []
+    for low_tupple in low_set:
+        headword = low_tupple[0]
+        lowword_set.update(low_tupple)
+        subwords = list(low_tupple[1:])
+        kw = SpecificKeyword(
+            headword=headword, subwords=subwords, is_force=True)
 
-        number_position = -1
-        for section_number in section_pt.findall(line):
-
-            if is_empty == False:
-                number_position = line.find(section_number)
-
-            for line_low, section_number_set in prev_lows.items():
-                low_name, position = line_low
-                if is_empty == True or number_position > position:
-                    section_number_set.add(section_number)
-    for low_name, section_number_set in target_lows:
-        results = [result for result in results if results != low_name]
-        if section_number_set == empty_set:
-            results.append(SpecificKeyword(headword=low_name, is_force=True))
-            continue
-        for section_number in section_number_set:
-            results.append(SpecificKeyword(headword=low_name,
-                           subwords=[section_number], is_force=True))
+        kws.append(kw)
+    results = [spk for spk in results if spk.headword not in lowword_set]
+    results.extend(kws)
     return results

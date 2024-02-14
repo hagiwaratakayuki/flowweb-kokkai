@@ -18,13 +18,13 @@ class SpecificKeyword:
 
     def __init__(self, headword, subwords=[], is_force=False) -> None:
         self.headword = headword
-        self._subwords = [EqIn(subword) for subword in subwords]
+
         self._tuple = None
         self.subwords = subwords
         self.is_force = is_force
 
     def __eq__(self, __value: object) -> bool:
-        return __value in self.headword or __value in self._subwords
+        return __value in self.headword or self.headword in __value
 
     def add_subword(self, subword):
         self.subwords.append(subword)
