@@ -6,7 +6,7 @@ class EqIn:
         self.value = value
 
     def __eq__(self, __value: object) -> bool:
-        return object in self.value
+        return __value in self.value or self.value in __value
 
 
 class SpecificKeyword:

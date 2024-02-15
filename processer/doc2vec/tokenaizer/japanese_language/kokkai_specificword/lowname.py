@@ -1,16 +1,18 @@
 from typing import List
-from doc2vec.util.specific_keyword import SpecificKeyword
-import regex as re
+from doc2vec.util.specific_keyword import SpecificKeyword, EqIn
+# import regex as re
+import re
 import os
 import json
-from collections import defaultdict, OrderedDict
 from operator import itemgetter
+
+t = re.search()
 
 sortkey = itemgetter(1)
 
 section_text = "編章条項節款目"
 section_pt = re.compile('\d+(' + section_text + ')')
-section_rank = OrderedDict()
+section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
 name_index_path = os.path.realpath(
@@ -54,10 +56,13 @@ def extract(results: List[SpecificKeyword], parse_results: List):
             canditate for canditate in ryakusyou_canditates_set if canditate in line]
         lowword_set.update(ryakusyous)
         line_lows.extend([(ryakusyou_dict[ryakusyou],  line.find(
-            ryakusyou), 0) for ryakusyou in ryakusyous])
+            ryakusyou), 0, ) for ryakusyou in ryakusyous])
 
-        line_lows.extend([(m.group(0), line.find(
-            m.group(0), section_rank[m.group(1)], )) for m in section_pt.finditer(line)])
+        section_words = [(m.group(0), m.start, section_rank[m.group(1)], )
+                         for m in section_pt.finditer(line)]
+        line_lows.extend(section_words)
+        lowword_set.update([r[0] for r in section_words])
+
         line_lows.sort(key=sortkey)
         for face, position, rank in line_lows:
             if tail_rank is None:
@@ -89,6 +94,8 @@ def extract(results: List[SpecificKeyword], parse_results: List):
             headword=headword, subwords=subwords, is_force=True)
 
         kws.append(kw)
-    results = [spk for spk in results if spk.headword not in lowword_set]
+
+    lowword_list = [EqIn(lowword) for lowword in lowword_set]
+    results = [spk for spk in results if spk.headword not in lowword_list]
     results.extend(kws)
     return results
