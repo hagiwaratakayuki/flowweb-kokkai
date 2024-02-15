@@ -1,6 +1,9 @@
 import csv
 import json
+import re
+
 from collections import defaultdict
+kuuhaku = re.compile('\s+[^\s]+$', re.U)
 
 with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
@@ -9,7 +12,7 @@ with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
 
     ngram_dict = defaultdict(set)
     for row in reader:
-
+        row = kuuhaku.sub(row, '')
         value = row[2]
         update = [value]
 

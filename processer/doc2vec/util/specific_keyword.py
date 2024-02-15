@@ -35,5 +35,5 @@ class SpecificKeyword:
 
     def to_tuple(self):
         if self._tuple is None:
-            self._tuple = tuple([self.headword] + self._subwords)
+            self._tuple = tuple([self.headword] + self.subwords)
         return self._tuple
