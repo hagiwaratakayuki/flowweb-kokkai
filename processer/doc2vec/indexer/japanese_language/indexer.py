@@ -36,4 +36,4 @@ class JapaneseLanguageIndexer(Indexer):
             except:
                 keywords_dict[(word,)] = True
 
-        return deque(keywords_dict.keys())
+        return ['/'.join(kw) for kw in keywords_dict.keys()]

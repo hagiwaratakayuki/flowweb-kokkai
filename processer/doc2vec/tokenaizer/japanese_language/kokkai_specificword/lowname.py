@@ -36,6 +36,7 @@ def extract(results: List[SpecificKeyword], parse_results: List):
     tail_rank = None
     low_set = set()
     lowword_set = set()
+    reverse_ryakusyou_dict = {}
 
     for line, tokens in parse_results:
         canditates_set = set()
@@ -90,7 +91,7 @@ def extract(results: List[SpecificKeyword], parse_results: List):
         lowword_set.update(low_tupple)
         subwords = list(low_tupple[1:])
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True)
+            headword=headword, subwords=subwords, is_force=True, is_one_grame=True)
 
         kws.append(kw)
 

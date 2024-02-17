@@ -2,12 +2,11 @@ from data_loader.kokkai_reguraizer import kansuuji_houritu, kyujitai, jikosyouka
 
 
 reguraizers = [
-    jikosyoukai.convert,
-    kansuuji_houritu.convert,
-
     kugirisenn.convert,
     kaxtuko.convert,
+    jikosyoukai.convert,
     unicodedata.convert,
+    kansuuji_houritu.convert,
     kyujitai.convert,
 
 
