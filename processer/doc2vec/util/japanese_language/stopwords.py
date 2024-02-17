@@ -1,0 +1,1 @@
+from ja_stopword_remover.remover import Stopword

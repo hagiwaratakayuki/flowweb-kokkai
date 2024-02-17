@@ -1,8 +1,11 @@
 from typing import List
 from doc2vec.util.specific_keyword import SpecificKeyword
+import regex as re
+blockpattern = re.compile(
+    '^[\W\p{Katakana}]+$|^お|^[^\p{Han}]*\p{Han}[^\p{Han}]*$')
 
 
-def sahen(results: List[SpecificKeyword], parse_results):
+def extract(results: List[SpecificKeyword], parse_results):
     combine_set = set()
     for line, tokens in parse_results:
         meishies = []
@@ -11,7 +14,7 @@ def sahen(results: List[SpecificKeyword], parse_results):
         for face, data in tokens:
             if data[0] != '名詞':
                 continue
-            if data[1] == 'サ変':
+            if data[1] == 'サ変' and blockpattern.search(face) is None:
                 sahens.append(face)
 
             if data[1] == '一般':

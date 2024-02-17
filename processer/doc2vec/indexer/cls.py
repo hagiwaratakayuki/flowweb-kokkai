@@ -62,7 +62,7 @@ class Indexer:
         reguraised = {k: v / total for k, v in key_map.items()}
 
         filtered_map = {k: {'vector': vector_map[k], 'weight': w} for k, w in reguraised.items(
-        ) if isinstance(vector_map[k], bool) == False}
+        ) if vector_map[k] is not False}
 
         vector = np.sum([v['vector'] * v['weight']
                         for k, v in filtered_map.items()], 0)

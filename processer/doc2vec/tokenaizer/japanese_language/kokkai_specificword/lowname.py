@@ -6,7 +6,6 @@ import os
 import json
 from operator import itemgetter
 
-t = re.search()
 
 sortkey = itemgetter(1)
 

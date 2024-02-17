@@ -54,6 +54,6 @@ class MeCabTokenazier:
 
         specific_words = []
         for extractor in rule_extractor:
-            specific_words = extractor(specific_words, results)
+            specific_words = extractor(specific_words, parse_results)
 
         return results, specific_words
