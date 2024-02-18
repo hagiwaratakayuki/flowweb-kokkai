@@ -7,6 +7,7 @@ blockpattern = re.compile(
 
 def extract(results: List[SpecificKeyword], parse_results):
     combine_set = set()
+
     for line, tokens in parse_results:
         meishies = []
         sahens = []

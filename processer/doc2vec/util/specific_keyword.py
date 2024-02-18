@@ -21,6 +21,7 @@ class SpecificKeyword:
     _index: Union[Set, None]
 
     def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False) -> None:
+
         self.headword = headword
 
         self._tuple = None

@@ -10,7 +10,7 @@ from operator import itemgetter
 sortkey = itemgetter(1)
 
 section_text = "編章条項節款目"
-section_pt = re.compile('(?<!ス.パ.)\d+(' + section_text + ')')
+section_pt = re.compile('(?<!ス.パ.)\d+([' + section_text + '])')
 section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
@@ -36,7 +36,6 @@ def extract(results: List[SpecificKeyword], parse_results: List):
     tail_rank = None
     low_set = set()
     lowword_set = set()
-    reverse_ryakusyou_dict = {}
 
     for line, tokens in parse_results:
         canditates_set = set()
@@ -54,17 +53,21 @@ def extract(results: List[SpecificKeyword], parse_results: List):
                           for canditate in canditates_set if canditate in line])
         ryakusyous = [
             canditate for canditate in ryakusyou_canditates_set if canditate in line]
+
         lowword_set.update(ryakusyous)
         line_lows.extend([(ryakusyou_dict[ryakusyou],  line.find(
             ryakusyou), 0, ) for ryakusyou in ryakusyous])
 
-        section_words = [(m.group(0), m.start, section_rank[m.group(1)], )
+        section_words = [(m.group(0), m.start(), section_rank[m.group(1)], )
                          for m in section_pt.finditer(line)]
+
         line_lows.extend(section_words)
+
         lowword_set.update([r[0] for r in section_words])
 
         line_lows.sort(key=sortkey)
         for face, position, rank in line_lows:
+
             if tail_rank is None:
                 if rank > 0:
                     waiting_sections.append((face, rank,))
@@ -85,11 +88,17 @@ def extract(results: List[SpecificKeyword], parse_results: List):
                 tail_rank = rank
                 continue
             target_low.append((face, rank, ))
+    if len(target_low) > 0:
+        low_set.add(tuple(r[0] for r in target_low))
+
     kws = []
+
     for low_tupple in low_set:
+
         headword = low_tupple[0]
         lowword_set.update(low_tupple)
         subwords = list(low_tupple[1:])
+
         kw = SpecificKeyword(
             headword=headword, subwords=subwords, is_force=True, is_one_grame=True)
 
@@ -98,4 +107,5 @@ def extract(results: List[SpecificKeyword], parse_results: List):
     lowword_list = [EqIn(lowword) for lowword in lowword_set]
     results = [spk for spk in results if spk.headword not in lowword_list]
     results.extend(kws)
+
     return results
