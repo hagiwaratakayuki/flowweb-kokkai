@@ -2,7 +2,7 @@ from typing import List, Union, Tuple, Set
 
 
 class EqIn:
-    def __init__(self, value) -> None:
+    def __init__(self, value, ) -> None:
         self.value = value
 
     def __eq__(self, __value: object) -> bool:
