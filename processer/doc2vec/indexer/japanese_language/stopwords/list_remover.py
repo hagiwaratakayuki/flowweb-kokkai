@@ -1,19 +1,17 @@
 from ja_stopword_remover.remover import Stopword
 
 
-stopword_list = []
+stopword_set = set()
 stopword = Stopword()
 
-stopword_list.extend(stopword.demonstrative)
-stopword_list.extend(stopword.symbol)
-stopword_list.extend(stopword.verb)
-stopword_list.extend(stopword.one_character)
-stopword_list.extend(stopword.postpositional_particle)
-stopword_list.extend(stopword.slothlib)
-stopword_list.extend(stopword.auxiliary_verb)
-stopword_list.extend(stopword.adjective)
-
-stopword_set = set(stopword_list)
+stopword_set.update(stopword.demonstrative)
+stopword_set.update(stopword.symbol)
+stopword_set.update(stopword.verb)
+stopword_set.update(stopword.one_character)
+stopword_set.update(stopword.postpositional_particle)
+stopword_set.update(stopword.slothlib)
+stopword_set.update(stopword.auxiliary_verb)
+stopword_set.update(stopword.adjective)
 
 
 def list_remover(words):

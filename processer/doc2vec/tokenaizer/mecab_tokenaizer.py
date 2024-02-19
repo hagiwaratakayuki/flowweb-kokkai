@@ -14,7 +14,7 @@ tagger = MeCab.Tagger(envinit.read('MeCab').get('config', ''))
 
 class MeCabTokenazier:
 
-    def exec(self, text: str):
+    def exec(self, text: str, data):
 
         filter = ["", "EOS"]
         results = deque()
@@ -54,6 +54,6 @@ class MeCabTokenazier:
 
         specific_words = []
         for extractor in rule_extractor:
-            specific_words = extractor(specific_words, parse_results)
+            specific_words = extractor(specific_words, parse_results, data)
 
         return results, specific_words

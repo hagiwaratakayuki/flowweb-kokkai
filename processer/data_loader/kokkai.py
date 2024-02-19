@@ -60,6 +60,7 @@ def processDownlod(meeting: Dict, speakerMap: Dict, speeches: deque, meetings: d
         dto.id = speechData['id']
         dto.author = speechData['speaker']
         dto.author_id = _speakerMap[speechData['speaker']]['id']
+        dto.published = meeting['start']
         yield dto
         speechData['speaker_id'] = dto.author_id
         speechData['meeting_id'] = meeting["id"]

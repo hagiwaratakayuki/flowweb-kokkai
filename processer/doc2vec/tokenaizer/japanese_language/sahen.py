@@ -5,26 +5,25 @@ blockpattern = re.compile(
     '^[\W\p{Katakana}]+$|^お|^[^\p{Han}]*\p{Han}[^\p{Han}]*$')
 
 
-def extract(results: List[SpecificKeyword], parse_results):
+def extract(results: List[SpecificKeyword], parse_results, data):
     combine_set = set()
+    target = None
 
     for line, tokens in parse_results:
-        meishies = []
-        sahens = []
 
         for face, data in tokens:
             if data[0] != '名詞':
                 continue
-            if data[1] == 'サ変' and blockpattern.search(face) is None:
-                sahens.append(face)
+            if target is not None and data[1] == 'サ変接続' and face != "議論" and blockpattern.search(face) is None:
+
+                combine_set.add((target, face,))
 
             if data[1] == '一般':
-                meishies.append(face)
-        for meishi in meishies:
-            for sahen in sahens:
-                combine_set.update((meishi, sahen,))
+
+                target = face
 
     new_results = []
+
     for headword, subword in combine_set:
         try:
             exist_index = results.index(headword)

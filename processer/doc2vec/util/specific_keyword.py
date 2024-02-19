@@ -20,15 +20,18 @@ class SpecificKeyword:
     _tuple: Union[Tuple, None]
     _index: Union[Set, None]
 
-    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False) -> None:
+    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None) -> None:
 
         self.headword = headword
 
         self._tuple = None
-        if is_one_grame == False:
+        if is_one_grame == False and index_word is None:
             self._index = None
+        elif index_word is not None:
+            self._index = set(index_word)
         else:
             self._index = set(headword)
+        self._subwords = []
         self.subwords = subwords
         self.is_force = is_force
 
@@ -39,7 +42,8 @@ class SpecificKeyword:
 
     def add_subword(self, subword):
         self.subwords.append(subword)
-        self._subwords.append(EqIn(subword))
+        if self._index is None:
+            self._subwords.append(EqIn(subword))
 
     def to_extender(self):
         return [(self.headword, ), self.to_tuple()]

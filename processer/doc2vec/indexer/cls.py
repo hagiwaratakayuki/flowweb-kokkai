@@ -18,7 +18,7 @@ class Indexer:
 
         text,  data = args
 
-        token_lines, specifickeywords = self._tokenaizer.exec(text)
+        token_lines, specifickeywords = self._tokenaizer.exec(text, data)
 
         token_map = {}
         for verbs, line in token_lines:
@@ -77,11 +77,11 @@ class Indexer:
     def _extract_keywords(self, filtered_map, vector, specific_keywords):
         word_index = dict(enumerate(filtered_map.keys()))
 
-        word_length = max(list(word_index.keys()))
-        if len(word_length) == 0:
+        word_length = len(filtered_map)
+        if word_length == 0:
             return []
         norms = np.linalg.norm(
-            np.array([filtered_map[word_index[i]]["vector"] for i in range(word_length + 1)]) - vector, axis=1)
+            np.array([filtered_map[word_index[i]]["vector"] for i in range(word_length)]) - vector, axis=1)
         avg = np.average(norms)
         std = np.std(norms)
         sorted_array = np.argsort(norms)

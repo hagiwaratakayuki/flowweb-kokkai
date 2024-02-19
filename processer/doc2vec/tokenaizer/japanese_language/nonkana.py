@@ -9,7 +9,7 @@ kuuhaku = re.compile('\s+')
 kutouten = re.compile('[,。、]')
 
 
-def extract(results: List[SpecificKeyword], parse_results: List):
+def extract(results: List[SpecificKeyword], parse_results: List, data):
     nonhiragana_set = set()
 
     for line, tokens in parse_results:
@@ -20,6 +20,8 @@ def extract(results: List[SpecificKeyword], parse_results: List):
 
         nonhiragana_set.update(kuuhaku.split(line))
     for nonhiragana in nonhiragana_set:
+        if nonhiragana in results:
+            continue
         results.append(SpecificKeyword(headword=nonhiragana))
 
     return results
