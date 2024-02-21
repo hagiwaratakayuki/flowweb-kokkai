@@ -147,7 +147,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         is_one_gram = index_word is None
 
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, is_one_grame=is_one_gram)
+            headword=headword, subwords=subwords, is_force=True, is_one_grame=is_one_gram, index_word=index_word)
 
         kws.append(kw)
 

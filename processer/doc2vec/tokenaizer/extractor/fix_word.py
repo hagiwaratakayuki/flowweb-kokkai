@@ -30,4 +30,6 @@ class RegexExtractor:
                     headword = checked.group(0)
                 results.append(SpecificKeyword(
                     headword=headword, is_force=self.is_force, is_one_grame=True))
+
                 return results
+        return results

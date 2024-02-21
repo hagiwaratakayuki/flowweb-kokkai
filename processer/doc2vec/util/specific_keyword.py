@@ -32,12 +32,13 @@ class SpecificKeyword:
         else:
             self._index = set(headword)
         self._subwords = []
-        self.subwords = subwords
+        self.subwords = subwords[:]
         self.is_force = is_force
 
     def __eq__(self, __value: object) -> bool:
         if self._index is not None:
-            return (set(__value) and self._index) != empty_set
+
+            return (set(__value) & self._index) != empty_set
         return __value in self.headword or self.headword in __value
 
     def add_subword(self, subword):

@@ -23,11 +23,13 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                 target = face
 
     new_results = []
-
+    print(combine_set)
     for headword, subword in combine_set:
+
         try:
             exist_index = results.index(headword)
             exist_word = results[exist_index]
+
             if len(headword) > len(exist_word.headword):
                 exist_word.headword = headword
             if subword not in exist_word.subwords:
@@ -36,5 +38,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
         except ValueError:
             new_results.append(SpecificKeyword(
                 headword=headword, subwords=[subword]))
+
     results.extend(new_results)
+
     return results
