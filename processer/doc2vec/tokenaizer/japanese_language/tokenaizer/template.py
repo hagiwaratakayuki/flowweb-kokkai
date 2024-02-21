@@ -1,18 +1,17 @@
-
+# Template Pattern for Tokenaizer
 import MeCab
 from collections import deque
 
 import re
 from utillib import envinit
-from .japanese_language import rule_extractor
-
-KUUHAKU = re.compile('\s+')
 
 
 tagger = MeCab.Tagger(envinit.read('MeCab').get('config', ''))
 
 
-class MeCabTokenazier:
+class TokenazierTemplate:
+    def __init__(self, extractors) -> None:
+        self._extractors = extractors
 
     def exec(self, text: str, data):
 
@@ -25,13 +24,8 @@ class MeCabTokenazier:
         tokens = deque()
         parse_results = deque()
 
-        for resultline in tagger.parse(text).splitlines():
+        for face, datas in self._parse(text):
 
-            if resultline in filter:
-                continue
-
-            face, datast = KUUHAKU.split(resultline, 1)
-            datas = datast.split(",")
             tokens.append((face, datas,))
 
             if datas[0] == "名詞":
@@ -53,7 +47,10 @@ class MeCabTokenazier:
                 results.append((verbs, sentences[senetence_number],))
 
         specific_words = []
-        for extractor in rule_extractor:
+        for extractor in self._extractors:
             specific_words = extractor(specific_words, parse_results, data)
 
         return results, specific_words
+
+    def _parse(self, text):
+        return []

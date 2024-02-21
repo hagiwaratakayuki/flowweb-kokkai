@@ -6,19 +6,20 @@ import regex as re
 eisuu = re.compile('^[\w\d]+$', re.A)
 kigou = re.compile('^\W+$')
 kuuhaku = re.compile('\s+')
-kutouten = re.compile('[,。、]')
+nonhiragana_pt = re.compile('[\p{Hiragana},。、]')
 
 
 def extract(results: List[SpecificKeyword], parse_results: List, data):
     nonhiragana_set = set()
 
     for line, tokens in parse_results:
-        line = kutouten.sub(' ',  line)
+        blockset = set()
         for face, data in tokens:
-            if eisuu.search(face) is None and kigou.search(face) is None and (data[0] != '名詞' or (data[1] != "一般" and data[2] not in ['地域', '組織'])):
-                line = line.replace(face, ' ')
+            if eisuu.search(face) is None and kigou.search(face) is None and (data[0] != '名詞' or (data[1] != "普通名詞" and data[2] not in ['地名', '組織'])):
+                blockset.add(face)
 
-        nonhiragana_set.update(kuuhaku.split(line))
+        nonhiragana_set.update(
+            [splited for splited in nonhiragana_pt.split(line) if splited not in blockset])
     for nonhiragana in nonhiragana_set:
         if nonhiragana in results:
             continue

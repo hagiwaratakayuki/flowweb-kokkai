@@ -14,7 +14,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
         for face, data in tokens:
             if data[0] != '名詞':
                 continue
-            if target is not None and data[1] == 'サ変接続' and face != "議論" and blockpattern.search(face) is None:
+            if target is not None and data[2] == 'サ変可能' and face != "議論" and blockpattern.search(face) is None:
 
                 combine_set.add((target, face,))
 
