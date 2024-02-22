@@ -15,7 +15,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
     for line, tokens in parse_results:
         blockset = set()
         for face, data in tokens:
-            if eisuu.search(face) is None and kigou.search(face) is None and (data[0] != '名詞' or (data[1] != "普通名詞" and data[2] not in ['地名', '組織'])):
+
+            if eisuu.search(face) is None and kigou.search(face) is None and (data[0] != '名詞' or (data[1] != "普通" and data[2] not in ['地域', '組織'])):
                 blockset.add(face)
 
         nonhiragana_set.update(

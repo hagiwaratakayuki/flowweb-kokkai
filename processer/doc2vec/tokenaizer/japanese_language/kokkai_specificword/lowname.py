@@ -60,7 +60,9 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 アイヌ新法の正式名称 = "アイヌの人々の誇りが尊重される社会を実現するための施策の推進に関する法律"
             else:
                 アイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
-
+            lowword_set.add(アイヌ新法)
+            reverse_dict[アイヌ新法の正式名称] = アイヌ新法
+            line_lows.append((アイヌ新法の正式名称,  line.find(アイヌ新法), 0,))
         for i in range(len(line)-1):
             gram = line[i:i+2]
             canditates = name_index.get(gram)
@@ -95,10 +97,6 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         line_lows.extend([(ryakusyou_dict[ryakusyou],  line.find(
             ryakusyou), 0, ) for ryakusyou in ryakusyous])
 
-        if アイヌ新法が含まれるか is True:
-            lowword_set.add(アイヌ新法)
-            reverse_dict[アイヌ新法の正式名称] = アイヌ新法
-            line_lows.append((アイヌ新法の正式名称,  line.find(アイヌ新法), 0,))
         section_words = [(m.group(0), m.start(), section_rank[m.group(1)], )
                          for m in section_pt.finditer(line)]
 
