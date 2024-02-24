@@ -20,20 +20,29 @@ class SpecificKeyword:
     _tuple: Union[Tuple, None]
     _index: Union[Set, None]
 
-    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None) -> None:
+    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None, index=None) -> None:
 
         self.headword = headword
 
         self._tuple = None
+        self._subwords = []
+        self.subwords = subwords[:]
+        self.is_force = is_force
+        if index != None:
+            self._index = index
+            return
         if is_one_grame == False and index_word is None:
             self._index = None
         elif index_word is not None:
             self._index = set(index_word)
         else:
             self._index = set(headword)
-        self._subwords = []
-        self.subwords = subwords[:]
-        self.is_force = is_force
+
+    def clone(self):
+        ret = self.__class__(self.headword, index=self._index)
+        ret.subwords = self.subwords[:]
+        ret._subword = self._subwords[:]
+        return ret
 
     def __eq__(self, __value: object) -> bool:
         if self._index is not None:

@@ -24,6 +24,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
     for nonhiragana in nonhiragana_set:
         if nonhiragana in results:
             continue
-        results.append(SpecificKeyword(headword=nonhiragana))
+        results.append(SpecificKeyword(
+            headword=nonhiragana, is_one_grame=True))
 
     return results

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 meishi_blockpattern = re.compile('[所々]$')
@@ -24,23 +24,35 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                 target = face
 
     new_results = []
+    head2word: Dict[SpecificKeyword] = {}
 
     for headword, subword in combine_set:
+        if headword in head2word:
+            if subword in results:
+                continue
+            clone: SpecificKeyword = head2word[headword].clone()
+            clone.add_subword(subword=subword)
+            new_results.append(clone)
+
         if headword in results:
             if subword in results:
                 continue
 
             exist_index = results.index(headword)
             exist_word = results[exist_index]
+            head2word[headword] = exist_word
 
             if len(headword) > len(exist_word.headword):
                 exist_word.headword = headword
+
             if subword not in exist_word.subwords:
                 exist_word.add_subword(subword)
 
         else:
-            new_results.append(SpecificKeyword(
-                headword=headword, subwords=[subword]))
+            new_result = SpecificKeyword(
+                headword=headword, subwords=[subword])
+            new_results.append(new_result)
+            head2word[headword] = new_results
 
     results.extend(new_results)
 
