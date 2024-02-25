@@ -23,5 +23,9 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             "我が国とスーパー301条については、関係各所と連携を図り、貿易摩擦の解消", data)
         specific_keyword: SpecificKeyword = res[1][0]
+
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)

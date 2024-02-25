@@ -1,21 +1,17 @@
 # Template Pattern for Tokenaizer
-import MeCab
+
 from collections import deque
 
-import re
-from utillib import envinit
 
-
-tagger = MeCab.Tagger(envinit.read('MeCab').get('config', ''))
+from doc2vec.tokenaizer.japanese_language import rule_extractor
 
 
 class TokenazierTemplate:
-    def __init__(self, extractors) -> None:
+    def __init__(self, extractors=rule_extractor) -> None:
         self._extractors = extractors
 
     def exec(self, text: str, data):
 
-        filter = ["", "EOS"]
         results = deque()
 
         verbs = deque()

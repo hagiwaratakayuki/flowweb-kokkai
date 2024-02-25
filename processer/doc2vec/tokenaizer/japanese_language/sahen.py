@@ -13,9 +13,10 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     for line, tokens in parse_results:
 
         for face, data in tokens:
+
             if data[0] != '名詞':
                 continue
-            if target is not None and data[2] == 'サ変接続' and face != "議論" and sahen_blockpattern.search(face) is None:
+            if target is not None and data[1] == 'サ変接続' and face != "議論" and sahen_blockpattern.search(face) is None:
 
                 combine_set.add((target, face,))
 
@@ -27,25 +28,31 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     head2word: Dict[SpecificKeyword] = {}
 
     for headword, subword in combine_set:
+
         if headword in head2word:
+
             if subword in results:
                 continue
+
             clone: SpecificKeyword = head2word[headword].clone()
             clone.add_subword(subword=subword)
             new_results.append(clone)
+            continue
 
         if headword in results:
+
             if subword in results:
                 continue
 
             exist_index = results.index(headword)
             exist_word = results[exist_index]
-            head2word[headword] = exist_word
+            head2word[headword] = exist_word.clone()
 
             if len(headword) > len(exist_word.headword):
                 exist_word.headword = headword
 
             if subword not in exist_word.subwords:
+
                 exist_word.add_subword(subword)
 
         else:

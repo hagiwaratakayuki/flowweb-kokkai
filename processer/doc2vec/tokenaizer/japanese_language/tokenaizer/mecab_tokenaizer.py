@@ -24,5 +24,5 @@ class MeCabTokenazier(TokenazierTemplate):
 
             face, data_st = KUUHAKU.split(resultline, 1)
             datas = data_st.split(",")
-            results.appnd((face, datas,))
+            results.append((face, datas,))
         return results

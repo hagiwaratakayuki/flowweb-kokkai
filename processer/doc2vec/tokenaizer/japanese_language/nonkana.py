@@ -20,7 +20,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                 blockset.add(face)
 
         nonhiragana_set.update(
-            [splited for splited in nonhiragana_pt.split(line) if splited not in blockset])
+            [splited for splited in nonhiragana_pt.split(line) if splited not in blockset and len(splited) > 1])
+
     for nonhiragana in nonhiragana_set:
         if nonhiragana in results:
             continue
