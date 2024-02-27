@@ -45,16 +45,17 @@ class Speaker:
     def __init__(self, speechRecord: Element, name, speech: str) -> None:
         speech = speechRecord.findtext('speech')
         self.name = name
-
-        self.isWitness = speechRecord.findtext('speakerRole') != None
+        role = speechRecord.findtext('speakerRole')
+        self.isWitness = role is not None and role != ""
         self.isUnswornWitness = speechRecord.findtext('speakerRole') == "参考人"
         self.isRequested = self.isUnswornWitness or self.isWitness
         self.isCouncil = re.search(u'^[^\s]+参事\s', speech, re.U) != None
         self.position = speechRecord.findtext('speakerPosition')
         self.group = speechRecord.findtext('speakerGroup')
-        self.role = speechRecord.findtext('speakerRole')
+        self.role = role
         self.isModerater = False
-        self.isDietMember = not self.isWitness and not self.isCouncil and self.position == None
+        self.isDietMember = not self.isWitness and not self.isCouncil and (
+            self.position is None or self.position == "")
 
     def toDict(self):
         ret = dict(name=self.name)
@@ -117,6 +118,7 @@ class SpeechRecord(object):
         if self.response_from is not None:
             ret['response_from'] = self.response_from
         if self.discussion_id is not None:
+
             ret['discussion_id'] = self.discussion_id
         return ret
 
@@ -143,6 +145,11 @@ class MeetingRecord(object):
         discussion_id = None
         moderatorSpeech = ""
         self.is_freequestion = False
+        is_call_witenss = False
+
+        is_explanation = False
+        is_explanation_first = False
+        explantion_speech = None
 
         for speechRecordNode in record.findall('speechRecord'):
             order = int(speechRecordNode.findtext('speechOrder'))
@@ -166,32 +173,52 @@ class MeetingRecord(object):
 
                 speeches[order] = speechRecord
 
-                if questioner != speakerData.name and speechRecord.speaker.isDietMember == True:
-                    cand = ""
+                if questioner != speakerData.name:
+                    if is_explanation_first == True:
+                        is_explanation_first = False
 
-                    for token in speaker:
-                        cand += token
-                        check = cand + "君"
-                        if check in moderatorSpeech:
-                            questioner = speakerData
-                            prevSpeech = None
-                            discussion_id = speechRecord.id
-                            break
+                    if speechRecord.speaker.isDietMember == True:
+                        speakerData.name
+                        cand = ""
+
+                        for token in speaker:
+                            cand += token
+                            checks = [cand + "君", cand + '議員']
+                            is_break = False
+                            for check in checks:
+                                if check in moderatorSpeech:
+                                    questioner = speakerData
+                                    prevSpeech = None
+                                    discussion_id = speechRecord.id
+                                    is_break = True
+                                    break
+                            if is_break:
+                                break
 
                 else:
                     prevSpeech = speechRecord
                 if prevSpeech is not None:
                     speechRecord.setResponseTo(prevSpeech.id)
                     prevSpeech.setResponseFrom(speechRecord.id)
+                if discussion_id is not None:
+                    speechRecord.discussion_id = discussion_id
+
                 moderatorSpeech = ""
 
             else:
+                if moderatorSpeech == "":
+                    is_explanation = False
+                    is_call_witenss = False
                 moderatorSpeech += speechRecord.speech
                 if speakerData.name not in self.moderators:
                     self.moderators.append(speakerData.name)
                     speakerData.isModerater = True
-                if self.is_freequestion is True:
+
+                if self.is_freequestion is True and speechRecord.speech.count("。") > 1:
                     speeches[order] = speechRecord
+                if "趣旨" in moderatorSpeech:
+                    is_explanation = True
+                    is_explanation_first = True
 
             endRecord = speechRecord
 
