@@ -72,6 +72,7 @@ class Indexer:
 
         scored_keywords = self._extract_keywords(
             filtered_map=filtered_map, vector=vector, specific_keywords=specifickeywords)
+
         return vector, sentimentResults, scored_keywords, data
 
     def _extract_keywords(self, filtered_map, vector, specific_keywords):

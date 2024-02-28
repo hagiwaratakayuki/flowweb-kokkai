@@ -2,7 +2,7 @@ import math
 BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
 
 
-def encode(x, y, order):
+def encode(x, y, order=20):
     x_axis = 0
     y_axis = 0
 
@@ -19,7 +19,7 @@ def encode(x, y, order):
         index_number += 1
     start = 0
     result = ""
-    for end in range(5, len(codes), 5):
+    for end in range(5, len(codes) + 5, 5):
         bits = codes[start:end]
         start = end
         code = sum([bits[i] * 2 ** i for i in range(5)])

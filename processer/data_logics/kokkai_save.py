@@ -20,10 +20,14 @@ class KokkaiNodeLogic(NodeModelLogic):
         self.session = session
         super().__init__(nodeModel, size)
 
-    def setEntityProperty(self, dto: DTO, speech_node: NodeKokkai, vector: ndarray, link_to, linked_count, sentiment):
-        super().setEntityProperty(dto, speech_node,
+    def set_vectors(self, sentiment_result: SentimentResult):
+        return super().set_vectors(sentiment_result)
+
+    def setEntityProperty(self, dto: DTO, nodeEntity: NodeKokkai, vector: ndarray, link_to, linked_count, sentiment):
+        super().setEntityProperty(dto, nodeEntity,
                                   vector, link_to, linked_count, sentiment)
-        speech_node.session = self.session
+
+        nodeEntity.session = self.session
 
 
 class KokkaiLogic(Logic):

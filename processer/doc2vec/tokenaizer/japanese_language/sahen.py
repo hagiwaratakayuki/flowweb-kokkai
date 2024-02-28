@@ -59,7 +59,6 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             new_result = SpecificKeyword(
                 headword=headword, subwords=[subword])
             new_results.append(new_result)
-            head2word[headword] = new_results
 
     results.extend(new_results)
 

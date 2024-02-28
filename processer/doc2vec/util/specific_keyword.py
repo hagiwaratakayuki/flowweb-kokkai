@@ -41,7 +41,7 @@ class SpecificKeyword:
     def clone(self):
         ret = self.__class__(self.headword, index=self._index)
         ret.subwords = self.subwords[:]
-        ret._subword = self._subwords[:]
+        ret._subwords = self._subwords[:]
         return ret
 
     def __eq__(self, __value: object) -> bool:

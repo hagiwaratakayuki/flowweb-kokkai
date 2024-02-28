@@ -5,19 +5,18 @@ from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
 from db import node_keyword
-from typing import Iterable, Dict
+from typing import Iterable
 from db import node
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
-from data_logics.data import date_converter
+
 from db.util.chunked_batch_saver import ChunkedBatchSaver
+from utillib import hash
 
 
 from data_loader.kokkai import DTO
 from cluster.get_position import get_position
-from multiprocessing import Pool
-import numpy as np
 
 
 class NodeModelLogic(ChunkedBatchSaver):
@@ -25,12 +24,12 @@ class NodeModelLogic(ChunkedBatchSaver):
         super().__init__(size)
         self.nodeModel = NodeModelClass
 
-    def save(self, id, dto, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
+    def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
 
         nodeEntity: node.Node = self.nodeModel(id=id)
         sentiment = self.set_vectors(sentiment_result=sentiment_result)
         self.setEntityProperty(
-            dto=dto, nodeEntity=nodeEntity, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
+            dto=dto, nodeEntity=nodeEntity, vector=vector, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
         return self.put(nodeEntity)
 
     def set_vectors(self, sentiment_result: SentimentResult):
@@ -42,18 +41,22 @@ class NodeModelLogic(ChunkedBatchSaver):
 
         sentiment = {
             'position': sentiment_result.vectors.neutral.tolist(),
-            'direction': direction_vector
+            'direction': direction_vector.tolist()
         }
         return sentiment
 
-    def setEntityProperty(self, dto, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
+    def setEntityProperty(self, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
+        hash_str = hash.encode(vector[0], vector[1])
+
         nodeEntity.setProperty(data=dict(vector=vector.tolist(),
                                          sentiment=sentiment),
+                               title=dto.title,
                                link_to=link_to,
                                linked_count=linked_count,
                                published=dto.published,
                                author=dto.author,
-
+                               author_id=dto.author_id,
+                               hash=hash_str
                                )
 
 
@@ -88,6 +91,7 @@ class Logic:
         logging.info('start saving')
         vector_dtype = None
         vector_dimention = None
+        index2data = {}
 
         for vector, sentimentResult, keywords, data in datas:
             if vector is None:
@@ -102,7 +106,9 @@ class Logic:
             index2id[index] = data.id
             index2tag[index] = keywords
             index2published[index] = data.published
+            index2data[index] = data
             index += 1
+        datas_count = index
         logging.info('create vectors')
         vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=index)
@@ -181,8 +187,10 @@ class Logic:
 
         keyword_chunk = ChunkedBatchSaver()
         logging.info('start text save')
-        for vector, sentimentResult, keywords, data in datas:
 
+        for index in range(datas_count):
+            vector = index2vector[index]
+            data = index2data[index]
             id = index2id[index]
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
