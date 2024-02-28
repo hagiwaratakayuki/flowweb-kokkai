@@ -108,7 +108,7 @@ class Logic:
             index2published[index] = data.published
             index2data[index] = data
             index += 1
-        datas_count = index
+
         logging.info('create vectors')
         vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=index)
@@ -188,10 +188,10 @@ class Logic:
         keyword_chunk = ChunkedBatchSaver()
         logging.info('start text save')
 
-        for index in range(datas_count):
+        for index, id in index2id.items():
             vector = index2vector[index]
             data = index2data[index]
-            id = index2id[index]
+
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
             nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
