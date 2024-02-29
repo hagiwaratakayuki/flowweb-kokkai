@@ -49,3 +49,4 @@ class Node(Model):
                                                float(published.month) / 100.0 + float(published.day) / 10000.0)
 
         self.weight = weight
+        return weight, self.published_list

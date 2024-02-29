@@ -28,9 +28,9 @@ class NodeModelLogic(ChunkedBatchSaver):
 
         nodeEntity: node.Node = self.nodeModel(id=id)
         sentiment = self.set_vectors(sentiment_result=sentiment_result)
-        self.setEntityProperty(
+        weight, publishedlist = self.setEntityProperty(
             dto=dto, nodeEntity=nodeEntity, vector=vector, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
-        return self.put(nodeEntity)
+        return self.put(nodeEntity), weight, publishedlist
 
     def set_vectors(self, sentiment_result: SentimentResult):
         direction_vector = sentiment_result.vectors.positive - \
@@ -48,16 +48,16 @@ class NodeModelLogic(ChunkedBatchSaver):
     def setEntityProperty(self, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
         hash_str = hash.encode(vector[0], vector[1])
 
-        nodeEntity.setProperty(data=dict(vector=vector.tolist(),
-                                         sentiment=sentiment),
-                               title=dto.title,
-                               link_to=link_to,
-                               linked_count=linked_count,
-                               published=dto.published,
-                               author=dto.author,
-                               author_id=dto.author_id,
-                               hash=hash_str
-                               )
+        return nodeEntity.setProperty(data=dict(vector=vector.tolist(),
+                                                sentiment=sentiment),
+                                      title=dto.title,
+                                      link_to=link_to,
+                                      linked_count=linked_count,
+                                      published=dto.published,
+                                      author=dto.author,
+                                      author_id=dto.author_id,
+                                      hash=hash_str
+                                      )
 
 
 def buildModel():
@@ -194,16 +194,17 @@ class Logic:
 
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
-            nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                           link_to=link_to, linked_count=linked_count)
+            result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
+                                                            link_to=link_to, linked_count=linked_count)
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published
+                keyword_model.weight = weight
+                keyword_model.published_list = published_list
                 keyword_model.linked_count = linked_count
                 keyword_model.keyword = keyword
                 keyword_model.text_id = id
                 keyword_chunk.put(keyword_model)
-            index += 1
 
         entities = nodeLogic.close()
         keyword_chunk.close()

@@ -24,10 +24,11 @@ class KokkaiNodeLogic(NodeModelLogic):
         return super().set_vectors(sentiment_result)
 
     def setEntityProperty(self, dto: DTO, nodeEntity: NodeKokkai, vector: ndarray, link_to, linked_count, sentiment):
-        super().setEntityProperty(dto, nodeEntity,
-                                  vector, link_to, linked_count, sentiment)
+        ret = super().setEntityProperty(dto, nodeEntity,
+                                        vector, link_to, linked_count, sentiment)
 
         nodeEntity.session = self.session
+        return ret
 
 
 class KokkaiLogic(Logic):
