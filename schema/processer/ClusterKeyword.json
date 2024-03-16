@@ -1,0 +1,1 @@
+{"properties": {"cluster_id": {"title": "Cluster Id", "type": "string"}, "keyword": {"title": "Keyword", "type": "string"}}, "required": ["cluster_id", "keyword"], "title": "ClusterKeyword", "type": "object"}

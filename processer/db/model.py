@@ -130,7 +130,7 @@ class Model(object):
         setattr(self, k, v)
 
 
-def put_multi(models: Iterable[Model]):
+def put_multi(models: List[Model]):
     entities = [model.get_entity() for model in models]
     get_client().put_multi(entities)
     return entities

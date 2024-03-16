@@ -1,0 +1,1 @@
+{"properties": {"from_cluster": {"title": "From Cluster", "type": "string"}, "to_cluster": {"title": "To Cluster", "type": "string"}}, "required": ["from_cluster", "to_cluster"], "title": "ClusterLink", "type": "object"}
