@@ -17,7 +17,7 @@ class Saver:
             model.pdf = meeting['pdf']
             model.header_text = meeting['headerRecord']
 
-            model.moderators = list(meeting['moderators'])
+            model.moderators = meeting['moderators']
             model.moderator_ids = list(meeting['moderators'].values())
             self.saver.put(model)
 
