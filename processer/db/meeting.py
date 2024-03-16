@@ -24,12 +24,13 @@ class Meeting(Model):
             "exclude_from_indexes": ("header_text", "pdf", "url", "moderators")}
         super().__init__(id, entity_options)
 
-    def set_moderators(self, data):
-        self.moderators = json.dumps(data)
+    def _get_attr(self, key):
+        if key == "moderators":
+            return json.dumps(self.moderators)
+        return super()._get_attr(key)
 
-    @classmethod
-    def _set_attr(cls, target, k, v):
+    def _set_attr(self, k, v):
         if k == "moderators":
             v = json.loads(v)
 
-        setattr(target, k, v)
+        return super()._set_attr(k, v)

@@ -16,8 +16,8 @@ class Saver:
             model.url = meeting['url']
             model.pdf = meeting['pdf']
             model.header_text = meeting['headerRecord']
-            moderaters = meeting['moderators']
-            model.set_moderators(moderaters)
+
+            model.moderators = list(meeting['moderators'])
             model.moderator_ids = list(meeting['moderators'].values())
             self.saver.put(model)
 

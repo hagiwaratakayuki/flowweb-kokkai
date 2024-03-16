@@ -72,11 +72,14 @@ class Model(object):
             key = self.__class__._get_key(
                 path_args or self._path_args, kwargs or self._kwargs, id or self._id)
             entity = datastore.Entity(key=key, **options)
-        data = {key: getattr(self, key)
+        data = {key: self._get_attr(key=key)
                 for key in filter(self._filter, dir(self))}
 
         entity.update(data)
         return entity
+
+    def _get_attr(self, key):
+        return getattr(self, key)
 
     @classmethod
     def get_kind(cls):
@@ -119,24 +122,15 @@ class Model(object):
     def from_entity(cls, entity):
         ret = cls()
         for k, v in entity.items():
-            cls._set_attr(ret, k, v)
+            ret._set_attr(k, v)
         ret._entity = entity
         return ret
 
-    @classmethod
-    def _set_attr(cls, target, k, v):
-        setattr(target, k, v)
+    def _set_attr(self, k, v):
+        setattr(self, k, v)
 
 
 def put_multi(models: Iterable[Model]):
     entities = [model.get_entity() for model in models]
     get_client().put_multi(entities)
     return entities
-
-# todo
-
-
-def put_as_high_bulk(models: Iterable[Model]) -> Literal['enqueue', 'exec']:
-    loop = asyncio.get_event_loop()
-    # loop.run_in_executor()
-    return 'enqueue'
