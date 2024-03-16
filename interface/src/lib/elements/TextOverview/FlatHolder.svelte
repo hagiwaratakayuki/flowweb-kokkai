@@ -1,6 +1,6 @@
 <script>
   import Card from "./Card.svelte";
-  import { Row, Col, Button } from "sveltestrap";
+  import { Row, Col, Button } from "@sveltestrap/sveltestrap";
   import { createEventDispatcher } from "svelte";
   const dispatcher = createEventDispatcher();
   export let overViews = null;

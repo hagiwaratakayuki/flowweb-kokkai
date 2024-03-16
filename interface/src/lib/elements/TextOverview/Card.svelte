@@ -1,5 +1,10 @@
 <script>
-  import { CardBody, Card, CardHeader, CardTitle } from "sveltestrap";
+  import {
+    CardBody,
+    Card,
+    CardHeader,
+    CardTitle,
+  } from "@sveltestrap/sveltestrap";
   import { getDate } from "$lib/util/get_date";
   /**
    * @type {import("$lib/ml_api/api_types/TextOverView").TextOverView}

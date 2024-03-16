@@ -1,5 +1,5 @@
 <script>
-  import { Nav, NavItem, NavLink } from "sveltestrap";
+  import { Nav, NavItem, NavLink } from "@sveltestrap/sveltestrap";
   import { createEventDispatcher, onMount } from "svelte";
   const dispatcher = createEventDispatcher();
 

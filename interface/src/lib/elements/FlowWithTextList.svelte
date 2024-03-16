@@ -1,7 +1,7 @@
 <script>
   import Flow from "./Flow/Flow.svelte";
   import TextList from "$lib/elements/TextOverview/List.svelte";
-  import { Row, Col } from "sveltestrap";
+  import { Row, Col } from "@sveltestrap/sveltestrap";
   import { overviews_to_flow } from "./Flow/overviews_to_flow";
   /**
    * @type {TextList}

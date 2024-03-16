@@ -1,5 +1,5 @@
 <script>
-  import { Button, ListGroup } from "sveltestrap";
+  import { Button, ListGroup } from "@sveltestrap/sveltestrap";
 
   import { createEventDispatcher } from "svelte";
   import { onMount } from "svelte";

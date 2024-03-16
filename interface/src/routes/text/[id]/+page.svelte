@@ -1,5 +1,5 @@
 <script>
-  import { Row, Col, Button } from "sveltestrap";
+  import { Row, Col, Button } from "@sveltestrap/sveltestrap";
   import FlatHolder from "$lib/elements/TextOverview/FlatHolder.svelte";
 
   /** @type {import('./$types').PageData} */

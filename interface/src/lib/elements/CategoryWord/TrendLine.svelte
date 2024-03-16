@@ -19,9 +19,9 @@
     LinearScale,
     PointElement,
     CategoryScale,
-    LineController
+    LineController,
   );
-  import { TabPane } from "sveltestrap";
+  import { TabPane } from "@sveltestrap/sveltestrap";
   import { onDestroy, beforeUpdate } from "svelte";
   export let monthStep = 20;
   export let monthCount = 12;

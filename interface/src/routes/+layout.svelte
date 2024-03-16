@@ -1,5 +1,5 @@
 <script>
-  import { Container } from "sveltestrap";
+  import { Container } from "@sveltestrap/sveltestrap";
   import "bootstrap/dist/css/bootstrap.css";
   import "./app.css";
 </script>

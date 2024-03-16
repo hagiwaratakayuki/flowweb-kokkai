@@ -1,6 +1,6 @@
 <script>
   import { tick } from "svelte";
-  import { ListGroup, ListGroupItem } from "sveltestrap";
+  import { ListGroup, ListGroupItem } from "@sveltestrap/sveltestrap";
 
   /**
    * @typef {import("./flow").GridInfo} GridInfo

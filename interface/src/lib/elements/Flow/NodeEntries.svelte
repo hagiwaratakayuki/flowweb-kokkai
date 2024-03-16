@@ -1,5 +1,5 @@
 <script>
-  import { Button, ListGroup } from "sveltestrap";
+  import { Button, ListGroup } from "@sveltestrap/sveltestrap";
 
   /**
    * @type {import("./flow").GridInfo}
