@@ -32,11 +32,3 @@ for root, dirs, files in os.walk('./db'):
 
             with open(file_name, "w") as f:
                 json.dump(extended.model_json_schema(), f, ensure_ascii=False)
-
-
-"""
-target = type(Test.__name__ + "PModel", (Test, BaseModel), {})
-adapter = TypeAdapter(target)
-print(json.dumps(target.model_json_schema()))
-print(adapter.json_schema())
-"""
