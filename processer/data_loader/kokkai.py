@@ -15,8 +15,8 @@ class DTO(Base):
     house: str
 
 
-def load(speakerSaver=kokkai_speaker.Saver(), speechSaver=kokkai_speech.Saver(), meetingSaver=kokkai_meeting.Saver()):
-    storagemodel = Meeting()
+def load(comitteData: dict, storagemodel=Meeting(), speakerSaver=kokkai_speaker.Saver(), speechSaver=kokkai_speech.Saver(), meetingSaver=kokkai_meeting.Saver()):
+
     for session,  meetingChunks in storagemodel.downloadAll():
 
         speaker_id_map = {}

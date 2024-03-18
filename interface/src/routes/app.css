@@ -1,7 +1,9 @@
 #container {
     margin-top: 5%;
 }
-
+body {
+    background-color: #fbfaf5 !important;
+}
 .flow {
     height: 80vh;
     width: 100%;
