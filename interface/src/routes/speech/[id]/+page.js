@@ -8,8 +8,8 @@ export async function load({ params }) {
     try {
         // @ts-ignore
         return await entity_all(params.id)
-    } catch (error) {
-        throw new error(400, "bad request");
+    } catch (e) {
+        error(400, "bad request");
     }
 
 }

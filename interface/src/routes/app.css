@@ -4,9 +4,24 @@
 body {
     background-color: #fbfaf5 !important;
 }
+.section_header {
+    border-left: solid 0.25em #3b57ff;
+    padding: 0.25em 0.5em 0.25em 0.25em;
+    margin-bottom: 0.5em;
+    
+    
+}
+.division {
+    background-color: white;
+    border: ridge 1px #f5f6fb;
+    padding: 0.5em;
+
+
+}
 .flow {
     height: 80vh;
     width: 100%;
+    
 
 }
 

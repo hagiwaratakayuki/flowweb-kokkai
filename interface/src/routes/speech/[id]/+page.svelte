@@ -26,27 +26,18 @@
 </script>
 
 <Row class="justify-content-md-center">
-  <Col sm="2" class="sticky bg-white">
-    <ul class="list-unstyled nostyle">
-      <li>
-        <Button
-          size="sm"
-          color="link"
-          class="text-secondary"
-          on:click={scrollLinkTo}
-        >
-          Link To
-        </Button>
+  <Col sm="2" class="sticky">
+    <div class="section_header">論旨の繋がり</div>
+    <ul class="list-unstyled nostyle division">
+      <li class="mb-2">
+        <a href="#link_to" class="text-secondary" on:click={scrollLinkTo}>
+          この発言に繋がる発言
+        </a>
       </li>
-      <li>
-        <Button
-          color="link"
-          size="sm"
-          class="text-secondary"
-          on:click={scrollLinkedFrom}
-        >
-          Linked From
-        </Button>
+      <li class="mb-2">
+        <a href="#link_from" class="text-secondary" on:click={scrollLinkedFrom}>
+          この発言から繋がる発言
+        </a>
       </li>
     </ul>
   </Col>
@@ -79,11 +70,11 @@
       <h2>Abstract</h2>
       <p>{data.body}</p>
     </div>
-    <div class="mb-5 bg-white" bind:this={linkTo}>
+    <div class="mb-5 bg-white" bind:this={linkTo} id="link_to">
       <h3 class="mb-3">This Paper Link to That Paper</h3>
       <FlatHolder overViews={data.link_to} isNextExist={false} />
     </div>
-    <div class="mb-5 bg-white" bind:this={linkedFrom}>
+    <div class="mb-5 bg-white" bind:this={linkedFrom} id="link_from">
       <h3 class="mb-3">This Paper Linked from That Paper</h3>
       <FlatHolder
         overViews={data.linked_from}
