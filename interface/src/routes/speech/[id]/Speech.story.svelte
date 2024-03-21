@@ -64,9 +64,11 @@
    */
   const speech = {};
   /**
-   *
+   *@type {import('$lib/ml_api/api_types/kokkai/Speaker').Speaker}
    * */
-  const speaker = {};
+  const speaker = {
+    name,
+  };
   const data = {
     text: "本日はお日柄も良くおじいさんは山に『柴』を狩りに、お婆さんは『洗濯』に出かけました",
   };
