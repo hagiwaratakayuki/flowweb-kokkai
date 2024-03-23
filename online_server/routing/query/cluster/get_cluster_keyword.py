@@ -1,7 +1,7 @@
-from db.cluster_keyword import ClusterKeyword
+from db.proxy.cluster_keyword import ClusterKeyword
 
 
-def fetch(cluster_id:int):
+def fetch(cluster_id: int):
     query = ClusterKeyword.query()
     query.add_filter("text_id", "=", cluster_id)
     query.projection = ["keyword"]

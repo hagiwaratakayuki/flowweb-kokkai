@@ -1,8 +1,9 @@
+from online_server.routing import node
 from routing.return_models.cluster import overview as cluster_overview
 from routing.return_models.cluster import overviews as cluster_overviews
-from routing.return_models.text import overview as text_overview
-from routing.return_models.text import overviews as text_overviews
-from routing import text, cluster
+from routing.return_models.node import overview as text_overview
+from routing.return_models.node import overviews as text_overviews
+from routing import cluster
 from pydantic import TypeAdapter, BaseModel
 import os
 import json
@@ -21,7 +22,7 @@ def check_class(target):
 
 modules = [
     cluster,
-    text,
+    node,
     cluster_overview,
     cluster_overviews,
     text_overview,

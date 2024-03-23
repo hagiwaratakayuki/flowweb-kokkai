@@ -3,6 +3,6 @@ from google.cloud.datastore.key import Key
 from typing import List
 
 
-class ClusterKeyword(Model):
-    cluster_id: str
-    keyword: str
+class ClusterLink(Model):
+    from_cluster: str
+    to_cluster: str

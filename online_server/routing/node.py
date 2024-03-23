@@ -6,15 +6,15 @@ from .query.text import get_all_summary, get_text_keyword, get_linked_text as li
 
 from .query.cluster import get_clusters_by_text
 
-from routing.return_models.text.overview import TextOverView
-from routing.return_models.text.overviews import TextOverViews
+from routing.return_models.node.overview import NodeOverView
+from routing.return_models.node.overviews import NodeOverViews
 
 from routing.return_models.cluster.overview import ClusterOverView
 from routing.return_models.cluster.overviews import ClusterOverViews
 from pydantic import BaseModel
 
 from typing import List, Literal
-from db.text import Text
+from online_server.db.node import Node
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
@@ -25,7 +25,7 @@ router = APIRouter()
 
 
 @router.get('/all_summary')
-def all_as_vertex() -> list[TextOverView]:
+def all_as_vertex() -> list[NodeOverView]:  # type: ignore
     index = 0.0
     total_center: np.ndarray | None = None
     entity_map = {}
@@ -69,7 +69,7 @@ def all_as_vertex() -> list[TextOverView]:
     positions *= directions
     positions /= max_norm
 
-    ret = [TextOverView(
+    ret = [NodeOverView(
         id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name,
         position=positions[i],
         **entity_map[i]['entity']
@@ -78,7 +78,7 @@ def all_as_vertex() -> list[TextOverView]:
     return ret
 
 
-class TextFull(BaseModel):
+class NodeFull(BaseModel):
     title: str = ''
     body: str = ''
     published: datetime.datetime
@@ -87,21 +87,21 @@ class TextFull(BaseModel):
     keywords: list[str] = []
     clustres: list[ClusterOverView] | None = None
     clustres_next: None | str = None
-    link_to: list[TextOverView] | None = None
-    linked_from: list[TextOverView] | None = None
+    link_to: list[NodeOverView] | None = None  # type: ignore
+    linked_from: list[NodeOverView] | None = None  # type: ignore
     linked_from_next: Literal[False] | str = False
 
 
-@router.get('/entity_all', response_model=TextFull, response_model_exclude_none=True)
-def get_entity_all(id: int) -> TextFull:
-    entity = Text.get(id=id)
+@router.get('/entity_all', response_model=NodeFull, response_model_exclude_none=True)
+def get_entity_all(id: int) -> NodeFull:
+    entity = Node.get(id=id)
 
     if entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     link_to_ids = [{'id': link_to_id}
                    for link_to_id in entity.get('link_to', [])]
-    link_to = [TextOverView(id=e.id or e.key.name, **e)
-               for e in Text.get_multi(link_to_ids) or []]  # type: ignore
+    link_to = [NodeOverView(id=e.id or e.key.name, **e)
+               for e in Node.get_multi(link_to_ids) or []]  # type: ignore
     keywords = get_text_keyword.fetch(text_id=id)
     """
     cluster_entities, clusters_next = get_clusters_by_text.fetch(text_id=id)
@@ -112,10 +112,10 @@ def get_entity_all(id: int) -> TextFull:
         clusters = [ClusterOverView(**e) for e in cluster_entities]
     """
     linked_from_entities, linked_from_next = linked_text.fetch(text_id=id)
-    linked_from = [TextOverView(id=e.id or e.key.name, **e)
+    linked_from = [NodeOverView(id=e.id or e.key.name, **e)
                    for e in linked_from_entities or []]  # type: ignore
 
-    return TextFull(title=entity["title"],
+    return NodeFull(title=entity["title"],
                     body=entity["body"],
                     published=entity["published"],
                     author=entity["author"],
@@ -141,21 +141,21 @@ def get_clusters(id: str, cursor: str | None = None) -> ClusterOverViews:
     return ClusterOverViews(clusters=clusters, cursor=next_cursor)
 
 
-@router.get('/get_linked_text', response_model=TextOverViews, response_model_exclude_none=True)
-def get_linked_text(id: str, cursor: str) -> TextOverViews:
+@router.get('/get_linked_text', response_model=NodeOverViews, response_model_exclude_none=True)
+def get_linked_text(id: str, cursor: str) -> NodeOverViews:
     text_entities, next_cursor = linked_text.fetch(text_id=id, cursor=cursor)
     if text_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    texts = [TextOverView(id=e.id, **e) for e in text_entities]  # type: ignore
-    return TextOverViews(texts=texts, cursor=next_cursor)
+    texts = [NodeOverView(id=e.id, **e) for e in text_entities]  # type: ignore
+    return NodeOverViews(texts=texts, cursor=next_cursor)
 
 
-@router.get('/get_link_to', response_model=List[TextOverViews], response_model_exclude_none=True)
-def get_link_to(ids: list[str]) -> List[TextOverView]:
-    text_entities = Text.get_multi(ids)
+@router.get('/get_link_to', response_model=List[NodeOverViews], response_model_exclude_none=True)
+def get_link_to(ids: list[str]) -> List[NodeOverView]:  # type: ignore
+    text_entities = Node.get_multi(ids)
     if text_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    return [TextOverView(id=e.id, **e) for e in text_entities]  # type: ignore
+    return [NodeOverView(id=e.id, **e) for e in text_entities]  # type: ignore
 
 
 routing_tuple = get_routing_tuple(__file__, router)
