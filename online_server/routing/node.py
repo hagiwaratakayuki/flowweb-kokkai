@@ -1,20 +1,20 @@
 from fastapi import APIRouter, status
 import json
 import numpy as np
-import datetime
+
+
 from .query.text import get_all_summary, get_text_keyword, get_linked_text as linked_text
 
 from .query.cluster import get_clusters_by_text
 
 from routing.return_models.node.overview import NodeOverView
 from routing.return_models.node.overviews import NodeOverViews
-
+from routing.return_models.node.nodefull import NodeFull
 from routing.return_models.cluster.overview import ClusterOverView
 from routing.return_models.cluster.overviews import ClusterOverViews
-from pydantic import BaseModel
 
-from typing import List, Literal
-from online_server.db.node import Node
+from typing import List
+from db.proxy import Node
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
@@ -78,22 +78,8 @@ def all_as_vertex() -> list[NodeOverView]:  # type: ignore
     return ret
 
 
-class NodeFull(BaseModel):
-    title: str = ''
-    body: str = ''
-    published: datetime.datetime
-    author: str = ''
-    auther_id: str = ''
-    keywords: list[str] = []
-    clustres: list[ClusterOverView] | None = None
-    clustres_next: None | str = None
-    link_to: list[NodeOverView] | None = None  # type: ignore
-    linked_from: list[NodeOverView] | None = None  # type: ignore
-    linked_from_next: Literal[False] | str = False
-
-
 @router.get('/entity_all', response_model=NodeFull, response_model_exclude_none=True)
-def get_entity_all(id: int) -> NodeFull:
+def get_entity_all(id: int) -> NodeFull:  # type: ignore
     entity = Node.get(id=id)
 
     if entity == None:

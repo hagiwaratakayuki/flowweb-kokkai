@@ -1,13 +1,14 @@
 from pydantic import BaseModel
 from string import Template
+from typing import NewType
 
 
 def create_pydantec_model(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
     _extends_from = (BaseModel, *extends_from, )
-    return create_types(base=base, unpicks=unpicks, extend_map=extend_map, name_template=name_template, extends_from=_extends_from)
+    return create_type(base=base, unpicks=unpicks, extend_map=extend_map, name_template=name_template, extends_from=_extends_from)
 
 
-def create_types(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
+def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
     annotations, value_map = (
         base, unpicks, extend_map)
 

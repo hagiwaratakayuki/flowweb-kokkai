@@ -1,4 +1,4 @@
-from online_server.db.node import Node
+from db.proxy import Node
 import itertools
 
 

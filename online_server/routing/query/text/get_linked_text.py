@@ -1,4 +1,4 @@
-from online_server.db.node import Node
+from db.proxy import Node
 
 
 def fetch(text_id: str | int, cursor: str | None = None, limit: int = 10):

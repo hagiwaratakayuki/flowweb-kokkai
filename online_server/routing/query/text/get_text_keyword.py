@@ -1,4 +1,4 @@
-from online_server.db.node_keyword import NodeKeyword
+from db.proxy import NodeKeyword
 
 
 def fetch(text_id: str | int):

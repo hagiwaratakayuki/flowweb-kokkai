@@ -1,5 +1,5 @@
-from online_server.db.node import Node
-from db.proxy import ClusterMember
+
+from db.proxy import ClusterMember, Node
 
 
 def fetch(cluster_id: int, cursor: str | None = None, limit: int = 100):

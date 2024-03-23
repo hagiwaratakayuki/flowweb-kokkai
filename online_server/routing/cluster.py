@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 from db.proxy import Cluster
-from online_server.db.node import Node
+from db.proxy import Node
 from typing import List
 from .query.cluster import get_cluster_keyword, get_cluster_member, get_cluster_member_by_publishedrange
 from app.error_hundling.status_exception import StatusException

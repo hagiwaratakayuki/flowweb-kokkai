@@ -1,4 +1,4 @@
-from online_server.routing import node
+from routing import node
 from routing.return_models.cluster import overview as cluster_overview
 from routing.return_models.cluster import overviews as cluster_overviews
 from routing.return_models.node import overview as text_overview

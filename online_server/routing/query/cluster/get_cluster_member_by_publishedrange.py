@@ -1,4 +1,4 @@
-from online_server.db.node import Node
+from db.proxy import Node
 from db.proxy import ClusterMember
 from datetime import datetime, timedelta
 from itertools import chain
