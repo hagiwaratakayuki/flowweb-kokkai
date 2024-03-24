@@ -1,0 +1,90 @@
+from data_loader.dto import DTO
+from db import node, node_body
+from db.util.chunked_batch_saver import ChunkedBatchSaver
+from doc2vec.indexer.dto import SentimentResult
+import datetime
+import json
+import math
+import re
+import numpy as np
+
+spliter = re.compile('[\s\w]+')
+
+
+class NodeLogic(ChunkedBatchSaver):
+    def __init__(self, NodeModelModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaver: ChunkedBatchSaver = ChunkedBatchSaver(), size: int = 30):
+        super().__init__(size)
+        self.nodeModel = NodeModelModel
+        self.nodeBodyModel = NodeBodyModel
+        self.nodeBodySaver = NodBodySaver
+
+    def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int, keywords: list[str]):
+
+        nodeEntity = self.nodeModel(id=id)
+        nodeBodyEntity = self.nodeBodyModel(id=id)
+        nodeBodyEntity.body = dto.body
+        self.nodeBodySaver.put(nodeBodyEntity)
+        sentiment = self.set_vectors(sentiment_result=sentiment_result)
+        weight, publishedlist = self.setEntityProperty(
+            entity=nodeEntity,
+            dto=dto, nodeEntity=nodeEntity, vector=vector, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
+        return self.put(nodeEntity), weight, publishedlist
+
+    def set_vectors(self, sentiment_result: SentimentResult):
+        direction_vector = sentiment_result.vectors.positive - \
+            sentiment_result.vectors.negative
+
+        if sum(direction_vector) == 0:
+            direction_vector = sentiment_result.vectors.neutral
+
+        sentiment = {
+            'position': sentiment_result.vectors.neutral.tolist(),
+            'direction': direction_vector.tolist()
+        }
+        return sentiment
+
+    def setEntityProperty(self, entity, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords):
+        hash_str = hash.encode(vector[0], vector[1])
+
+        data = dict(vector=vector.tolist(),
+                    sentiment=sentiment),
+        title = dto.title,
+        link_to = link_to,
+        linked_count = linked_count,
+        published = dto.published,
+        author = dto.author,
+        author_id = dto.author_id,
+        hash = hash_str,
+        keywords = keywords
+
+        entity.link_to = link_to
+
+        if type(published) == str:
+            published = datetime.fromisoformat(published)
+        entity.author = author
+        entity.author_id = author_id
+        entity.published = published
+        entity.title = title
+        entity.data = json.dumps(data)
+        entity.linked_count = linked_count
+        entity.hash = hash
+        datetime_list = spliter.split(str(published))
+        year = datetime_list[0]
+        year_month = '-'.join(datetime_list[:2])
+        year_month_date = '_'.join(datetime_list[:3])
+        entity.published_list = [year, year_month, year_month_date]
+
+        if linked_count == 0:
+            weight = 0.0
+        else:
+            weight = math.log(linked_count) * (float(published.year) +
+                                               float(published.month) / 100.0 + float(published.day) / 10000.0)
+
+        entity.weight = weight
+        return weight, entity.published_list
+
+    def close(self, is_return=True):
+        res = super().close(is_return)
+        self.nodeBodySaver.close()
+        if is_return == True:
+            return res

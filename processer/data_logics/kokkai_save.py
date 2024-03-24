@@ -6,14 +6,15 @@ from db.node import Node
 from data_loader.kokkai import DTO
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from doc2vec.indexer.dto import SentimentResult
-from .save import Logic, NodeModelLogic
+from .node_logic import NodeLogic
+from .save import Logic
 from db.node_kokkai import NodeKokkai
 from db.kokkai_cluster import KokkaiCluster
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.cluster_link import ClusterLink
 
 
-class KokkaiNodeLogic(NodeModelLogic):
+class KokkaiNodeLogic(NodeLogic):
     session: int
 
     def __init__(self, session, nodeModel: NodeKokkai = NodeKokkai, size: int = 30):

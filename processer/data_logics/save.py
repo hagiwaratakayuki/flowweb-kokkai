@@ -5,63 +5,22 @@ from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
 from multiprocessing import Pool
 from collections import deque, defaultdict
 from db import node_keyword
+
 from typing import Iterable
-from db import node
+from data_logics.node_logic import NodeLogic
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
 
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from utillib import hash
 
 
-from data_loader.kokkai import DTO
+from data_loader.dto import DTO
 from cluster.get_position import get_position
 
 
-class NodeModelLogic(ChunkedBatchSaver):
-    def __init__(self, NodeModelClass: node.Node = node.Node,  size: int = 30):
-        super().__init__(size)
-        self.nodeModel = NodeModelClass
-
-    def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int):
-
-        nodeEntity: node.Node = self.nodeModel(id=id)
-        sentiment = self.set_vectors(sentiment_result=sentiment_result)
-        weight, publishedlist = self.setEntityProperty(
-            dto=dto, nodeEntity=nodeEntity, vector=vector, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
-        return self.put(nodeEntity), weight, publishedlist
-
-    def set_vectors(self, sentiment_result: SentimentResult):
-        direction_vector = sentiment_result.vectors.positive - \
-            sentiment_result.vectors.negative
-
-        if sum(direction_vector) == 0:
-            direction_vector = sentiment_result.vectors.neutral
-
-        sentiment = {
-            'position': sentiment_result.vectors.neutral.tolist(),
-            'direction': direction_vector.tolist()
-        }
-        return sentiment
-
-    def setEntityProperty(self, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment):
-        hash_str = hash.encode(vector[0], vector[1])
-
-        return nodeEntity.setProperty(data=dict(vector=vector.tolist(),
-                                                sentiment=sentiment),
-                                      title=dto.title,
-                                      link_to=link_to,
-                                      linked_count=linked_count,
-                                      published=dto.published,
-                                      author=dto.author,
-                                      author_id=dto.author_id,
-                                      hash=hash_str
-                                      )
-
-
 def buildModel():
-    return NodeModelLogic()
+    return NodeLogic()
 
 
 def buildVectaizer():
@@ -76,7 +35,7 @@ class Logic:
     # クラスタリング　+ キーワード抽出
     # 保存
 
-    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: NodeModelLogic):
+    def save(self, datas: Iterable[tuple[np.ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: NodeLogic):
 
         index2tag = {}
         index2id = {}
