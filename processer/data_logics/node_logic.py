@@ -12,11 +12,11 @@ spliter = re.compile('[\s\w]+')
 
 
 class NodeLogic(ChunkedBatchSaver):
-    def __init__(self, NodeModelModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaver: ChunkedBatchSaver = ChunkedBatchSaver(), size: int = 30):
+    def __init__(self, NodeModelModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaverClass: ChunkedBatchSaver = ChunkedBatchSaver, size: int = 30):
         super().__init__(size)
         self.nodeModel = NodeModelModel
         self.nodeBodyModel = NodeBodyModel
-        self.nodeBodySaver = NodBodySaver
+        self.nodeBodySaver = NodBodySaverClass(size)
 
     def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int, keywords: list[str]):
 
