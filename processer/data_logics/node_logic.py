@@ -7,7 +7,8 @@ import json
 import math
 import re
 import numpy as np
-
+from contract_logics.node import get_hash, get_ymd, NodeData, SentimentData
+from utillib import hash
 spliter = re.compile('[\s\w]+')
 
 
@@ -37,24 +38,23 @@ class NodeLogic(ChunkedBatchSaver):
         if sum(direction_vector) == 0:
             direction_vector = sentiment_result.vectors.neutral
 
-        sentiment = {
+        sentiment: SentimentData = {
             'position': sentiment_result.vectors.neutral.tolist(),
             'direction': direction_vector.tolist()
         }
         return sentiment
 
     def setEntityProperty(self, entity, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords):
-        hash_str = hash.encode(vector[0], vector[1])
 
-        data = dict(vector=vector.tolist(),
-                    sentiment=sentiment),
-        title = dto.title,
-        link_to = link_to,
-        linked_count = linked_count,
-        published = dto.published,
-        author = dto.author,
-        author_id = dto.author_id,
-        hash = hash_str,
+        data: NodeData = dict(vector=vector.tolist(),
+                              sentiment=sentiment)
+        title = dto.title
+        link_to = link_to
+        linked_count = linked_count
+        published = dto.published
+        author = dto.author
+        author_id = dto.author_id
+
         keywords = keywords
 
         entity.link_to = link_to
@@ -67,12 +67,10 @@ class NodeLogic(ChunkedBatchSaver):
         entity.title = title
         entity.data = json.dumps(data)
         entity.linked_count = linked_count
-        entity.hash = hash
+        entity.hash = get_hash(vector=vector)
         datetime_list = spliter.split(str(published))
-        year = datetime_list[0]
-        year_month = '-'.join(datetime_list[:2])
-        year_month_date = '_'.join(datetime_list[:3])
-        entity.published_list = [year, year_month, year_month_date]
+
+        entity.published_list = get_ymd(datetime_list)
 
         if linked_count == 0:
             weight = 0.0
