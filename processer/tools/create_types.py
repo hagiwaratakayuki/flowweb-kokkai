@@ -10,6 +10,7 @@ import warnings
 warnings.simplefilter('ignore')
 pt_pyext = re.compile('\.py$')
 
+
 for root, dirs, files in os.walk('./db'):
     if root != './db':
         continue

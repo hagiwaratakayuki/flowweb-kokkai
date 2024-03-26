@@ -1,18 +1,13 @@
+from ast import Tuple
 from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List, Literal, Any, Union
-import time
-import asyncio
+from typing import Generator, List, Any, Union
+from google.cloud.datastore import query
 
 
 client = None
-is_start_high_bulk = False
-high_bulk_limit_base = 500
-high_bulk_step_range = 0.5
-high_bulk_limit = high_bulk_limit_base
-high_bulk_start = 0
 
 
 def get_client():
@@ -20,11 +15,6 @@ def get_client():
     if client is None:
         client = datastore.Client()
     return client
-
-
-def start_high_bulk():
-    is_start_high_bulk = True
-    high_bulk_start = time.time()
 
 
 PT = re.compile('^_')
@@ -134,3 +124,28 @@ def put_multi(models: List[Model]):
     entities = [model.get_entity() for model in models]
     get_client().put_multi(entities)
     return entities
+
+
+class Query(query.Query):
+    def __init__(self, client, model: Model, kind=None, project=None, namespace=None, ancestor=None, filters=..., projection=..., order=..., distinct_on=...):
+        self.model = model
+        super().__init__(client, model, kind, project, namespace,
+                         ancestor, filters, projection, order, distinct_on)
+
+    def fetch_with_model(self, limit=None, offset=0, start_cursor=None, end_cursor=None, client=None, eventual=False, retry=None, timeout=None, read_time=None) -> Tuple[Generator[Any], query.Iterator]:
+        results = super().fetch(limit, offset, start_cursor, end_cursor,
+                                client, eventual, retry, timeout, read_time)
+        return (self.model.from_entity(result) for result in results), results
+
+
+class Client(datastore.Client):
+    def query(self, **kwargs):
+
+        if "client" in kwargs:
+            raise TypeError("Cannot pass client")
+        if "project" in kwargs:
+            raise TypeError("Cannot pass project")
+        kwargs["project"] = self.project
+        if "namespace" not in kwargs:
+            kwargs["namespace"] = self.namespace
+        return Query(self, **kwargs)
