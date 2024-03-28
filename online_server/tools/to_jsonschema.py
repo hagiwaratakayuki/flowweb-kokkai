@@ -20,15 +20,6 @@ def check_class(target):
         return False
 
 
-modules = [
-    cluster,
-    node,
-    cluster_overview,
-    cluster_overviews,
-    text_overview,
-    text_overviews
-]
-
 for root, dirs, files in os.walk('./routing/return_models'):
     modroot = sep_pt.sub('.', root)
     for file in files:

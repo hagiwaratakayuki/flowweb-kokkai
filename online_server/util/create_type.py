@@ -1,3 +1,4 @@
+from collections import deque
 from pydantic import BaseModel
 from string import Template
 from typing import NewType
@@ -22,17 +23,33 @@ def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', exten
 
 def create_annotations(base, unpicks=[], extend_map: dict = {}):
     annotations = {}
-    checked = set()
+    base_checked = {}
+    checked = {}
+
     value_map = {}
-    for _base in [*(base.__bases__ or ()), base,]:
+    bases = deque()
+    bases.append(base)
+
+    while len(bases) != 0:
+        _base = bases[0]
         if _base in checked:
             continue
-        checked[base] = True
-        _annotations = getattr(_base, '__annotations__', {})
+        if _base not in base_checked and not not _base.__bases__:
+            bases.extendleft(_base.__bases__)
+            base_checked[_base] = True
+            continue
+        base_checked[_base] = True
+        checked[_base] = True
+        bases.popleft()
+
+        _annotations = {k: v for k, v in getattr(
+            _base, '__annotations__', {}).items() if k.find('_') != 0}
         annotations.update(_annotations)
-        for k in _annotations:
-            if hasattr(k, _base) == True:
-                value_map[k] = getattr(k, _base)
+
+        for k in _annotations.keys():
+
+            if hasattr(_base, k) == True:
+                value_map[k] = getattr(_base, k)
 
     for unpick in unpicks:
         del annotations[unpick]

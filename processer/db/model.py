@@ -2,7 +2,7 @@ from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List, Literal, Any, Union
+from typing import List, Literal, Any, Union, TypedDict
 
 
 client = None
@@ -18,7 +18,7 @@ def get_client():
 PT = re.compile('^_')
 
 
-class Model(object):
+class Model:
     _entity_options: dict
     _entity = None
 
