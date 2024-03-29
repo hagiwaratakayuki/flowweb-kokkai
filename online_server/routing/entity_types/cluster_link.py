@@ -1,10 +1,10 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
-class ClusterLink(DefaultDict):
-    from_cluster:str
-    to_cluster:str
+class ClusterLink(TypedDict):
+    from_cluster: str
+    to_cluster: str
 
 

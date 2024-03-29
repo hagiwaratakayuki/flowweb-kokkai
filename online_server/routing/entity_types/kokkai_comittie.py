@@ -1,15 +1,15 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
-class KokkaiComittie(DefaultDict):
-    name:str
+class KokkaiComittie(TypedDict):
+    name: str
 
 
-class KokkaiComittieMeetings(DefaultDict):
-    name:str
-    house:str
-    session:int
+class KokkaiComittieMeetings(TypedDict):
+    name: str
+    house: str
+    session: int
 
 

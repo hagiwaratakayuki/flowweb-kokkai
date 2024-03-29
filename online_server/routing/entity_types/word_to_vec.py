@@ -1,10 +1,10 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
-class WordToVec(DefaultDict):
-    vector:str
-    word:str
+class WordToVec(TypedDict):
+    vector: str
+    word: str
 
 

@@ -13,7 +13,6 @@ class Saver:
             model = Speech(id=data['id'])
             model.session = session
             model.meeting_id = data['meeting_id']
-            model.text = data['speech']
             model.url = data['url']
             model.order = data['order']
             model.speaker = data['speaker']

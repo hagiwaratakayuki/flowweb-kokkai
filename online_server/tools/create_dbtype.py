@@ -14,7 +14,7 @@ import re
 
 
 module_template_string = """
-from typing import DefaultDict
+from typing import TypedDict
 ${imports}
 
 ${classes}
@@ -32,13 +32,13 @@ import_template_str = """from ${module} import ${import_classes} """
 import_template = Template(import_template_str)
 
 class_tmaplate_str = """
-class ${classname}(DefaultDict):
+class ${classname}(TypedDict):
 ${properties}
 """
 class_template = Template(class_tmaplate_str)
 
 
-property_template_string = """    ${name}:${type}"""
+property_template_string = """    ${name}: ${type}"""
 property_template = Template(property_template_string)
 
 

@@ -1,13 +1,13 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
-class Speaker(DefaultDict):
-    name:str
-    position:str
-    session:int
-    role:str
-    house:str
+class Speaker(TypedDict):
+    name: str
+    position: str
+    session: int
+    role: str
+    house: str
 
 

@@ -3,7 +3,7 @@ import re
 
 from collections.abc import Iterable
 from typing import List, Literal, Any, Union, TypedDict
-
+import asyncio
 
 client = None
 
@@ -75,11 +75,29 @@ class Model:
 
     @classmethod
     def get(cls, id, *path_args, **kwargs):
+        return cls._get(id, *path_args, **kwargs)
+
+    @classmethod
+    async def get_async(cls, id, *path_args, **kwargs):
+        await asyncio.sleep(0)
+        return cls._get(id, *path_args, **kwargs)
+
+    @classmethod
+    def _get(cls, id, *path_args, **kwargs):
         key = cls._get_key(path_args, kwargs, id)
         return get_client().get(key)
 
     @classmethod
-    def get_multi(cls, params, is_trict: bool = False) -> Union[List[datastore.Entity], None]:
+    def get_multi(cls, params) -> Union[List[datastore.Entity], None]:
+        return cls._get_multi(params)
+
+    @classmethod
+    async def get_multi_async(cls, params) -> Union[List[datastore.Entity], None]:
+        await asyncio.sleep(0)
+        return cls._get_multi(params)
+
+    @classmethod
+    def _get_multi(cls, params):
         if params == None or not isinstance(Iterable, params):
             return None
         keys = [cls._get_key(**param) for param in params]
@@ -87,8 +105,7 @@ class Model:
             return None
 
         ret = get_client().get_multi(keys)
-        if is_strict == True and ret.count(None) > 0:  # type: ignore
-            return None
+
         return ret
 
     @classmethod

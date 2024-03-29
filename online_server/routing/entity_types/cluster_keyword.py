@@ -1,10 +1,10 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
-class ClusterKeyword(DefaultDict):
-    cluster_id:str
-    keyword:str
+class ClusterKeyword(TypedDict):
+    cluster_id: str
+    keyword: str
 
 

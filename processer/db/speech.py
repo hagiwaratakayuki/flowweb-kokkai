@@ -3,7 +3,6 @@ from .model import Model
 
 class Speech(Model):
     meeting_id: str
-    text: str
     speaker: str
     speaker_id: str
     response_to: str

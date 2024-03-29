@@ -1,5 +1,5 @@
 
-from typing import DefaultDict
+from typing import TypedDict
 
 
 
