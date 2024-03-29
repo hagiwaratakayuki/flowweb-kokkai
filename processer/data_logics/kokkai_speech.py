@@ -1,5 +1,6 @@
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.speech import Speech
+from db import meeting
 
 
 class Saver:
@@ -13,10 +14,12 @@ class Saver:
             model = Speech(id=data['id'])
             model.session = session
             model.meeting_id = data['meeting_id']
+            model.meeting = data['meeting']
             model.url = data['url']
             model.order = data['order']
             model.speaker = data['speaker']
             model.speaker_id = data['speaker_id']
+            model.title = data['title']
             if "response_to" in data:
 
                 model.response_to = data['response_to']

@@ -1,10 +1,10 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 from typing import Any as typing_Any  
 from datetime import datetime as datetime_datetime  
 
 
-class Edge(TypedDict):
+class Edge(BaseType):
     linked_from: typing_Any
     link_to: typing_Any
     linked_count: int

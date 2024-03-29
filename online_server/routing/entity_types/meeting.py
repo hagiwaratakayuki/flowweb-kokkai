@@ -1,9 +1,9 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 from typing import List as typing_List  
 
 
-class Meeting(TypedDict):
+class Meeting(BaseType):
     session: int
     issue: int
     name: str

@@ -1,9 +1,9 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class ClusterLink(TypedDict):
+class ClusterLink(BaseType):
     from_cluster: str
     to_cluster: str
 

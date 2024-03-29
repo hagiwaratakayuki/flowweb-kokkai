@@ -8,7 +8,7 @@ from contract_logics.kokkai_comittie import start_end, name_escape, get_superset
 
 import re
 
-from processer.data_logics import kokkai_comittie
+from data_logics import kokkai_comittie
 number_pt = re.compile('\d+')
 
 
@@ -26,7 +26,8 @@ class Saver:
 
     def save(self, comittie_map: ComittieMapType):
         for name, data in comittie_map.items():
-            entity = KokkaiComittie(id=name_escape(name))
+            entity = KokkaiComittie()
+            entity.name = name
             entity.start = data.start
             entity.end = data.end
             entity.start_end = start_end(data.start, data.end)

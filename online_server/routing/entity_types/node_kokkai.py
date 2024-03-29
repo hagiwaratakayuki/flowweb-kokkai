@@ -1,10 +1,10 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 from typing import Optional as typing_Optional , List as typing_List  
 from datetime import datetime as datetime_datetime  
 
 
-class NodeKokkai(TypedDict):
+class NodeKokkai(BaseType):
     data: str
     author: str
     author_id: str

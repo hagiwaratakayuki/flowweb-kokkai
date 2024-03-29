@@ -1,9 +1,9 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class Speaker(TypedDict):
+class Speaker(BaseType):
     name: str
     position: str
     session: int

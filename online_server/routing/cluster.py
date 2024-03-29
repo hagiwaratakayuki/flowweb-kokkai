@@ -10,14 +10,14 @@ from routing.return_models.node.overview import NodeOverView
 from routing.return_models.node.overviews import NodeOverViews
 from .util import picker
 from .router import get_routing_tuple
-from typing import UN
+from typing import Optional
 router = APIRouter()
 
 
 class ClusterFull(BaseModel):
     keywords: list[str]
-    members_list: list[NodeOverView] | None  # type: ignore
-    members_list_next: str | None
+    members_list: Optional[list[NodeOverView]]  # type: ignore
+    members_list_next: Optional[str]
     member_count: int
 
 
@@ -29,7 +29,7 @@ def get_entity_all(id: int) -> ClusterFull:
     keywords = get_cluster_keyword.fetch(cluster_id=id)
     members_entities, members_list_next = get_cluster_member.fetch(
         cluster_id=id)
-    members_list: list | None = None
+    members_list: Optional[list] = None
     if members_entities != None:
         members_list = [NodeOverView(mem.id, **mem)
                         for mem in members_entities]  # type: ignore
@@ -42,13 +42,13 @@ def get_entity_all(id: int) -> ClusterFull:
 
 
 @router.get('/members', response_model=NodeOverViews, response_model_exclude_none=True)
-def get_members(id: int, cursor: None | str = None) -> NodeOverViews:
+def get_members(id: int, cursor: Optional[str] = None) -> NodeOverViews:
     members_entities, members_list_next = get_cluster_member.fetch(
         cluster_id=id, cursor=cursor)
     if members_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    texts = [NodeOverView(**mem) for mem in members_entities]
-    return NodeOverViews(texts=texts, cursor=members_list_next)
+    nodes = [NodeOverView(**mem) for mem in members_entities]
+    return NodeOverViews(nodes=nodes, cursor=members_list_next)
 
 
 @router.get('/members_by_publishedate', response_model=List[NodeOverView], response_model_exclude_none=True)

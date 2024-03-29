@@ -5,9 +5,14 @@ from typing import List
 
 class KokkaiComittie(Model):
     name: str
+    supersets: list[str]
+    start: int
+    end: int
+    start_end: str
 
 
-class KokkaiComittieMeetings(Model):
+class KokkaiComittieAndSession(Model):
     name: str
     house: str
     session: int
+    issue_count: int

@@ -48,7 +48,6 @@ def scan_directory_and_check_update_time(directory_path):
             file_update_time = get_file_update_time(fp)
             file_update_times[fp] = file_update_time
         cursor += 1
-        print(file_update_times)
 
     return file_update_times
 
@@ -71,6 +70,7 @@ def compaire_file_update(target_directries):
             update_base['checkcount'] += 1
 
             if update_base['update'] != update:
+
                 update_base['uppercount'] += 1
             if update_base['update'] < update:
                 update_base['path'] = path
@@ -83,6 +83,7 @@ def copy_updates(target_directories):
     update_bases = compaire_file_update(target_directries=target_directories)
 
     for _path, update_base in update_bases.items():
+
         if update_base['uppercount'] == 0 and update_base['checkcount'] == check_counts:
 
             continue
@@ -90,14 +91,14 @@ def copy_updates(target_directories):
 
         for target_directory in target_directories:
             if target_directory in copy_from:
+
                 continue
-            copy_to = os.path.join(target_directory, _path)
+            copy_to = target_directory + _path
+
             if os.path.exists(copy_to) == False:
                 dirname = os.path.dirname(copy_to)
                 if os.path.isdir(dirname) == False:
                     os.makedirs(dirname)
-
-                open(copy_to, "w").close()
 
             shutil.copy2(copy_from, copy_to)
 

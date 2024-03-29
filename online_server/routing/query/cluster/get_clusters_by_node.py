@@ -1,12 +1,13 @@
 from db.proxy import Cluster, ClusterMember
+from typing import Optional
 
 
-def fetch(text_id: str, cursor: str | None = None, limit: int = 10):
+def fetch(node_id: str, cursor: Optional[str] = None, limit: int = 10):
     start_cursor = None
     if cursor != None:
         start_cursor = cursor.encode('utf-8')
     q = ClusterMember.query()
-    q.add_filter("text_id", "=", text_id)
+    q.add_filter("node_id", "=", node_id)
     q.order = ['-linked_count']
     q.projection = ["cluster_id"]
     itr = q.fetch(limit=limit, start_cursor=start_cursor)

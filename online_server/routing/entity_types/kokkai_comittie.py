@@ -1,15 +1,20 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class KokkaiComittie(TypedDict):
+class KokkaiComittie(BaseType):
     name: str
+    supersets: list[str]
+    start: int
+    end: int
+    start_end: str
 
 
-class KokkaiComittieMeetings(TypedDict):
+class KokkaiComittieAndSession(BaseType):
     name: str
     house: str
     session: int
+    issue_count: int
 
 

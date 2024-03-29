@@ -1,11 +1,12 @@
 from fastapi import APIRouter, status
 import json
 import numpy as np
+from typing import Optional
 
 
-from .query.text import get_all_summary, get_text_keyword, get_linked_text as linked_text
+from .query.node import get_all_summary, get_linked_node as linked_node, get_node_keyword
 
-from .query.cluster import get_clusters_by_text
+from .query.cluster import get_clusters_by_node
 
 from routing.return_models.node.overview import NodeOverView
 from routing.return_models.node.overviews import NodeOverViews
@@ -18,7 +19,7 @@ from db.proxy import Node
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
-
+from typing import Optional
 
 none_type = type(None)
 router = APIRouter()
@@ -27,7 +28,7 @@ router = APIRouter()
 @router.get('/all_summary')
 def all_as_vertex() -> list[NodeOverView]:  # type: ignore
     index = 0.0
-    total_center: np.ndarray | None = None
+    total_center: Optional[np.ndarray] = None
     entity_map = {}
     shape = [0, 0]
     is_first = True
@@ -88,16 +89,16 @@ def get_entity_all(id: int) -> NodeFull:  # type: ignore
                    for link_to_id in entity.get('link_to', [])]
     link_to = [NodeOverView(id=e.id or e.key.name, **e)
                for e in Node.get_multi(link_to_ids) or []]  # type: ignore
-    keywords = get_text_keyword.fetch(text_id=id)
+    keywords = get_node_keyword.fetch(node_id=id)
     """
-    cluster_entities, clusters_next = get_clusters_by_text.fetch(text_id=id)
+    cluster_entities, clusters_next = get_clusters_by_node.fetch(node_id=id)
 
     if cluster_entities == None:
         clusters = None
     else:
         clusters = [ClusterOverView(**e) for e in cluster_entities]
     """
-    linked_from_entities, linked_from_next = linked_text.fetch(text_id=id)
+    linked_from_entities, linked_from_next = linked_node.fetch(node_id=id)
     linked_from = [NodeOverView(id=e.id or e.key.name, **e)
                    for e in linked_from_entities or []]  # type: ignore
 
@@ -116,9 +117,9 @@ def get_entity_all(id: int) -> NodeFull:  # type: ignore
 
 
 @router.get('/get_clusters', response_model=ClusterOverViews, response_model_exclude_none=True)
-def get_clusters(id: str, cursor: str | None = None) -> ClusterOverViews:
-    cluster_entities, next_cursor = get_clusters_by_text.fetch(
-        text_id=id, cursor=cursor)
+def get_clusters(id: str, cursor: Optional[str] = None) -> ClusterOverViews:
+    cluster_entities, next_cursor = get_clusters_by_node.fetch(
+        node_id=id, cursor=cursor)
 
     if cluster_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
@@ -127,21 +128,21 @@ def get_clusters(id: str, cursor: str | None = None) -> ClusterOverViews:
     return ClusterOverViews(clusters=clusters, cursor=next_cursor)
 
 
-@router.get('/get_linked_text', response_model=NodeOverViews, response_model_exclude_none=True)
-def get_linked_text(id: str, cursor: str) -> NodeOverViews:
-    text_entities, next_cursor = linked_text.fetch(text_id=id, cursor=cursor)
-    if text_entities == None:
+@router.get('/get_linked_node', response_model=NodeOverViews, response_model_exclude_none=True)
+def get_linked_node(id: str, cursor: str) -> NodeOverViews:
+    node_entities, next_cursor = linked_node.fetch(node_id=id, cursor=cursor)
+    if node_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    texts = [NodeOverView(id=e.id, **e) for e in text_entities]  # type: ignore
-    return NodeOverViews(texts=texts, cursor=next_cursor)
+    nodes = [NodeOverView(id=e.id, **e) for e in node_entities]  # type: ignore
+    return NodeOverViews(nodes=nodes, cursor=next_cursor)
 
 
 @router.get('/get_link_to', response_model=List[NodeOverViews], response_model_exclude_none=True)
 def get_link_to(ids: list[str]) -> List[NodeOverView]:  # type: ignore
-    text_entities = Node.get_multi(ids)
-    if text_entities == None:
+    node_entities = Node.get_multi(ids)
+    if node_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    return [NodeOverView(id=e.id, **e) for e in text_entities]  # type: ignore
+    return [NodeOverView(id=e.id, **e) for e in node_entities]  # type: ignore
 
 
 routing_tuple = get_routing_tuple(__file__, router)

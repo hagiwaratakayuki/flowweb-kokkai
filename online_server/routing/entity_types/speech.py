@@ -1,11 +1,12 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class Speech(TypedDict):
+class Speech(BaseType):
+    title: str
     meeting_id: str
-    text: str
+    meeting: str
     speaker: str
     speaker_id: str
     response_to: str

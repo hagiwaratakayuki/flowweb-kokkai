@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 from .overview import NodeOverView
-from typing import Literal
+from ..with_cursor import WithCursor
 
 
-class NodeOverViews(BaseModel):
-    texts: list[NodeOverView]
-    cursor: str | Literal[False]
+class NodeOverViews(BaseModel, WithCursor):
+    nodes: list[NodeOverView]  # type: ignore

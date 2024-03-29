@@ -2,10 +2,17 @@ from google.cloud import datastore
 import re
 
 from collections.abc import Iterable
-from typing import List, Literal, Any, Union, TypedDict
+from typing import List, Literal, Any, Union
+import time
 import asyncio
 
+
 client = None
+is_start_high_bulk = False
+high_bulk_limit_base = 500
+high_bulk_step_range = 0.5
+high_bulk_limit = high_bulk_limit_base
+high_bulk_start = 0
 
 
 def get_client():
@@ -15,10 +22,15 @@ def get_client():
     return client
 
 
+def start_high_bulk():
+    is_start_high_bulk = True
+    high_bulk_start = time.time()
+
+
 PT = re.compile('^_')
 
 
-class Model:
+class Model(object):
     _entity_options: dict
     _entity = None
 

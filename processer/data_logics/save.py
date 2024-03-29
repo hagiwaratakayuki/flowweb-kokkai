@@ -162,7 +162,7 @@ class Logic:
                 keyword_model.published_list = published_list
                 keyword_model.linked_count = linked_count
                 keyword_model.keyword = keyword
-                keyword_model.text_id = id
+                keyword_model.node_id = id
                 keyword_chunk.put(keyword_model)
 
         entities = nodeLogic.close()
@@ -197,7 +197,7 @@ class Logic:
                 loop_count += 1
                 member_model = cluster_member.ClusterMember()
                 member_model.cluster_id = entity.id
-                member_model.text_id = index2id[member]
+                member_model.node_id = index2id[member]
                 linked_count = linked_counts_map[member]
                 published = index2published[member]
                 member_model.linked_count = linked_count

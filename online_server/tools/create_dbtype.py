@@ -14,7 +14,7 @@ import re
 
 
 module_template_string = """
-from typing import TypedDict
+from .basetype import BaseType
 ${imports}
 
 ${classes}
@@ -32,7 +32,7 @@ import_template_str = """from ${module} import ${import_classes} """
 import_template = Template(import_template_str)
 
 class_tmaplate_str = """
-class ${classname}(TypedDict):
+class ${classname}(BaseType):
 ${properties}
 """
 class_template = Template(class_tmaplate_str)

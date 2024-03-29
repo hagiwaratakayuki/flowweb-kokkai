@@ -1,9 +1,9 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class WordToVec(TypedDict):
+class WordToVec(BaseType):
     vector: str
     word: str
 

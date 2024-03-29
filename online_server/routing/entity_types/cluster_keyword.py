@@ -1,9 +1,9 @@
 
-from typing import TypedDict
+from .basetype import BaseType
 
 
 
-class ClusterKeyword(TypedDict):
+class ClusterKeyword(BaseType):
     cluster_id: str
     keyword: str
 

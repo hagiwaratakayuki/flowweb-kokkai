@@ -99,6 +99,8 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         yield dto
         speechData['speaker_id'] = dto.author_id
         speechData['meeting_id'] = meeting["id"]
+        speechData['meeting'] = meeting['name']
+        speechData['title'] = dto.title
         speeches.append(speechData)
     for v in _speaker_name_to_data.values():
         speaker_id_map[v['id']] = v['speaker']
