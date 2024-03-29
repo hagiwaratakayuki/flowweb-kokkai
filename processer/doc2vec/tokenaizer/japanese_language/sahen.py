@@ -17,8 +17,9 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             if data[0] != '名詞':
                 continue
             if target is not None and data[1] == 'サ変接続' and face != "議論" and sahen_blockpattern.search(face) is None:
-
-                combine_set.add((target, face,))
+                check_pt = re.compile('[\p{Hiragana}、]' + target)
+                if check_pt.search(line):
+                    combine_set.add((target, face,))
 
             if data[1] == '一般' and not meishi_blockpattern.search(face):
 
