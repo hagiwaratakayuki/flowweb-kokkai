@@ -1,7 +1,6 @@
 from collections import deque
 from pydantic import BaseModel
 from string import Template
-from typing import NewType
 
 
 def create_pydantec_model(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
@@ -10,7 +9,8 @@ def create_pydantec_model(base, unpicks=[], extend_map: dict = {}, name_template
 
 
 def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
-    annotations, value_map = (
+
+    annotations, value_map = create_annotations(
         base, unpicks, extend_map)
 
     value_map['__annotations__'] = annotations
@@ -22,6 +22,7 @@ def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', exten
 
 
 def create_annotations(base, unpicks=[], extend_map: dict = {}):
+
     annotations = {}
     base_checked = {}
     checked = {}
@@ -44,6 +45,7 @@ def create_annotations(base, unpicks=[], extend_map: dict = {}):
 
         _annotations = {k: v for k, v in getattr(
             _base, '__annotations__', {}).items() if k.find('_') != 0}
+
         annotations.update(_annotations)
 
         for k in _annotations.keys():

@@ -10,4 +10,4 @@ extend_map = {
     }
 }
 NodeOverView = create_pydantec_model(name_template='NodeOverView', base=Node, unpicks=[
-                                     'weights'], extend_map=extend_map)
+                                     'weight'], extend_map=extend_map)
