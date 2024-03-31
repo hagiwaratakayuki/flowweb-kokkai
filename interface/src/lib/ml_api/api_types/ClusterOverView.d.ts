@@ -10,7 +10,7 @@ export type Title = string;
 export type MemberCount = number;
 export type ShortKeywords = string[];
 
-export interface ClusterOverView {
+export interface ClusterOverview {
   id: Id;
   title?: Title;
   member_count: MemberCount;

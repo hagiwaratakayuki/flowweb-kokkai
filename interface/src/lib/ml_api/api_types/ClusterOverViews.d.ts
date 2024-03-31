@@ -9,15 +9,15 @@ export type Id = string | number;
 export type Title = string;
 export type MemberCount = number;
 export type ShortKeywords = string[];
-export type Clusters = ClusterOverView[];
+export type Clusters = ClusterOverview[];
 export type Cursor = string | null;
 
-export interface ClusterOverViews {
+export interface ClusterOverviews {
   clusters: Clusters;
   cursor: Cursor;
   [k: string]: unknown;
 }
-export interface ClusterOverView {
+export interface ClusterOverview {
   id: Id;
   title?: Title;
   member_count: MemberCount;

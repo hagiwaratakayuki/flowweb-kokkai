@@ -13,7 +13,7 @@
     if (!list) {
       return;
     }
-    list.addOverViews(overviews, true);
+    list.addOverviews(overviews, true);
     let selectedId = "hoge";
     setTimeout(function () {
       selectedId = "test-selected";
@@ -23,7 +23,7 @@
     alert("ok");
   }
   /**
-   * @type {import("$lib/ml_api/api_types/TextOverView").TextOverView[]}
+   * @type {import("$lib/ml_api/api_types/TextOverview").TextOverview[]}
    */
   const overviews = [
     {

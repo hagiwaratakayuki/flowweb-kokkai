@@ -14,15 +14,15 @@ export type AuthorId = string;
 export type LinkedCount = number;
 export type LinkTo = string[] | null;
 export type Position = number | null;
-export type Texts = TextOverView[];
+export type Texts = TextOverview[];
 export type Cursor = string | null;
 
-export interface TextOverViews {
+export interface TextOverviews {
   texts: Texts;
   cursor: Cursor;
   [k: string]: unknown;
 }
-export interface TextOverView {
+export interface TextOverview {
   id: Id;
   title: Title;
   published: Published;

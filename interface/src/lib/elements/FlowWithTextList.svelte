@@ -31,11 +31,11 @@
 
   //@todo add flow
   //@todo add additional loading
-  export function addOverViews(overViews, isNextExist) {
+  export function addOverviews(overViews, isNextExist) {
     if (typeof textList === "undefined") {
       return;
     }
-    textList.addOverViews(overViews, isNextExist);
+    textList.addOverviews(overViews, isNextExist);
   }
   /**
    * @@param {import("./Flow/Flow.event").NodeEvent} event

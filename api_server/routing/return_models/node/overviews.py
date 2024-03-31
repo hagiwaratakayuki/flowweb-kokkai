@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from .overview import NodeOverView
+from .overview import NodeOverview
 from ..with_cursor import WithCursor
 
 
-class NodeOverViews(BaseModel, WithCursor):
-    nodes: list[NodeOverView]  # type: ignore
+class NodeOverviews(BaseModel, WithCursor):
+    nodes: list[NodeOverview]  # type: ignore

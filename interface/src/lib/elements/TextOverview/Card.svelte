@@ -7,7 +7,7 @@
   } from "@sveltestrap/sveltestrap";
   import { getDate } from "$lib/util/get_date";
   /**
-   * @type {import("$lib/ml_api/api_types/TextOverView").TextOverView}
+   * @type {import("$lib/ml_api/api_types/TextOverview").TextOverview}
    */
   export let overview = undefined;
 </script>

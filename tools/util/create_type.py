@@ -1,16 +1,17 @@
 from collections import deque
+from re import U
 from pydantic import BaseModel
 from string import Template
+from .unpick import exec_unpick
 
 
 def create_pydantec_model(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
-    return
     _extends_from = (BaseModel, *extends_from, )
     return create_type(base=base, unpicks=unpicks, extend_map=extend_map, name_template=name_template, extends_from=_extends_from)
 
 
 def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', extends_from=()) -> type:
-    return
+
     annotations, value_map = create_annotations(
         base, unpicks, extend_map)
 
@@ -54,14 +55,14 @@ def create_annotations(base, unpicks=[], extend_map: dict = {}):
             if hasattr(_base, k) == True:
                 value_map[k] = getattr(_base, k)
 
-    for unpick in unpicks:
-        del annotations[unpick]
+    annotations = exec_unpick(target=annotations, unpicks=unpicks)
 
     for k, v in extend_map.items():
         if not isinstance(v, dict):
+
             annotations[k] = v
         else:
             annotations[k] = v['type']
-        value_map[k] = v['default']
+            value_map[k] = v['default']
     annotations.update(extend_map)
     return annotations, value_map

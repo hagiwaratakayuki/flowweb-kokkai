@@ -7,7 +7,7 @@ import inspect
 from operator import itemgetter
 from string import Template
 from typing import Tuple, TypedDict
-from db.model import Model
+from api_server.db.model import Model
 from util import create_type
 import os
 import re
@@ -52,14 +52,14 @@ def directory_contract(path: str):
 
 pt_pyext = re.compile('\.py$')
 pt_args = re.compile('[\s,\]\[]+')
-for root, dirs, files in os.walk('./db'):
-    if root != './db':
+for root, dirs, files in os.walk('./api_server/db'):
+    if root != './api_server':
         continue
     for file in files:
         if pt_pyext.search(file) is None or file.find('model') != -1 or file == '__init__.py':
             continue
 
-        modpath = 'db.' + pt_pyext.sub('', file)
+        modpath = 'api_server.db.' + pt_pyext.sub('', file)
         mod = importlib.import_module(modpath)
         imported_modules = defaultdict(dict)
         required_imports = []
@@ -144,7 +144,7 @@ for root, dirs, files in os.walk('./db'):
             {'classes': '\n'.join(class_strs), 'imports': required_imports_str})
 
         file_name = os.path.abspath(
-            './routing/entity_types/' + file)
+            './api_server/routing/entity_types/' + file)
 
         with open(file_name, "w") as f:
             f.write(module_str)

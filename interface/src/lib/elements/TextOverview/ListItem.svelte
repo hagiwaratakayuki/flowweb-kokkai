@@ -15,7 +15,7 @@
 
   let isSelected = false;
   /**
-   * @type  {import("$lib/ml_api/api_types/TextOverView").TextOverView}
+   * @type  {import("$lib/ml_api/api_types/TextOverview").TextOverview}
    */
   export let overview;
   /**

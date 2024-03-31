@@ -6,8 +6,8 @@ from typing import List
 from .query.cluster import get_cluster_keyword, get_cluster_member, get_cluster_member_by_publishedrange
 from app.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
-from routing.return_models.node.overview import NodeOverView
-from routing.return_models.node.overviews import NodeOverViews
+from routing.return_models.node.overview import NodeOverview
+from routing.return_models.node.overviews import NodeOverviews
 from .util import picker
 from .router import get_routing_tuple
 from typing import Optional
@@ -16,7 +16,7 @@ router = APIRouter()
 
 class ClusterFull(BaseModel):
     keywords: list[str]
-    members_list: Optional[list[NodeOverView]]  # type: ignore
+    members_list: Optional[list[NodeOverview]]  # type: ignore
     members_list_next: Optional[str]
     member_count: int
 
@@ -31,7 +31,7 @@ def get_entity_all(id: int) -> ClusterFull:
         cluster_id=id)
     members_list: Optional[list] = None
     if members_entities != None:
-        members_list = [NodeOverView(mem.id, **mem)
+        members_list = [NodeOverview(mem.id, **mem)
                         for mem in members_entities]  # type: ignore
     return ClusterFull(
         keywords=keywords,
@@ -41,17 +41,17 @@ def get_entity_all(id: int) -> ClusterFull:
     )
 
 
-@router.get('/members', response_model=NodeOverViews, response_model_exclude_none=True)
-def get_members(id: int, cursor: Optional[str] = None) -> NodeOverViews:
+@router.get('/members', response_model=NodeOverviews, response_model_exclude_none=True)
+def get_members(id: int, cursor: Optional[str] = None) -> NodeOverviews:
     members_entities, members_list_next = get_cluster_member.fetch(
         cluster_id=id, cursor=cursor)
     if members_entities == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    nodes = [NodeOverView(**mem) for mem in members_entities]
-    return NodeOverViews(nodes=nodes, cursor=members_list_next)
+    nodes = [NodeOverview(**mem) for mem in members_entities]
+    return NodeOverviews(nodes=nodes, cursor=members_list_next)
 
 
-@router.get('/members_by_publishedate', response_model=List[NodeOverView], response_model_exclude_none=True)
+@router.get('/members_by_publishedate', response_model=List[NodeOverview], response_model_exclude_none=True)
 def get_members_by_publishedate(
         eid: str,
         start_year: int,
@@ -61,7 +61,7 @@ def get_members_by_publishedate(
         end_month: int,
         end_date: int,
 
-) -> List[NodeOverView]:  # type: ignore
+) -> List[NodeOverview]:  # type: ignore
 
     members = get_cluster_member_by_publishedrange.fetch(
         cluster_id=eid,
@@ -74,7 +74,7 @@ def get_members_by_publishedate(
     )
     if members == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    return [NodeOverView(id=mem.id, **mem) for mem in members]  # type: ignore
+    return [NodeOverview(id=mem.id, **mem) for mem in members]  # type: ignore
 
 
 routing_tuple = get_routing_tuple(__file__, router)

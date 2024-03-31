@@ -15,7 +15,7 @@ export type LinkedCount = number;
 export type LinkTo = string[] | null;
 export type Position = number | null;
 
-export interface TextOverView {
+export interface TextOverview {
   id: Id;
   title: Title;
   published: Published;

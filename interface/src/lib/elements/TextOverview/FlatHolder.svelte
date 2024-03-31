@@ -12,20 +12,20 @@
     _isLocked = true;
   }
   /**
-   * @typedef  {import("$lib/ml_api/api_types/TextOverView").TextOverView[]} OverViews
+   * @typedef  {import("$lib/ml_api/api_types/TextOverview").TextOverview[]} Overviews
    */
   /**
    *
-   * @param {OverViews} overViews
+   * @param {Overviews} overViews
    * @param {bool} isNextExist
    */
-  export function addOverView(overViews, isNextExist) {
+  export function addOverview(overViews, isNextExist) {
     _overviews = overViews.concat(overViews);
     _isNextExist = isNextExist;
   }
 
   /**
-   * @type {OverViews}
+   * @type {Overviews}
    */
   let _overviews = [];
   let _isNextExist = false;

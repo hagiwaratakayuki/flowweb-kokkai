@@ -1,4 +1,4 @@
-from db.proxy.cluster_keyword import ClusterKeyword
+from db.proxy import ClusterKeyword
 
 
 def fetch(cluster_id: int):

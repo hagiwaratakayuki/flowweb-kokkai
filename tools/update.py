@@ -106,8 +106,8 @@ def copy_updates(target_directories):
 if __name__ == "__main__":
     print('start', datetime.datetime.now())
     updates = [
-        ['online_server/db', 'processer/db'],
-        ['online_server/data_types', 'processer/data_types']
+        ['api_server/db', 'processer/db'],
+        ['api_server/data_types', 'processer/data_types']
     ]
     for update in updates:
         copy_updates(update)

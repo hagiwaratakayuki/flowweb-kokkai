@@ -11,8 +11,8 @@
   let flowWithTextList;
   //@todo change to mockdata;
   onMount(async function () {
-    const textOverView = await all_summary();
-    flowWithTextList.setInitData(textOverView);
+    const textOverview = await all_summary();
+    flowWithTextList.setInitData(textOverview);
   });
 </script>
 

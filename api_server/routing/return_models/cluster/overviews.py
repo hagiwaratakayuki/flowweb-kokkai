@@ -1,8 +1,8 @@
 from pydantic import BaseModel
-from .overview import ClusterOverView
+from .overview import ClusterOverview
 from typing import Optional
 
 
-class ClusterOverViews(BaseModel):
-    clusters: list[ClusterOverView]  # type: ignore
+class ClusterOverviews(BaseModel):
+    # clusters: list[ClusterOverview]
     cursor: Optional[str]

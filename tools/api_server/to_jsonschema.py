@@ -1,9 +1,4 @@
-from routing import node
-from routing.return_models.cluster import overview as cluster_overview
-from routing.return_models.cluster import overviews as cluster_overviews
-from routing.return_models.node import overview as text_overview
-from routing.return_models.node import overviews as text_overviews
-from routing import cluster
+
 from pydantic import TypeAdapter, BaseModel
 import os
 import json
@@ -20,7 +15,7 @@ def check_class(target):
         return False
 
 
-for root, dirs, files in os.walk('./routing/return_models'):
+for root, dirs, files in os.walk('./api_server/routing/return_models'):
     modroot = sep_pt.sub('.', root)
     for file in files:
 
@@ -44,7 +39,7 @@ for root, dirs, files in os.walk('./routing/return_models'):
                 continue
 
             adapter = TypeAdapter(target)
-            file_name = os.path.abspath('../schema/' + name + '.json')
+            file_name = os.path.abspath('./schema/' + name + '.json')
 
             with open(file_name, "w") as f:
                 json.dump(adapter.json_schema(), f, ensure_ascii=False)

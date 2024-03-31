@@ -27,25 +27,25 @@
 
   onMount(function () {
     if (typeof overViews !== "undefined") {
-      addOverViews(overViews, isNextExist);
+      addOverviews(overViews, isNextExist);
     }
   });
 
   /**
-   * @typedef  {import("$lib/ml_api/api_types/TextOverView").TextOverView[]} OverViews
+   * @typedef  {import("$lib/ml_api/api_types/TextOverview").TextOverview[]} Overviews
    */
   /**
    *
-   * @param {OverViews} overViews
+   * @param {Overviews} overViews
    * @param {bool} isNextExist
    */
-  export function addOverViews(overViews, isNextExist) {
+  export function addOverviews(overViews, isNextExist) {
     _overviews = overViews.concat(overViews);
     _isNextExist = isNextExist;
   }
 
   /**
-   * @type {OverViews}
+   * @type {Overviews}
    */
   let _overviews = [];
   let _isNextExist = false;

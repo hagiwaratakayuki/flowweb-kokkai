@@ -8,13 +8,13 @@
   let flatHolder;
   export let Hst;
   onMount(function () {
-    flatHolder.addOverView(overviews, true);
+    flatHolder.addOverview(overviews, true);
   });
   function onNext() {
     alert("ok");
   }
   /**
-   * @type {import("$lib/ml_api/api_types/TextOverView").TextOverView[]}
+   * @type {import("$lib/ml_api/api_types/TextOverview").TextOverview[]}
    */
   const overviews = [
     {

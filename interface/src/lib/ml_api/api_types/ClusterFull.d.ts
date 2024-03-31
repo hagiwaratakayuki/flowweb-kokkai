@@ -6,7 +6,7 @@
  */
 
 export type Keywords = string[];
-export type MembersList = TextOverView[] | null;
+export type MembersList = TextOverview[] | null;
 export type Id = string | number;
 export type Title = string;
 export type Published = string;
@@ -26,7 +26,7 @@ export interface ClusterFull {
   member_count: MemberCount;
   [k: string]: unknown;
 }
-export interface TextOverView {
+export interface TextOverview {
   id: Id;
   title: Title;
   published: Published;

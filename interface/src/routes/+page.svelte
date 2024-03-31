@@ -10,8 +10,8 @@
   onMount(async function () {
     try {
       /**
-       * @typedef {import("$lib/ml_api/api_types/TextOverView").TextOverView} TextOverView
-       * @type {Array<TextOverView>}
+       * @typedef {import("$lib/ml_api/api_types/TextOverview").TextOverview} TextOverview
+       * @type {Array<TextOverview>}
        */
       const overViews = await all_summary();
       flowWithTextList.setInitData(overViews);

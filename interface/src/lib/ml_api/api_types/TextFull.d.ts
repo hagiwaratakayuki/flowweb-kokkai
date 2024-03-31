@@ -11,14 +11,14 @@ export type Published = string;
 export type Auther = string;
 export type AutherId = string;
 export type Keywords = string[];
-export type Clustres = ClusterOverView[] | null;
+export type Clustres = ClusterOverview[] | null;
 export type Id = string | number;
 export type Title1 = string;
 export type MemberCount = number;
 export type ShortKeywords = string[];
 export type ClustresNext = string | null;
 export type LinkeTo = unknown[] | null;
-export type LinkedFrom = TextOverView[] | null;
+export type LinkedFrom = TextOverview[] | null;
 export type Id1 = string | number;
 export type Title2 = string;
 export type Published1 = string;
@@ -44,14 +44,14 @@ export interface TextFull {
   linked_from_next?: LinkedFromNext;
   [k: string]: unknown;
 }
-export interface ClusterOverView {
+export interface ClusterOverview {
   id: Id;
   title?: Title1;
   member_count: MemberCount;
   short_keywords: ShortKeywords;
   [k: string]: unknown;
 }
-export interface TextOverView {
+export interface TextOverview {
   id: Id1;
   title: Title2;
   published: Published1;

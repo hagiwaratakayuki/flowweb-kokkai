@@ -1,10 +1,10 @@
 /**
- * @typedef {import("$lib/ml_api/api_types/TextOverView").TextOverView} TextOverView
+ * @typedef {import("$lib/ml_api/api_types/TextOverview").TextOverview} TextOverview
  * 
 */
 /**
  * 
- * @param {Array<TextOverView>} overViews 
+ * @param {Array<TextOverview>} overViews 
  * @returns 
  */
 export function overviews_to_flow(overViews) {
