@@ -19,6 +19,6 @@ class NodeOverview(BaseModel):
     published_list: typing_List[str]
     hash: str
     session: int
-    position: typing_Union[str, int, NoneType]
+    position: typing_Union[str, int]
 
 

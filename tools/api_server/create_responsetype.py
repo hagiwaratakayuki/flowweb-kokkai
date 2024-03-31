@@ -24,6 +24,8 @@ class_template = Template(class_tmaplate_str)
 
 
 def get_targets(module, modpath: str):
+    if hasattr(module, 'Base') == False:
+        return []
     member_name = ''.join([token.capitalize()
                            for token in modpath.split('.')[-2:]])
     return [
@@ -37,11 +39,11 @@ def get_targets(module, modpath: str):
 
 
 target_directry = './api_server/routing/return_models/configures'
-output_directry = './api_server/routing/return_models/'
+output_directry = './api_server/routing/return_models/types'
 
 
 def directory_contract(path: str):
-    return path
+    return path.replace('db.', 'routing.entity_types.').replace('routing.entity_types.configures.', 'routing.entity_types.')
 
 
 generate(target_directry=target_directry,

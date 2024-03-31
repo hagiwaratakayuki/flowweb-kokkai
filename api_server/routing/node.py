@@ -8,11 +8,11 @@ from .query.node import get_all_summary, get_linked_node as linked_node, get_nod
 
 from .query.cluster import get_clusters_by_node
 
-from routing.return_models.node.overview import NodeOverview
-from routing.return_models.node.overviews import NodeOverviews
-from routing.return_models.node.nodefull import NodeFull
-from routing.return_models.cluster.overview import ClusterOverview
-from routing.return_models.cluster.overviews import ClusterOverviews
+from routing.return_models.types.node.overview import NodeOverview
+from routing.return_models.types.node.overviews import NodeOverviews
+from api_server.routing.return_models.types.node.full import NodeFull
+from routing.return_models.types.cluster.overview import ClusterOverview
+from routing.return_models.types.cluster.overviews import ClusterOverviews
 
 from typing import List
 from db.proxy import Node

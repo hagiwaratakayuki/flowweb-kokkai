@@ -163,7 +163,7 @@ def generate(target_directry='./api_server/db',
                                 type_cls, '__name__', None) or getattr(type_cls, '_name')
 
                     property_str = property_template.substitute(
-                        {'name': name, 'type': type_string})
+                        {'name': name, 'type': type_string}).replace('NoneType', 'Type[None]')
 
                     properties.append(property_str)
 
@@ -171,6 +171,8 @@ def generate(target_directry='./api_server/db',
                 class_str = class_template.substitute(
                     {'classname': member_name, 'properties': properties_str})
                 class_strs.append(class_str)
+            if len(class_strs) == 0:
+                continue
             for module, alias_map in imported_modules.items():
                 import_classes = []
                 for name, as_alias in alias_map.items():
