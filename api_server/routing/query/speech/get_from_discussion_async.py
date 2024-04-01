@@ -1,11 +1,13 @@
-from typing import Iterator
 from db.speech import Speech
 from routing.entity_types.speech import Speech as SpeechEntity
 import asyncio
+from operator import itemgetter
+order_by = itemgetter('order')
 
 
-async def fech(discussion_id) -> Iterator[SpeechEntity]:
+async def fech(discussion_id) -> list[SpeechEntity]:
     await asyncio.sleep(0)
     query = Speech.query()
     query.add_filter('discussion_id', '=', discussion_id)
-    return query.fetch()
+    response: list[SpeechEntity] = list(query.fetch())
+    return response.sort(order_by)

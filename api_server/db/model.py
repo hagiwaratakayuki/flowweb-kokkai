@@ -110,8 +110,7 @@ class Model(object):
 
     @classmethod
     def _get_multi(cls, params):
-        if params == None or not isinstance(Iterable, params):
-            return None
+        params = params or []
         keys = [cls._get_key(**param) for param in params]
         if len(keys) == 0:
             return None

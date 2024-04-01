@@ -13,9 +13,10 @@ class Node(Model):
     weight: float
     title: str
     published_list: List[str]
+    keywords: List[str]
     hash: str
 
     def __init__(self, *args, **kwargs) -> None:
 
         super(Node, self).__init__(entity_options={
-            "exclude_from_indexes": ("data", "title", )}, *args, **kwargs)
+            "exclude_from_indexes": ("data", "title", "author")}, *args, **kwargs)

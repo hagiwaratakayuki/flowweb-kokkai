@@ -6,7 +6,7 @@ from typing import List
 class Cluster(Model):
     title: str = ''
     member_count: int
-    short_keywords: List[str]
+    keywords: List[str]
 
     def __init__(self, *args, **kwargs) -> None:
         self._entity_options = {"exclude_from_indexes": ("short_keywords", )}

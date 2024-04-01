@@ -44,7 +44,7 @@ class NodeLogic(ChunkedBatchSaver):
         }
         return sentiment
 
-    def setEntityProperty(self, entity, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords):
+    def setEntityProperty(self, entity: node.Node, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords):
 
         data: NodeData = dict(vector=vector.tolist(),
                               sentiment=sentiment)
@@ -54,8 +54,6 @@ class NodeLogic(ChunkedBatchSaver):
         published = dto.published
         author = dto.author
         author_id = dto.author_id
-
-        keywords = keywords
 
         entity.link_to = link_to
 
@@ -68,6 +66,7 @@ class NodeLogic(ChunkedBatchSaver):
         entity.data = json.dumps(data)
         entity.linked_count = linked_count
         entity.hash = get_hash(vector=vector)
+        entity.keywords = keywords
         datetime_list = spliter.split(str(published))
 
         entity.published_list = get_ymd(datetime_list)

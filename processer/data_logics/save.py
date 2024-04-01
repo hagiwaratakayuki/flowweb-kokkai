@@ -1,7 +1,7 @@
 
 import numpy as np
 import logging
-from db import cluster, cluster_member, model as db_model, edge, cluster_keyword
+from db import cluster, cluster_member
 from multiprocessing import Pool
 from collections import deque, defaultdict
 from db import node_keyword
@@ -155,6 +155,7 @@ class Logic:
             linked_count = linked_counts_map[id]
             result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
                                                             link_to=link_to, linked_count=linked_count)
+            """
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published
@@ -164,6 +165,7 @@ class Logic:
                 keyword_model.keyword = keyword
                 keyword_model.node_id = id
                 keyword_chunk.put(keyword_model)
+            """
 
         entities = nodeLogic.close()
         keyword_chunk.close()
@@ -172,7 +174,7 @@ class Logic:
     def _get_cluster_model(self, taged, cluster_id, cluster_members):
         cluster_model = self._cluster_model_class()
         cluster_model.member_count = len(cluster_members)
-        cluster_model.short_keywords = list(
+        cluster_model.keywords = list(
             taged.tag_index[cluster_id])[:5]
 
         return cluster_model
@@ -205,12 +207,16 @@ class Logic:
                 member_model.position = position
 
                 member_model_chunk.put(member_model)
+
+            # Temporary off
+            """"
             for keyword in keywords:
                 loop_count += 1
                 keyword_model = cluster_keyword.ClusterKeyword()
                 keyword_model.keyword = keyword
                 keyword_model.cluster_id = entity.id
                 keyword_model_chunk.put(keyword_model)
+            """
 
 
 def process(loader, logicBuilder=Logic):
