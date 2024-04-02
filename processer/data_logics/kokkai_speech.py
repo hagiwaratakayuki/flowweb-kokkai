@@ -20,6 +20,7 @@ class Saver:
             model.speaker = data['speaker']
             model.speaker_id = data['speaker_id']
             model.title = data['title']
+            model.house = data['house']
             if "response_to" in data:
 
                 model.response_to = data['response_to']

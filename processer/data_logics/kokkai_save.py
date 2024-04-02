@@ -29,6 +29,7 @@ class KokkaiNodeLogic(NodeLogic):
                                         vector, link_to, linked_count, sentiment)
 
         nodeEntity.session = self.session
+        nodeEntity.house = dto.house
         return ret
 
 

@@ -1,55 +1,11 @@
 
 
-from collections import defaultdict
-
-import importlib
-import inspect
-from operator import itemgetter
-from string import Template
-from typing import Tuple, TypedDict
-from api_server.db.model import Model
-from util import create_type
-import os
-import re
+from .generate_type_code import generate
 
 
-module_template_string = """
-from .basetype import BaseType
-${imports}
-
-${classes}
+generate()
 
 """
-
-module_template = Template(module_template_string)
-
-import_class_template_str = """${name} as ${as_alias} """
-
-import_class_template = Template(import_class_template_str)
-
-import_template_str = """from ${module} import ${import_classes} """
-
-import_template = Template(import_template_str)
-
-class_tmaplate_str = """
-class ${classname}(BaseType):
-${properties}
-"""
-class_template = Template(class_tmaplate_str)
-
-
-property_template_string = """    ${name}: ${type}"""
-property_template = Template(property_template_string)
-
-
-def alias_contract(tokens):
-    return '_'.join(tokens)
-
-
-def directory_contract(path: str):
-    return path.replace('db.', 'routing.entity_types.')
-
-
 pt_pyext = re.compile('\.py$')
 pt_args = re.compile('[\s,\]\[]+')
 for root, dirs, files in os.walk('./api_server/db'):
@@ -148,3 +104,4 @@ for root, dirs, files in os.walk('./api_server/db'):
 
         with open(file_name, "w") as f:
             f.write(module_str)
+"""

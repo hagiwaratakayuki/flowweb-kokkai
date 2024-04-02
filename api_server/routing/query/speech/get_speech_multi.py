@@ -8,5 +8,5 @@ from db.speech import Speech
 SpeechMultiResponse = Optional[list[SpeechEntity]]
 
 
-async def fetch(ids) -> Any:
+def fetch(ids) -> Any:
     return Speech.get_multi([{'id': id} for id in ids])

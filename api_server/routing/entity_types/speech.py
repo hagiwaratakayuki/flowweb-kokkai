@@ -15,5 +15,7 @@ class Speech(BaseType):
     url: str
     order: int
     session: int
+    issue: str
+    house: str
 
 

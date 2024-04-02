@@ -2,14 +2,19 @@ from numpy import Infinity
 
 from storage.meeting import Meeting
 from itertools import chain
-from typing import Any, Dict
+from typing import Any, Dict, TypedDict
+import hashlib
+import re
+
 
 from .dto import DTO as Base
-import hashlib
 from collections import defaultdict, deque
 from data_logics import kokkai_meeting, kokkai_speaker, kokkai_speech, kokkai_comittie
 from .util import list_runner
 from data_loader.kokkai_reguraizer import reguraizers
+
+
+number_pt = re.compile('\d+')
 
 
 class DTO(Base):
@@ -17,8 +22,18 @@ class DTO(Base):
     house: str
 
 
-def ComittieHouseIssues():
-    return defaultdict(list)
+SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
+
+
+def SessionComittieHouseData():
+    ret: SessionComittieHouseDataType = {}
+    ret['max_issue'] = -1
+    ret['meetings'] = []
+    return ret
+
+
+def SessionComittieHouseDataMap():
+    return defaultdict(SessionComittieHouseData)
 
 
 def load(storage_model_class=Meeting,
@@ -38,7 +53,7 @@ def load(storage_model_class=Meeting,
         kokkai_comittie.ComittieData)
     for session,  meetingChunks in storage_model.downloadAll():
 
-        session_comittie_data_map = defaultdict(ComittieHouseIssues)
+        session_comittie_data_map = defaultdict(SessionComittieHouseDataMap)
 
         speaker_id_map = {}
         speeches = deque()
@@ -59,11 +74,17 @@ def load(storage_model_class=Meeting,
     speech_saver.close()
 
 
-def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict, meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque):
+def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque):
 
     house = meeting['house']
     comittie_name = meeting['name']
-    session_comittie_data_map[comittie_name][house].append(meeting['issue'])
+
+    issue = int(number_pt.search(meeting['issue']).group(0))
+    session_comittie_data = session_comittie_data_map[comittie_name][house]
+    if issue > session_comittie_data['max_issue']:
+        session_comittie_data['max_issue'] = issue
+    session_comittie_data['meetings'].append((issue, meeting['id'],))
+
     comittie_data = comittie_map[comittie_name]
     session = int(meeting['session'])
     str_session = str(session)
@@ -101,6 +122,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         speechData['meeting_id'] = meeting["id"]
         speechData['meeting'] = meeting['name']
         speechData['title'] = dto.title
+        speechData['house'] = house
         speeches.append(speechData)
     for v in _speaker_name_to_data.values():
         speaker_id_map[v['id']] = v['speaker']

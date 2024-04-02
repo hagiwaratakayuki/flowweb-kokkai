@@ -5,5 +5,5 @@ from .node import Node
 
 
 class NodeKokkai(Node):
-
+    house: str
     session: int

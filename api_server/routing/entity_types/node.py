@@ -14,6 +14,7 @@ class Node(BaseType):
     weight: float
     title: str
     published_list: typing_List[str]
+    keywords: typing_List[str]
     hash: str
 
 

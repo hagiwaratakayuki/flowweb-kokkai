@@ -14,6 +14,8 @@ class Speech(Model):
     url: str
     order: int
     session: int
+    issue: str
+    house: str
 
     def __init__(self, id=None) -> None:
         entity_options = {

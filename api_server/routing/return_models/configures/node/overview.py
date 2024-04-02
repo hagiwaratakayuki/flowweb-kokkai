@@ -5,5 +5,7 @@ extend_map = {
 
 }
 unpicks = [
-    'weight'
+    'weight',
+    'hash',
+    'linked_count'
 ]
