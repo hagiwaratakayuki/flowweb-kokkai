@@ -55,14 +55,16 @@ class SessionSaver:
 
     def save(self, session, session_comittie_data_map: Dict[str, Dict[str, SessionComittieDataType]]):
         for name, house_and_datas in session_comittie_data_map.items():
-            for house, dats in house_and_datas.items():
+            for house, data in house_and_datas.items():
 
                 entity = KokkaiComittieAndSession()
 
                 entity.house = house
-                entity.issue_count = issue_count
+                entity.issue_count = data['max_issue']
                 entity.name = name
                 entity.session = session
+                entity.meeting_ids = map(meeting_getter, sorted(
+                    data['meetings'], key=issue_getter))
                 self.saver.put(entity)
 
     def _reguraise(self, row):

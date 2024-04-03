@@ -28,7 +28,13 @@ class NodeLogic(ChunkedBatchSaver):
         sentiment = self.set_vectors(sentiment_result=sentiment_result)
         weight, publishedlist = self.setEntityProperty(
             entity=nodeEntity,
-            dto=dto, nodeEntity=nodeEntity, vector=vector, link_to=link_to, linked_count=linked_count, sentiment=sentiment)
+            dto=dto,
+            nodeEntity=nodeEntity,
+            vector=vector,
+            link_to=link_to,
+            linked_count=linked_count,
+            sentiment=sentiment,
+            keywords=keywords)
         return self.put(nodeEntity), weight, publishedlist
 
     def set_vectors(self, sentiment_result: SentimentResult):

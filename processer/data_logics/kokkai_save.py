@@ -24,9 +24,9 @@ class KokkaiNodeLogic(NodeLogic):
     def set_vectors(self, sentiment_result: SentimentResult):
         return super().set_vectors(sentiment_result)
 
-    def setEntityProperty(self, dto: DTO, nodeEntity: NodeKokkai, vector: ndarray, link_to, linked_count, sentiment):
+    def setEntityProperty(self, dto: DTO, nodeEntity: NodeKokkai, vector: ndarray, link_to, linked_count, sentiment, keywords):
         ret = super().setEntityProperty(dto, nodeEntity,
-                                        vector, link_to, linked_count, sentiment)
+                                        vector, link_to, linked_count, sentiment, keywords)
 
         nodeEntity.session = self.session
         nodeEntity.house = dto.house

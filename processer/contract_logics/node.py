@@ -2,7 +2,6 @@
 from utillib import hash
 import numpy as np
 from typing import TypedDict
-from db.node import Node
 
 
 class SentimentData(TypedDict):

@@ -1,5 +1,5 @@
 /**
- * @typedef {import("$lib/ml_api/api_types/TextOverview").TextOverview} TextOverview
+ * @typedef {import("$lib/ml_api/api_types/TextOverView").TextOverview} TextOverview
  * 
 */
 /**
