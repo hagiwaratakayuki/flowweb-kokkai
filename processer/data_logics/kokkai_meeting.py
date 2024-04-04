@@ -16,6 +16,7 @@ class Saver:
             model.url = meeting['url']
             model.pdf = meeting['pdf']
             model.header_text = meeting['headerRecord']
+            model.keywords = meeting['keywords']
 
             model.moderators = meeting['moderators']
             model.moderator_ids = list(meeting['moderators'].values())

@@ -1,3 +1,5 @@
+import keyword
+from operator import itemgetter
 from numpy import Infinity
 
 from storage.meeting import Meeting
@@ -20,6 +22,8 @@ number_pt = re.compile('\d+')
 class DTO(Base):
     meeting_id: str
     house: str
+    keywords: list
+    weight: float
 
 
 SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
@@ -74,6 +78,10 @@ def load(storage_model_class=Meeting,
     speech_saver.close()
 
 
+keywordgetter = itemgetter(0)
+scoregetter = itemgetter(1)
+
+
 def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque):
 
     house = meeting['house']
@@ -105,6 +113,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
     meeting['moderators'] = {name: _speaker_name_to_data[name]
                              for name in meeting['moderators']}
     meetings.append(meeting)
+    meeting_keywords = defaultdict(0.0)
     for speechData in meeting['speeches']:
 
         speechText = list_runner.run(
@@ -124,5 +133,14 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         speechData['title'] = dto.title
         speechData['house'] = house
         speeches.append(speechData)
+        keyword_len = getattr(dto, 'keywords', [])
+        regurize_weight = (keyword_len + 1) * keyword_len / 2
+
+        for i, keyword in enumerate(getattr(dto, 'keywords', [])):
+            meeting_keywords[keyword] += dto.weight * \
+                (keyword_len - i) / regurize_weight
+    meeting['keywords'] = map(keywordgetter,  sorted(
+        list(meeting_keywords.items()), key=scoregetter))[:5]
+
     for v in _speaker_name_to_data.values():
         speaker_id_map[v['id']] = v['speaker']

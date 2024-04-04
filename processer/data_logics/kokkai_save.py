@@ -30,6 +30,8 @@ class KokkaiNodeLogic(NodeLogic):
 
         nodeEntity.session = self.session
         nodeEntity.house = dto.house
+        dto.weight = nodeEntity.weight
+        dto.keywords = nodeEntity.keywords
         return ret
 
 

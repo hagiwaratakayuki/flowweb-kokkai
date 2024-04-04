@@ -16,8 +16,9 @@ class Meeting(Model):
     pdf: str
     session: int
     header_text: str
-    moderators: List[str]
+    moderators: str
     moderator_ids: List[str]
+    keywords: List[str]
 
     def __init__(self, id=None) -> None:
         entity_options = {
