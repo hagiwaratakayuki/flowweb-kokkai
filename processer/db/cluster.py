@@ -7,7 +7,10 @@ class Cluster(Model):
     title: str = ''
     member_count: int
     keywords: List[str]
+    weight: float
+    total_weight: float
 
     def __init__(self, *args, **kwargs) -> None:
-        self._entity_options = {"exclude_from_indexes": ("short_keywords", )}
-        super(Cluster, self).__init__(*args, **kwargs)
+
+        super(Cluster, self).__init__(entity_options={
+            "exclude_from_indexes": ("title", "total_weight", )}, *args, **kwargs)

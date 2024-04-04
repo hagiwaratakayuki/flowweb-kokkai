@@ -1,4 +1,5 @@
 
+from functools import reduce
 import numpy as np
 import logging
 from db import cluster, cluster_member
@@ -6,7 +7,7 @@ from multiprocessing import Pool
 from collections import deque, defaultdict
 from db import node_keyword
 
-from typing import Iterable
+from typing import Dict, Iterable
 from data_logics.node_logic import NodeLogic
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
@@ -89,6 +90,36 @@ class Logic:
 
         member_model_chunk = ChunkedBatchSaver()
 
+        keyword_chunk = ChunkedBatchSaver()
+        index2weight = {}
+
+        logging.info('start text save')
+
+        for index, id in index2id.items():
+            vector = index2vector[index]
+            data = index2data[index]
+
+            link_to = [index2id[to_index] for to_index in taged.graph[index]]
+            linked_count = linked_counts_map[id]
+            result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
+                                                            link_to=link_to, linked_count=linked_count)
+
+            index2weight[index] = weight
+            """
+            for keyword in keywords:
+                keyword_model = node_keyword.NodeKeyword()
+                keyword_model.published = data.published
+                keyword_model.weight = weight
+                keyword_model.published_list = published_list
+                keyword_model.linked_count = linked_count
+                keyword_model.keyword = keyword
+                keyword_model.node_id = id
+                keyword_chunk.put(keyword_model)
+            """
+
+        entities = nodeLogic.close()
+        keyword_chunk.close()
+
         cluster_keyword_chunk = deque()
         member_positions_chunk = deque()
         keyword_model_chunk = ChunkedBatchSaver()
@@ -99,7 +130,7 @@ class Logic:
             member_positions_chunk.append(positions)
 
             cluster_model = self._get_cluster_model(
-                cluster_id=cluster_id, taged=taged,  cluster_members=cluster_members)
+                cluster_id=cluster_id, taged=taged,  cluster_members=cluster_members, weight_map=index2weight)
             entities = cluster_chunker.put(cluster_model)
             cluster_keyword_chunk.append(taged.tag_index[cluster_id])
             members_chunk.append(cluster_members)
@@ -117,7 +148,8 @@ class Logic:
                     index2published=index2published,
                     taged=taged,
                     keyword_model_chunk=keyword_model_chunk,
-                    member_positions_chunk=member_positions_chunk
+                    member_positions_chunk=member_positions_chunk,
+                    weight_map=index2weight
                 )
                 members_chunk = deque()
                 cluster_keyword_chunk = deque()
@@ -136,48 +168,30 @@ class Logic:
                 index2published=index2published,
                 taged=taged,
                 keyword_model_chunk=keyword_model_chunk,
-                member_positions_chunk=member_positions_chunk
+                member_positions_chunk=member_positions_chunk,
+                weight_map=index2weight
             )
 
         member_model_chunk.close()
         keyword_model_chunk.close()
 
-        index = 0
-
-        keyword_chunk = ChunkedBatchSaver()
-        logging.info('start text save')
-
-        for index, id in index2id.items():
-            vector = index2vector[index]
-            data = index2data[index]
-
-            link_to = [index2id[to_index] for to_index in taged.graph[index]]
-            linked_count = linked_counts_map[id]
-            result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                                                            link_to=link_to, linked_count=linked_count)
-            """
-            for keyword in keywords:
-                keyword_model = node_keyword.NodeKeyword()
-                keyword_model.published = data.published
-                keyword_model.weight = weight
-                keyword_model.published_list = published_list
-                keyword_model.linked_count = linked_count
-                keyword_model.keyword = keyword
-                keyword_model.node_id = id
-                keyword_chunk.put(keyword_model)
-            """
-
-        entities = nodeLogic.close()
-        keyword_chunk.close()
         logging.info('done')
 
-    def _get_cluster_model(self, taged, cluster_id, cluster_members):
+    def _get_cluster_model(self, taged, cluster_id, cluster_members, weight_map: Dict):
         cluster_model = self._cluster_model_class()
+
         cluster_model.member_count = len(cluster_members)
         cluster_model.keywords = list(
             taged.tag_index[cluster_id])[:5]
+        total_weight = 0.0
+        member_count = 0
+        for member in cluster_members:
+            total_weight += weight_map[member]
+            member_count += 1
 
+        cluster_model.weight = total_weight / member_count
         return cluster_model
+
     def _put_cluster_data(
             self,
             entities,
@@ -189,7 +203,8 @@ class Logic:
             index2published,
             taged,
             keyword_model_chunk: ChunkedBatchSaver,
-            member_positions_chunk: deque
+            member_positions_chunk: deque,
+            weight_map: Dict
 
     ):
         loop_count = 0
@@ -205,6 +220,7 @@ class Logic:
                 member_model.linked_count = linked_count
                 member_model.published = published
                 member_model.position = position
+                member_model.weight = weight_map[member]
 
                 member_model_chunk.put(member_model)
 

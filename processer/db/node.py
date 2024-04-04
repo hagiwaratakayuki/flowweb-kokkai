@@ -19,4 +19,4 @@ class Node(Model):
     def __init__(self, *args, **kwargs) -> None:
 
         super(Node, self).__init__(entity_options={
-            "exclude_from_indexes": ("data", "title", "author")}, *args, **kwargs)
+            "exclude_from_indexes": ("data", "title", "author",)}, *args, **kwargs)
