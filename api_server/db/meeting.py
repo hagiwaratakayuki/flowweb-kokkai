@@ -1,8 +1,11 @@
 
-from typing import Union
+from typing import Optional, Union
+
+from google.cloud.datastore.entity import Entity
 from .model import Model
-from typing import List
+from typing import List, Union
 import json
+from contract_logics.meeting import encode_moderators_contract, decode_moderators_contract
 
 
 class Meeting(Model):
@@ -16,7 +19,7 @@ class Meeting(Model):
     pdf: str
     session: int
     header_text: str
-    moderators: dict
+    moderators: str
     moderator_ids: List[str]
     keywords: List[str]
 
@@ -24,3 +27,20 @@ class Meeting(Model):
         entity_options = {
             "exclude_from_indexes": ("header_text", "pdf", "url", "moderators")}
         super().__init__(id, entity_options)
+
+    def get_entity(self, id=None, path_args=None, kwargs=None):
+        return encode_moderators_contract(super().get_entity(id, path_args, kwargs))
+
+    @classmethod
+    def get(cls, id, *path_args, **kwargs):
+        return decode_moderators_contract(super().get(id, *path_args, **kwargs))
+
+    @classmethod
+    def get_multi(cls, params) -> Optional[List[Entity]]:
+        r = super().get_multi(params)
+        if r is None:
+            return r
+        ret = []
+        for e in r:
+            ret.append(decode_moderators_contract(e))
+        return ret

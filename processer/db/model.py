@@ -87,17 +87,13 @@ class Model(object):
 
     @classmethod
     def get(cls, id, *path_args, **kwargs):
-        return cls._get(id, *path_args, **kwargs)
+        key = cls._get_key(path_args, kwargs, id)
+        return get_client().get(key)
 
     @classmethod
     async def get_async(cls, id, *path_args, **kwargs):
         await asyncio.sleep(0)
-        return cls._get(id, *path_args, **kwargs)
-
-    @classmethod
-    def _get(cls, id, *path_args, **kwargs):
-        key = cls._get_key(path_args, kwargs, id)
-        return get_client().get(key)
+        return cls.get(id, *path_args, **kwargs)
 
     @classmethod
     def get_multi(cls, params) -> Union[List[datastore.Entity], None]:
@@ -133,17 +129,6 @@ class Model(object):
 
     def upsert(self, id=None, *path_args, **kwrgs):
         return self._update(path_args, kwrgs, id)
-
-    @classmethod
-    def from_entity(cls, entity):
-        ret = cls()
-        for k, v in entity.items():
-            ret._set_attr(k, v)
-        ret._entity = entity
-        return ret
-
-    def _set_attr(self, k, v):
-        setattr(self, k, v)
 
 
 def put_multi(models: List[Model]):

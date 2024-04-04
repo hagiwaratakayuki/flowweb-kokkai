@@ -13,7 +13,7 @@ class Meeting(BaseType):
     url: str
     pdf: str
     header_text: str
-    moderators: dict
+    moderators: str
     moderator_ids: typing_List[str]
     keywords: typing_List[str]
 
