@@ -12,12 +12,11 @@ class NodeOverview(BaseModel):
     author: str
     author_id: str
     link_to: typing_Optional[typing_List[str]]
-    linked_count: int
     published: datetime_datetime
-    weight: float
     title: str
     published_list: typing_List[str]
-    hash: str
+    keywords: typing_List[str]
+    house: str
     session: int
     position: typing_Union[str, int]
 

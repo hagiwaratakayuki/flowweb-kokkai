@@ -16,5 +16,6 @@ class KokkaiComittieAndSession(BaseType):
     house: str
     session: int
     issue_count: int
+    meeting_ids: list[str]
 
 

@@ -16,7 +16,7 @@ class Meeting(Model):
     pdf: str
     session: int
     header_text: str
-    moderators: str
+    moderators: dict
     moderator_ids: List[str]
     keywords: List[str]
 
@@ -24,14 +24,3 @@ class Meeting(Model):
         entity_options = {
             "exclude_from_indexes": ("header_text", "pdf", "url", "moderators")}
         super().__init__(id, entity_options)
-
-    def _get_attr(self, key):
-        if key == "moderators":
-            return json.dumps(self.moderators)
-        return super()._get_attr(key)
-
-    def _set_attr(self, k, v):
-        if k == "moderators":
-            v = json.loads(v)
-
-        return super()._set_attr(k, v)

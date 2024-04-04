@@ -10,5 +10,6 @@ class ClusterMember(BaseType):
     linked_count: int
     published: datetime_datetime
     position: float
+    weight: float
 
 
