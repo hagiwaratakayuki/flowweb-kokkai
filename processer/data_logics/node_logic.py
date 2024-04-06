@@ -13,15 +13,16 @@ spliter = re.compile('[\s\w]+')
 
 
 class NodeLogic(ChunkedBatchSaver):
-    def __init__(self, NodeModelModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaverClass: ChunkedBatchSaver = ChunkedBatchSaver, size: int = 30):
+    def __init__(self, NodeModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaverClass: ChunkedBatchSaver = ChunkedBatchSaver, size: int = 30):
         super().__init__(size)
-        self.nodeModel = NodeModelModel
+        self.nodeModel = NodeModel
         self.nodeBodyModel = NodeBodyModel
         self.nodeBodySaver = NodBodySaverClass(size)
 
     def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int, keywords: list[str]):
 
         nodeEntity = self.nodeModel(id=id)
+
         nodeBodyEntity = self.nodeBodyModel(id=id)
         nodeBodyEntity.body = dto.body
         self.nodeBodySaver.put(nodeBodyEntity)
@@ -64,7 +65,7 @@ class NodeLogic(ChunkedBatchSaver):
         entity.link_to = link_to
 
         if type(published) == str:
-            published = datetime.fromisoformat(published)
+            published = datetime.datetime.fromisoformat(published)
         entity.author = author
         entity.author_id = author_id
         entity.published = published

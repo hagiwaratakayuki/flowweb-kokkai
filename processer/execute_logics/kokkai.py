@@ -8,7 +8,7 @@ from db.util.chunked_batch_saver import ChunkedBatchSaver
 from multiprocessing.pool import Pool
 
 
-def execute(loader=kokkai.load, LogicClass=KokkaiLogic, NodeLogicClass=KokkaiNodeLogic, Doc2VecClass=Doc2Vec, AnalizerClass=OsetiAnalizer, TokenaizerClass=MeCabTokenazier, IndexerClass=JapaneseLanguageIndexer):
+def execute(loader=kokkai, LogicClass=KokkaiLogic, NodeLogicClass=KokkaiNodeLogic, Doc2VecClass=Doc2Vec, AnalizerClass=OsetiAnalizer, TokenaizerClass=MeCabTokenazier, IndexerClass=JapaneseLanguageIndexer):
 
     d2v = Doc2VecClass(
         is_use_title=False,
@@ -19,13 +19,15 @@ def execute(loader=kokkai.load, LogicClass=KokkaiLogic, NodeLogicClass=KokkaiNod
     clusterLinkSaver = ChunkedBatchSaver()
     link_map = {}
     with Pool() as pool:
-        for session, datas in loader():
+        for session, dtos in loader.load():
             logic = LogicClass(link_map=link_map, session=session,
                                cluster_links_batch=clusterLinkSaver)
 
-            datas = d2v.exec(pool, datas)
-            nodeLogic = NodeLogicClass(session=session)
-            link_map = logic.save(datas, nodeLogic=nodeLogic)
-        clusterLinkSaver.close()
+            datas = d2v.exec(pool, dtos)
 
-    return
+            nodeLogic = NodeLogicClass(session=session)
+            link_map, nodeModel = logic.save(datas, nodeLogic=nodeLogic)
+            meeting_keywords = nodeModel.get_meeting_keywords()
+            loader.save_meeting(meeting_keywords)
+        clusterLinkSaver.close()
+        loader.close_meeting_saver()

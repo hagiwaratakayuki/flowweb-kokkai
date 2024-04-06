@@ -14,7 +14,7 @@ FILTERS_MAP = dict(zip(FILTERS, [True] * len(FILTERS)))
 
 
 class NLTKTokenazer:
-    def exec(self, text: str):
+    def exec(self, text: str, dto):
         results = []
 
         for line in text.splitlines():

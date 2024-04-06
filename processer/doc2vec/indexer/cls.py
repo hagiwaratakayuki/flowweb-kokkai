@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 from .dto import SentimentWeights, SentimentVector, SentimentResult
+from data_loader.dto import DTO
 
 
 def WeightMap():
@@ -10,26 +11,30 @@ def WeightMap():
 
 
 class Indexer:
-    def __init__(self, tokenaizer, sentimentAnalyzer) -> None:
+    def __init__(self, tokenaizer, sentimentAnalyzer, is_use_title) -> None:
         self._tokenaizer = tokenaizer
         self._sentimentAnalyzer = sentimentAnalyzer
+        self._is_use_title = is_use_title
 
-    def parse(self, args):
+    def parse(self, dto: DTO):
 
-        text,  data = args
+        if self._is_use_title == True:
+            text = dto.title + '\n' + dto.body
+        else:
+            text = dto.body
 
-        token_lines, specifickeywords = self._tokenaizer.exec(text, data)
+        token_lines, specifickeywords = self._tokenaizer.exec(text, dto)
 
         token_map = {}
         for verbs, line in token_lines:
             for verb in verbs:
                 token_map[verb] = True
 
-        return token_lines, list(token_map.keys()), specifickeywords, data
+        return token_lines, list(token_map.keys()), specifickeywords, dto.id
 
     def compute(self, args):
 
-        token_lines, vector_map, specifickeywords, data = args
+        token_lines, vector_map, specifickeywords, data_id = args
         nodes = []
         count = 0
         for subnodes, line in token_lines:
@@ -43,7 +48,7 @@ class Indexer:
             count += 1
         if count == 0:
 
-            return None, None, None, data
+            return None, None, None, data_id
         nodeslen = count - int(count > 1)
         key_map = defaultdict(float)
         sentimentWordMap = defaultdict(WeightMap)
@@ -73,7 +78,7 @@ class Indexer:
         scored_keywords = self._extract_keywords(
             filtered_map=filtered_map, vector=vector, specific_keywords=specifickeywords)
 
-        return vector, sentimentResults, scored_keywords, data
+        return vector, sentimentResults, scored_keywords, data_id
 
     def _extract_keywords(self, filtered_map, vector, specific_keywords):
         word_index = dict(enumerate(filtered_map.keys()))

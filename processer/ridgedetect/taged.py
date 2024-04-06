@@ -7,7 +7,9 @@ from itertools import combinations
 class Taged(RidgeDitect):
     def fit(self, tags_map: dict, vectors: np.ndarray, sample=4):
         self._tags_map = tags_map
+
         ret = super().fit(vectors, sample)
+
         self._postprocess(self.clusters)
         return ret
 
@@ -19,6 +21,7 @@ class Taged(RidgeDitect):
         return ret
 
     def _postprocess(self, clusters):
+
         tag_index = {}
 
         new_clusters = {}
@@ -32,6 +35,7 @@ class Taged(RidgeDitect):
 
             for cluster_member in cluster_members:
                 tags = self._tags_map[cluster_member]
+
                 for i in range(1, len(tags) + 1):
                     for combination in combinations(tags, i):
                         tags_2_members[frozenset(combination)].append(

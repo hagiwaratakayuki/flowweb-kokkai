@@ -20,15 +20,17 @@ class Doc2Vec:
 
         self._vectaizer = vectaizer
         self._indexer = IndexerClass(tokenaizer=tokenaizer,
-                                     sentimentAnalyzer=analizer)
+                                     sentimentAnalyzer=analizer,
+                                     is_use_title=is_use_title
+                                     )
 
     def exec(self, pool: Pool,  datas: Iterable[DTO]):
-
-        generater = self.get_data_itr(datas=datas)
+        dto_map = {}
+        generater = self.get_data_itr(dtos=datas, data_map=dto_map)
 
         parsed = pool.imap_unordered(
             func=self._indexer.parse, iterable=generater, chunksize=self._chunk_size)
-        return self.get_word_vector(parsed)
+        return self.get_word_vector(parsed, dto_map=dto_map)
 
         """
         with_word_vector = self.get_word_vector(parsed)
@@ -41,17 +43,16 @@ class Doc2Vec:
             yield vector, sentimentResults, scored_keywords, data_dict[dataid]
         """
 
-    def get_data_itr(self, datas: Iterable[DTO]):
+    def get_data_itr(self, dtos: Iterable[DTO], data_map):
 
-        for data in datas:
+        for dto in dtos:
+            data_map[dto.id] = dto
+            yield dto
 
-            if self._is_use_title:
-                text = data.title + '\n' + data.body
-            else:
-                text = data.body
+    def get_word_vector(self, parse_itr, dto_map):
 
-            yield (text, data, )
-
-    def get_word_vector(self, parse_itr):
         for first, keywords, third, force in parse_itr:
-            yield self._indexer.compute([first, self._vectaizer.exec_dict(keywords), third, force])
+
+            vector, sentimentResults, scored_keywords,  dataid = self._indexer.compute(
+                [first, self._vectaizer.exec_dict(keywords), third, force])
+            yield vector, sentimentResults, scored_keywords,  dto_map[dataid]

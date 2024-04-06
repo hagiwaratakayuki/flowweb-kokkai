@@ -54,6 +54,7 @@ class Logic:
         index2data = {}
 
         for vector, sentimentResult, keywords, data in datas:
+
             if vector is None:
                 continue
             if is_first == True:
@@ -73,8 +74,8 @@ class Logic:
         vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=index)
 
-        logging.info('start create graph')
         taged = Taged()
+
         taged.fit(tags_map=index2tag, vectors=vectors, sample=32)
         logging.info('fit done')
 
@@ -98,11 +99,12 @@ class Logic:
         for index, id in index2id.items():
             vector = index2vector[index]
             data = index2data[index]
+            keywords = index2tag[index]
 
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
             result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                                                            link_to=link_to, linked_count=linked_count)
+                                                            link_to=link_to, linked_count=linked_count, keywords=keywords)
 
             index2weight[index] = weight
             """

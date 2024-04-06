@@ -1,10 +1,11 @@
-import keyword
+
+from collections.abc import Iterable
 from operator import itemgetter
-from numpy import Infinity
+
 
 from storage.meeting import Meeting
 from itertools import chain
-from typing import Any, Dict, TypedDict
+from typing import Dict, Tuple
 import hashlib
 import re
 
@@ -28,6 +29,9 @@ class DTO(Base):
 
 SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
 
+MEETING_MAP = {}
+MeetingSaver: kokkai_meeting.Saver = None
+
 
 def SessionComittieHouseData():
     ret: SessionComittieHouseDataType = {}
@@ -47,10 +51,11 @@ def load(storage_model_class=Meeting,
          comittie_saver_class=kokkai_comittie.Saver,
          session_comittie_saver_class=kokkai_comittie.SessionSaver
          ):
+    global MeetingSaver
     storage_model = storage_model_class()
     speech_saver = speech_saver_class()
     speaker_saver = speaker_saver_class()
-    meeting_saver = meeting_saver_class()
+    MeetingSaver = meeting_saver_class()
     session_comittie_saver = session_comittie_saver_class()
     comittie_saver = comittie_saver_class()
     comittie_map: kokkai_comittie.ComittieMapType = defaultdict(
@@ -65,7 +70,7 @@ def load(storage_model_class=Meeting,
         yield session, chain.from_iterable((processDownlod(comittie_map, session_comittie_data_map, meeting, speaker_id_map=speaker_id_map, speeches=speeches, meetings=meetings) for meeting in chain.from_iterable(meetingChunks)))
         speaker_saver.save(speaker_id_map=speaker_id_map)
         speech_saver.save(session=session, speeches=speeches)
-        meeting_saver.save(meetings=meetings)
+
         session_comittie_saver.save(
             session=session, session_comittie_data_map=session_comittie_data_map)
 
@@ -74,7 +79,6 @@ def load(storage_model_class=Meeting,
     comittie_saver.close()
 
     speaker_saver.close()
-    meeting_saver.close()
     speech_saver.close()
 
 
@@ -83,7 +87,8 @@ scoregetter = itemgetter(1)
 
 
 def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque):
-
+    global MEETING_MAP
+    MEETING_MAP[meeting['id']] = meeting
     house = meeting['house']
     comittie_name = meeting['name']
 
@@ -113,7 +118,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
     meeting['moderators'] = {name: _speaker_name_to_data[name]
                              for name in meeting['moderators']}
     meetings.append(meeting)
-    meeting_keywords = defaultdict(0.0)
+    meeting_keywords = defaultdict(float)
     for speechData in meeting['speeches']:
 
         speechText = list_runner.run(
@@ -126,6 +131,8 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.author = speechData['speaker']
         dto.author_id = _speaker_name_to_data[speechData['speaker']]['id']
         dto.published = meeting['start']
+        dto.house = meeting['house']
+        dto.meeting_id = meeting['id']
         yield dto
         speechData['speaker_id'] = dto.author_id
         speechData['meeting_id'] = meeting["id"]
@@ -133,14 +140,35 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         speechData['title'] = dto.title
         speechData['house'] = house
         speeches.append(speechData)
-        keyword_len = getattr(dto, 'keywords', [])
-        regurize_weight = (keyword_len + 1) * keyword_len / 2
-
-        for i, keyword in enumerate(getattr(dto, 'keywords', [])):
-            meeting_keywords[keyword] += dto.weight * \
-                (keyword_len - i) / regurize_weight
-    meeting['keywords'] = map(keywordgetter,  sorted(
-        list(meeting_keywords.items()), key=scoregetter))[:5]
 
     for v in _speaker_name_to_data.values():
         speaker_id_map[v['id']] = v['speaker']
+
+
+def save_meeting(speech_data_map: Dict[str, Iterable[Tuple[float, list]]]):
+    global MEETING_MAP
+    for meeting_id, meeting in MEETING_MAP.items():
+        meeting_keywords = defaultdict(float)
+        for weight, keywords in speech_data_map[meeting_id]:
+
+            keyword_len = float(len(keywords))
+            if keyword_len == 0:
+
+                continue
+
+            regurize_weight = weight / \
+                ((keyword_len + 1.0) * keyword_len / 2.0)
+
+            for i, keyword in enumerate(keywords):
+                meeting_keywords[keyword] += (keyword_len -
+                                              i) * regurize_weight
+        meeting['keywords'] = [keywordgetter(r) for r in sorted(
+            list(meeting_keywords.items()), key=scoregetter)[:5]]
+        MeetingSaver.save(meeting=meeting)
+    MEETING_MAP = {}
+
+
+def close_meeting_saver():
+    global MeetingSaver
+    MeetingSaver.close()
+    MeetingSaver = None

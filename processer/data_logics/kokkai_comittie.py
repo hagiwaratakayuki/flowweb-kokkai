@@ -10,7 +10,7 @@ from contract_logics.kokkai_comittie import start_end, name_escape, get_superset
 import re
 
 from data_logics import kokkai_comittie
-from processer.db import meeting
+from db import meeting
 number_pt = re.compile('\d+')
 
 
