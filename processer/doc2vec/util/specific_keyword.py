@@ -56,7 +56,10 @@ class SpecificKeyword:
             self._subwords.append(EqIn(subword))
 
     def to_extender(self):
-        return [(self.headword, ), self.to_tuple()]
+        ret = [(self.headword, )]
+        if len(self._subwords) == 0:
+            ret.append(self.to_tuple())
+        return ret
 
     def to_tuple(self):
         if self._tuple is None:
