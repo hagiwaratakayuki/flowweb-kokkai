@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 import json
 import numpy as np
-from typing import Optional
+from typing import Literal, Optional, Union
 
 
 from .query.node import get_all_summary, get_linked_node as linked_node, get_node_keyword
@@ -10,19 +10,28 @@ from .query.cluster import get_clusters_by_node
 
 from routing.return_models.types.node.overview import NodeOverview
 from routing.return_models.types.node.overviews import NodeOverviews
-from api_server.routing.return_models.types.node.full import NodeFull
 from routing.return_models.types.cluster.overview import ClusterOverview
 from routing.return_models.types.cluster.overviews import ClusterOverviews
 
-from typing import List
+from typing import List, Optional
+
 from db.proxy import Node
 from app.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
-from typing import Optional
+
 
 none_type = type(None)
 router = APIRouter()
+
+
+class NodeFull(NodeOverview):
+    body: str
+    clustres: Optional[list[ClusterOverview]] = None
+    clustres_next: Optional[str] = None
+    link_to: Optional[list[NodeOverview]] = None
+    linked_from: Optional[list[NodeOverview]] = None
+    linked_from_next: Union[Literal[False], str] = False
 
 
 @router.get('/all_summary')
@@ -90,14 +99,6 @@ def get_entity_all(id: int) -> NodeFull:  # type: ignore
     link_to = [NodeOverview(id=e.id or e.key.name, **e)
                for e in Node.get_multi(link_to_ids) or []]  # type: ignore
     keywords = get_node_keyword.fetch(node_id=id)
-    """
-    cluster_entities, clusters_next = get_clusters_by_node.fetch(node_id=id)
-
-    if cluster_entities == None:
-        clusters = None
-    else:
-        clusters = [ClusterOverview(**e) for e in cluster_entities]
-    """
     linked_from_entities, linked_from_next = linked_node.fetch(node_id=id)
     linked_from = [NodeOverview(id=e.id or e.key.name, **e)
                    for e in linked_from_entities or []]  # type: ignore

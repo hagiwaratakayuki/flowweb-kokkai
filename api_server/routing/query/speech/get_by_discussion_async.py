@@ -10,4 +10,4 @@ async def fech(discussion_id) -> list[SpeechEntity]:
     query = Speech.query()
     query.add_filter('discussion_id', '=', discussion_id)
     response: list[SpeechEntity] = list(query.fetch())
-    return response.sort(order_by)
+    return sorted(response, key=order_by)

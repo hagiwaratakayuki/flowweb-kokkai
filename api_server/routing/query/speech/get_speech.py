@@ -9,7 +9,7 @@ class SpeechResponse(SpeechEntity):
     text: str
 
 
-async def fetch(id):
+async def fetch(id) -> SpeechResponse:
     ret: SpeechResponse = {}
     body: NodeBodyEntity = {}
     ret, body = await asyncio.gather(Speech.get_async(id), NodeBody.get_async(id))
