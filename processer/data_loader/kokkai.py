@@ -15,6 +15,7 @@ from collections import defaultdict, deque
 from data_logics import kokkai_meeting, kokkai_speaker, kokkai_speech, kokkai_comittie
 from .util import list_runner
 from data_loader.kokkai_reguraizer import reguraizers
+import unicodedata
 
 
 number_pt = re.compile('\d+')
@@ -92,7 +93,8 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
     house = meeting['house']
     comittie_name = meeting['name']
 
-    issue = int(number_pt.search(meeting['issue']).group(0))
+    issue = int(number_pt.search(unicodedata.normalize(
+        'NKFC', meeting['issue'])).group(0))
     session_comittie_data = session_comittie_data_map[comittie_name][house]
     if issue > session_comittie_data['max_issue']:
         session_comittie_data['max_issue'] = issue
