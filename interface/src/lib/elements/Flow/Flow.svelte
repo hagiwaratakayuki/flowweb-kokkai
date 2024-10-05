@@ -1,6 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from "svelte";
-  import { FlowController } from "./flow";
+  import { FlowController, FlowControllerBuilder } from "./flow";
   import { browser } from "$app/environment";
   import Tooltip from "./ToolTip.svelte";
   import NodeModal from "./NodeModal.svelte";
@@ -21,7 +21,9 @@
     isMounted = true;
   });
   $: if (browser === true && isMounted === true) {
-    createFlowNetwork(flow);
+    createFlowNetwork(flow).then(function () {
+      console.log("ok");
+    });
   }
   /**
    * @type {FlowController}
@@ -48,8 +50,8 @@
    *
    * @param {import("src/relay_types/flow").DataTransfer} data
    */
-  function createFlowNetwork(data) {
-    controller = new FlowController(container);
+  async function createFlowNetwork(data) {
+    controller = await FlowControllerBuilder(container);
     controller.setData(data.nodes, data.edges);
     controller.on("node.over", onNodeOver);
     controller.on("node.over.out", onNodeOverOut);
@@ -128,5 +130,6 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background-color: white;
   }
 </style>

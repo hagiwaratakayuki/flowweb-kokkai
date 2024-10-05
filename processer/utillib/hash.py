@@ -1,5 +1,6 @@
 import math
-BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+start = ord('!')
+BASE32 = [chr(i + start) for i in range(32)]
 
 
 def encode(x, y, order=20):

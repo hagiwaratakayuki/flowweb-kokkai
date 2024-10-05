@@ -1,4 +1,6 @@
 import * as PIXI from "pixi.js";
+import { Application } from 'pixi.js';
+
 /**
  * @typedef {import("$lib/relay_types/flow").Flow} Nodes
 *  @typedef {import("$lib/relay_types/flow").Edges} Edges
@@ -33,13 +35,14 @@ function getTriangleShape({ id = null, color = 0xFF0000, width = 10, height = 10
         }
     }
     const graphics = new PIXI.Graphics()
-    graphics.lineStyle(1, color);
+
     graphics.moveTo(0, height);
     graphics.lineTo(width / 2, 0);
     graphics.moveTo(width / 2, 0);
     graphics.lineTo(width, height);
-    graphics.pivot.set(width / 2, height)
 
+    graphics.pivot.set(width / 2, height)
+    graphics.stroke({ width: 1, color });
     if (id) {
 
         _triangleGrphics[id] = graphics;
@@ -66,18 +69,31 @@ const defaultOptions = {
     }
 }
 
-export class FlowController {
 
+/**
+ * 
+ * @param {HTMLElement} container
+ * @param {Partial<{[key:string]:any, edge:{color?:string, width?:number}}>} options 
+ */
+export async function FlowControllerBuilder(container, options = {}) {
+    const app = new Application();
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas)
+    await app.init({ canvas, antialias: true, backgroundAlpha: 0, resizeTo: container })
+    return new FlowController(app, container, options)
+}
+export class FlowController {
     /**
      * 
-     * @param {HTMLElement} container
+     * @param {Application} app
+     * @param {HTMLElement} container 
      * @param {Partial<{[key:string]:any, edge:{color?:string, width?:number}, }>} options 
      */
-    constructor(container, options = {}) {
+    constructor(app, container, options = {}) {
         /**
-         * @type {PIXI.Application<HTMLCanvasElement>}
+         * @type {Application}
          */
-        this.app = new PIXI.Application({ antialias: true, backgroundAlpha: 0, resizeTo: container })
+        this.app = app
         this.app.stage.sortableChildren = true;
         this._gridMap = {};
         /**
@@ -95,6 +111,9 @@ export class FlowController {
         this.padding = 10;
         this._initTansform()
         this.centerV = this.app.screen.height / 2
+
+        //centerScale.fill(0x994233);
+        //centerScale.setStrokeStyle({ width: 4, color: 0xffd900 });
 
         // const wheelHandler = this.onZoom.bind(this)
         //container.addEventListener('wheel', wheelHandler)
@@ -117,6 +136,7 @@ export class FlowController {
         }
         this._domContainer = container;
 
+        //
 
 
         this.app.ticker.add(this.onTick.bind(this))
@@ -125,7 +145,7 @@ export class FlowController {
 
         this.zoomLevelStepRatio = 0.3;
 
-        container.appendChild(this.app.view)
+
         this._isOnDrag = false;
         this._isMouseEnter = false;
         this._isNodeOver = false
@@ -142,6 +162,11 @@ export class FlowController {
         this._mousePosition = { x: 0, y: 0 };
         this._initContiners()
         this._initBackGroundScale();
+
+
+
+
+
         /**
          * 
          * @type {Object.<string, nodePosition>}        
@@ -425,7 +450,7 @@ export class FlowController {
 
         const yAdjast = this.app.screen.height / 2 * (1 - this._transforms.scaleY);
 
-        this._graphContainer.setTransform(this._transforms.x, this._transforms.y + yAdjast, this._transforms.scaleX, this._transforms.scaleY)
+        this._graphContainer.updateTransform({ x: this._transforms.x, y: this._transforms.y + yAdjast, scaleX: this._transforms.scaleX, scaleY: this._transforms.scaleY })
 
         this._scaleContainer.position.set(this._transforms.x, this._scaleContainer.position.y)
         this._isTransformed = false;
@@ -611,17 +636,26 @@ export class FlowController {
 
         }
         this._scaleContainer.addChild(this._yearScaleContainer, this._monthScaleContainer)
-        const centerScale = new PIXI.Graphics()
-        centerScale.lineStyle(4, 0x994233);
+        /*const centerScale = new PIXI.Graphics()
+        centerScale.setStrokeStyle({ width: 4, color: "#994233" });
         centerScale.moveTo(5, this.centerV);
         centerScale.lineTo(this.app.screen.width - 5, this.centerV);
-        this.app.stage.addChild(centerScale);
+        */
+        //this._dateScaleContainer.addChild(centerScale);
+        const centerScale = new PIXI.Graphics()
+        centerScale.moveTo(5, this.centerV);
 
+        centerScale.lineTo(this.app.screen.width - 5, this.centerV);
+
+        centerScale.stroke({ width: 4, color: "#994233" });
+
+        this._dateScaleContainer.addChild(centerScale)
 
 
     }
     _initBackGroundScale() {
         const repeatCount = this.app.screen.width / (this.dayStep / 3)
+
 
         /**
          * @type {PIXI.Graphics[]}
@@ -652,12 +686,14 @@ export class FlowController {
      
      */
     _createScale(x, lineHeight, scaleType) {
-        if ((scaleType in this._scaleCache) === false) {
 
+        if ((scaleType in this._scaleCache) === false) {
+            console.log(lineHeight)
             const scale = new PIXI.Graphics()
-            scale.lineStyle(1, 0xdad7d7);
+
             scale.moveTo(0, 5)
             scale.lineTo(0, 10 + lineHeight);
+            scale.stroke({ width: 1, color: "#dad7d7" });
             /*scale.lineStyle(circleR + 1, 0xFFFFFF)
             scale.beginFill(0x994233);
             scale.drawCircle(0, this.centerV, 6);
@@ -684,7 +720,7 @@ export class FlowController {
         const style = new PIXI.TextStyle({
             fontFamily: 'Arial',
             fontSize: 14,
-            fill: ['#000000'],
+            fill: '#000000',
         });
         for (let yearStep = 0; yearStep < yearDiff; yearStep++) {
             const year = minYear + yearStep;
@@ -710,7 +746,7 @@ export class FlowController {
                 }
 
                 const scale = this._createScale(0, lineHeight, scaleType)
-                const label = new PIXI.Text(`${year}/${String(month + 1).padStart(2, '0')}`, style)
+                const label = new PIXI.Text({ text: `${year}/${String(month + 1).padStart(2, '0')}`, style })
                 label.position.set(5, 5)
                 const wrapContainer = new PIXI.Container()
 
@@ -789,7 +825,7 @@ export class FlowController {
 
         });
         /**
-         * @type {Object.<string,PIXI.DisplayObject>}
+         * @type {Object.<string, PIXI.Graphics>}
          */
 
         const nodeGraphics = {};
@@ -843,10 +879,10 @@ export class FlowController {
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
 
+            graphic.circle(x, y, size);
+            graphic.fill("#0683c9ff")
 
-            graphic.beginFill("#0683c9ff")
-            graphic.drawCircle(x, y, size);
-            graphic.endFill();
+
             nodeGraphics[node.id] = graphic
 
 
@@ -936,9 +972,10 @@ export class FlowController {
 
             if (isEdgeExist === false) {
                 const line = new PIXI.Graphics();
-                line.lineStyle(this.options.edge.width || 2, this.options.edge.color || 0xdad7d7);
+
                 line.moveTo(fromX, fromY)
                 line.lineTo(toX, toY);
+                line.stroke({ width: this.options.edge.width || 2, color: this.options.edge.color || "#dad7d7" });
                 edgeLines.push(line);
 
 
