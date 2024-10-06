@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from app import builder
-import routing 
+from application import builder
+from routing import configure_routing
 
-app = FastAPI()
-builder.build(app=app)
-routing.configure(app=app)
+app_api = FastAPI()
+builder.build(app=app_api)
+configure_routing(app=app_api)

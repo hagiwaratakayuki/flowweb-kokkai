@@ -16,7 +16,7 @@ from routing.return_models.types.cluster.overviews import ClusterOverviews
 from typing import List, Optional
 
 from db.proxy import Node
-from app.error_hundling.status_exception import StatusException
+from application.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
 from data_types.position_data import PositionData
 
@@ -35,7 +35,7 @@ class NodeFull(NodeOverview):
 
 
 @router.get('/all_summary')
-def all_as_vertex() -> list[NodeOverview]:  # type: ignore
+def all_as_vertex() -> List[NodeOverview]:  # type: ignore
     index = 0.0
     total_center: Optional[np.ndarray] = None
     entity_map = {}

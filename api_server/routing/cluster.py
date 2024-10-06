@@ -4,7 +4,7 @@ from db.proxy import Cluster
 from db.proxy import Node
 from typing import List
 from .query.cluster import get_cluster_keyword, get_cluster_member, get_cluster_member_by_publishedrange
-from app.error_hundling.status_exception import StatusException
+from application.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
 from routing.return_models.types.node.overview import NodeOverview
 from routing.return_models.types.node.overviews import NodeOverviews

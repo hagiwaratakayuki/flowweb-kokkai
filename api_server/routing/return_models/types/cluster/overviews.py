@@ -4,5 +4,5 @@ from typing import Optional
 
 
 class ClusterOverviews(BaseModel):
-    # clusters: list[ClusterOverview]
+    clusters: list[ClusterOverview]
     cursor: Optional[str]

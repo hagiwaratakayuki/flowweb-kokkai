@@ -18,6 +18,7 @@ module_template = Template(module_template_string)
 class_tmaplate_str = """
 
 class ${classname}(BaseModel):
+    id:Any
 ${properties}
 """
 class_template = Template(class_tmaplate_str)

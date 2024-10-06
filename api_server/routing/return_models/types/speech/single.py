@@ -1,12 +1,10 @@
 
-# This is auto generated. see tools/api_sever/create_responsetype.py 
+# This is auto generated. see tools/api_sever/create_responsetype.py
 
 from pydantic import BaseModel
 
 
-
-
-class SpeechSimple(BaseModel):
+class SpeechSingle(BaseModel):
     meeting_id: str
     meeting: str
     speaker: str
@@ -20,5 +18,3 @@ class SpeechSimple(BaseModel):
     issue: str
     house: str
     body: str
-
-

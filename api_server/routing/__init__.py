@@ -1,7 +1,6 @@
 
 from fastapi import FastAPI, APIRouter
-from routing import node
-from routing import cluster
+from routing import node, cluster
 
 
 routings: list[tuple[str, APIRouter]] = [
@@ -10,6 +9,6 @@ routings: list[tuple[str, APIRouter]] = [
 ]
 
 
-def configure(app: FastAPI):
+def configure_routing(app: FastAPI):
     for prefix, router in routings:
         app.include_router(prefix=prefix, router=router)
