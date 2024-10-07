@@ -1,3 +1,5 @@
+from token import OP
+from typing import Optional
 from db import meeting
 from .model import Model
 
@@ -8,8 +10,8 @@ class Speech(Model):
     meeting: str
     speaker: str
     speaker_id: str
-    response_to: str
-    response_from: str
+    response_to: Optional[str]
+    response_from: Optional[str]
     discussion_id: str
     url: str
     order: int

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from h11 import Response
@@ -14,6 +14,7 @@ class Item(BaseModel):
 
 class Response(BaseModel):
     item: Item
+    hoge: Optional[str] = None
 
 
 @app_api.get("/", response_model=Response)

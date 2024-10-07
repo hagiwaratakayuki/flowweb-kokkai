@@ -1,10 +1,11 @@
 from string import Template
+
 from .generate_type_code import generate
 
 
 module_template_string = """
 # This is auto generated. see tools/api_sever/create_responsetype.py 
-
+from typing import Any
 from pydantic import BaseModel
 ${imports}
 
