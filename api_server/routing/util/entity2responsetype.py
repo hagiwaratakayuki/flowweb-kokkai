@@ -3,7 +3,8 @@ from google.cloud.datastore import Entity
 
 
 def entity2responsetype_list(responsetype, entities: Iterable[Entity], id_key='id'):
-    return [entity2responsetype(e) for e in entities]
+    properties = propertypicker(responsetype)
+    return [entity2responsetype(e=e, responsetype=responsetype, properties=properties, id_key=id_key) for e in entities]
 
 
 def entity2responsetype(responsetype, e: Entity, id_key='id', properties=None):

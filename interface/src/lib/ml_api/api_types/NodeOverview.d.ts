@@ -5,21 +5,31 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
+export type Data = string;
+export type Author = string;
+export type AuthorId = string;
+export type LinkTo = string[] | null;
+export type Published = string;
 export type Title = string;
-export type MemberCount = number;
+export type PublishedList = string[];
 export type Keywords = string[];
-export type Weight = number;
-export type TotalWeight = number;
+export type House = string;
 export type Session = number;
+export type Position = string | number;
 
-export interface ClusterOverview {
+export interface NodeOverview {
   id: Id;
+  data: Data;
+  author: Author;
+  author_id: AuthorId;
+  link_to: LinkTo;
+  published: Published;
   title: Title;
-  member_count: MemberCount;
+  published_list: PublishedList;
   keywords: Keywords;
-  weight: Weight;
-  total_weight: TotalWeight;
+  house: House;
   session: Session;
+  position: Position;
   [k: string]: unknown;
 }
 export interface Id {

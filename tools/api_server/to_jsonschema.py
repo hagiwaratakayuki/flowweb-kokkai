@@ -1,11 +1,14 @@
 
+import sys
 from pydantic import TypeAdapter, BaseModel
 import os
 import json
 import re
 import importlib
 pt_pyext = re.compile('.py$')
-sep_pt = re.compile('[/\\]')
+sep_pt = re.compile('(\\|/)+')
+new_import_path = os.path.abspath('./api_server/')
+sys.path.append(new_import_path)
 
 
 def check_class(target):
@@ -16,7 +19,8 @@ def check_class(target):
 
 
 for root, dirs, files in os.walk('./api_server/routing/return_models'):
-    modroot = sep_pt.sub('.', root)
+    modroot = root.replace('/', '.').replace('\\', '.').replace('..', '')
+    \
     for file in files:
 
         if pt_pyext.search(file) is None:
