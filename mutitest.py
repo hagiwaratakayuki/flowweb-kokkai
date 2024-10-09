@@ -3,8 +3,17 @@ import time
 import os
 from multiprocessing.pool import Pool
 
+from typing import TypedDict
 import unittest
 from unittest.mock import patch, MagicMock, call
+
+
+class Hoge:
+    a: str
+
+
+class Fuga(TypedDict, Hoge):
+    pass
 
 
 class MyTestCase(unittest.TestCase):

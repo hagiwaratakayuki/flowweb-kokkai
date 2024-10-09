@@ -17,7 +17,7 @@ class Response(BaseModel):
     hoge: Optional[str] = None
 
 
-@app_api.get("/", response_model=Response)
+@app_api.get("/", response_model_exclude_none=True)
 async def read_main():
     return {'item': Item(**{"msg": "Hello World"})}
 

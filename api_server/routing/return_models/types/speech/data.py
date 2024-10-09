@@ -10,4 +10,4 @@ from pydantic import BaseModel
 class SpeechData(BaseModel):
     speech: SpeechSingle
     clusters: ClusterOverviews
-    discussion: Optional[List[SpeechOverview]]
+    discussion: Optional[List[SpeechOverview]] = None
