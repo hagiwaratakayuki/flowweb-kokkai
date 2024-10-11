@@ -1,11 +1,12 @@
 
 from fastapi import FastAPI, APIRouter
-from routing import node, cluster
+from routing import node, cluster, speech
 
 
 routings: list[tuple[str, APIRouter]] = [
     cluster.routing_tuple,
-    node.routing_tuple
+    node.routing_tuple,
+    speech.routing_tuple,
 ]
 
 

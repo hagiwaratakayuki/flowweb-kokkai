@@ -23,64 +23,53 @@
   function scrollLinkedFrom() {
     linkedFrom.scrollIntoView({ behavior: "smooth" });
   }
+  /**
+   *
+   * @param {string} text
+   */
+  function splitbr(text) {
+    return text.split(/(\r|\n|\r\n)/);
+  }
 </script>
 
 <Row class="justify-content-md-center">
   <Col sm="2" class="sticky">
-    <div class="section_header">論旨の繋がり</div>
-    <ul class="list-unstyled nostyle division">
-      <li class="mb-2">
-        <a href="#link_to" class="text-secondary" on:click={scrollLinkTo}>
-          この発言に繋がる発言
-        </a>
-      </li>
-      <li class="mb-2">
-        <a href="#link_from" class="text-secondary" on:click={scrollLinkedFrom}>
-          この発言から繋がる発言
-        </a>
-      </li>
-    </ul>
+    <h2 class="section_header">質疑</h2>
+    <div class="bg-white">
+      <ul class="list-group">
+        {#each data.discussion as discussion}
+          <li
+            class="list-group-item"
+            class:active={discussion.id === data.speech.id}
+            aria-current={discussion.id === data.speech.id}
+          >
+            {discussion.title}
+          </li>
+        {/each}
+      </ul>
+    </div>
   </Col>
   <Col sm="8">
-    <h1>{data.title}</h1>
-    <div class="bg-white mb-3">
-      <h2>Data</h2>
-      <Row>
-        <Col sm="12" md="6">
-          <dl>
-            <dt>Author</dt>
-            <dd>{data.author}</dd>
-            <dt>Published</dt>
-            <dd>{data.published}</dd>
-          </dl>
-        </Col>
-        <Col sm="12" md="6">
-          <dl>
-            <dt>Keyword</dt>
-            <dd>
-              {#each data.keywords.slice(1, 5) as keyword}
-                <span class="pe-2">{keyword}</span>
-              {/each}
-            </dd>
-          </dl>
-        </Col>
-      </Row>
-    </div>
-    <div class="mb-5 bg-white">
-      <h2>Abstract</h2>
-      <p>{data.body}</p>
-    </div>
-    <div class="mb-5 bg-white" bind:this={linkTo} id="link_to">
-      <h3 class="mb-3">This Paper Link to That Paper</h3>
-      <FlatHolder overViews={data.link_to} isNextExist={false} />
-    </div>
-    <div class="mb-5 bg-white" bind:this={linkedFrom} id="link_from">
-      <h3 class="mb-3">This Paper Linked from That Paper</h3>
-      <FlatHolder
-        overViews={data.linked_from}
-        isNextExist={data.linked_from_next}
-        bind:this={linkedFromComponent}
-      />
+    <h2 class="section_header">発言</h2>
+    <p class="bg-white mb-3 p-3">
+      {#each splitbr(data.speech.body) as line}
+        {line}<br />
+      {/each}
+    </p>
+    <div class="bg-white mb-3 p-3">
+      <dl>
+        <dt>発言者</dt>
+        <dd>{data.speech.speaker}</dd>
+        <dt>委員会</dt>
+        <dd>{data.speech.house} {data.speech.meeting}</dd>
+        <dt>回次</dt>
+        <dd>第{data.speech.session}回国会</dd>
+        <dt>号数</dt>
+        <dd>{data.speech.issue}</dd>
+      </dl>
+      <p>
+        <a href={data.speech.url} target="_blank">この発言を会議録で見る</a>
+      </p>
     </div>
   </Col>
 </Row>

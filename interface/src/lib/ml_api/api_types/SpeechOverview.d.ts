@@ -5,6 +5,7 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
+export type Title = string;
 export type MeetingId = string;
 export type Meeting = string;
 export type Speaker = string;
@@ -12,6 +13,7 @@ export type SpeakerId = string;
 
 export interface SpeechOverview {
   id: Id;
+  title: Title;
   meeting_id: MeetingId;
   meeting: Meeting;
   speaker: Speaker;

@@ -27,6 +27,7 @@ export type Session1 = number;
 export type Clusters = ClusterOverview[];
 export type Cursor = string | null;
 export type Discussion = SpeechOverview[] | null;
+export type Title1 = string;
 export type MeetingId1 = string;
 export type Meeting1 = string;
 export type Speaker1 = string;
@@ -35,7 +36,7 @@ export type SpeakerId1 = string;
 export interface SpeechData {
   speech: SpeechSingle;
   clusters: ClusterOverviews;
-  discussion: Discussion;
+  discussion?: Discussion;
   [k: string]: unknown;
 }
 export interface SpeechSingle {
@@ -78,6 +79,7 @@ export interface Id1 {
 }
 export interface SpeechOverview {
   id: Id2;
+  title: Title1;
   meeting_id: MeetingId1;
   meeting: Meeting1;
   speaker: Speaker1;
