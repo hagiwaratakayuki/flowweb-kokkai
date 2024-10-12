@@ -29,6 +29,7 @@
    * @type {FlowController}
    */
   let controller;
+  let reset;
   /**
    * @type {HTMLElement | null}
    */
@@ -48,10 +49,13 @@
 
   /**
    *
-   * @param {import("src/relay_types/flow").DataTransfer} data
+   * @param {import("$lib/relay_types/flow").DataTransfer} data
    */
   async function createFlowNetwork(data) {
-    controller = await FlowControllerBuilder(container);
+    if (!reset === false) {
+      reset();
+    }
+    [controller, reset] = await FlowControllerBuilder(container);
     controller.setData(data.nodes, data.edges);
     controller.on("node.over", onNodeOver);
     controller.on("node.over.out", onNodeOverOut);

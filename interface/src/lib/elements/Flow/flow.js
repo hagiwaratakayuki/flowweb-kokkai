@@ -80,7 +80,16 @@ export async function FlowControllerBuilder(container, options = {}) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas)
     await app.init({ canvas, antialias: true, backgroundAlpha: 0, resizeTo: container })
-    return new FlowController(app, container, options)
+    let reset = async function () {
+
+        container.removeChild(canvas)
+        reset = null;
+        return await FlowControllerBuilder(this.container, this.options)
+    }
+    reset = reset.bind(
+        { container, options }
+    );
+    return [new FlowController(app, container, options), reset]
 }
 export class FlowController {
     /**

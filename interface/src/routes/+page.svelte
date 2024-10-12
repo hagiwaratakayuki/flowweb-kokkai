@@ -1,23 +1,20 @@
 <script>
   import { onMount } from "svelte";
   import { all_summary } from "$lib/ml_api/api/text/all_summary";
-  import FlowWithTextList from "$lib/elements/FlowWithTextList.svelte";
+  import FlowWithTextList from "$lib/elements/Flow/FlowWithTextList.svelte";
+  import { pushState } from "$app/navigation";
+
+  /** @type {import('./$types').PageData} */
+  export let data;
 
   /**
    * @type {FlowWithTextList}
    */
   let flowWithTextList;
   onMount(async function () {
-    try {
-      /**
-       * @typedef {import("$lib/ml_api/api_types/TextOverview").TextOverview} TextOverview
-       * @type {Array<TextOverview>}
-       */
-      const overViews = await all_summary();
-      flowWithTextList.setInitData(overViews);
-    } catch (error) {
-      flowWithTextList.initError();
-    }
+    flowWithTextList.setInitData(data);
+
+    //flowWithTextList.initError();
   });
 </script>
 
