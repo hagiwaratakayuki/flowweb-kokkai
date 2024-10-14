@@ -1,13 +1,26 @@
 <script>
   import FlowWithTextList from "../Flow/FlowWithTextList.svelte";
+
+  import { onMount } from "svelte";
+  export let data;
+  let _isMounted = false;
+
+  onMount(function () {
+    _isMounted = true;
+  });
+
   /**
    * @type {FlowWithTextList}
    */
   let flowWithTextList;
-  export function setData(data) {
+  $: if (_isMounted === true) {
     flowWithTextList.setInitData(data);
   }
 </script>
 
-<slot></slot>
+{#if $$slots.controll}
+  <div class="division">
+    <slot name="controll"></slot>
+  </div>
+{/if}
 <FlowWithTextList bind:this={flowWithTextList}></FlowWithTextList>

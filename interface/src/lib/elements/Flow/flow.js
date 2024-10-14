@@ -579,6 +579,7 @@ export class FlowController {
      * @param {Edges} edges
      */
     setData(nodes, edges) {
+
         const { yearDiff, minYear } = this.addNode(nodes, edges)
 
         this._createForegroundScale(yearDiff);
@@ -697,7 +698,7 @@ export class FlowController {
     _createScale(x, lineHeight, scaleType) {
 
         if ((scaleType in this._scaleCache) === false) {
-            console.log(lineHeight)
+
             const scale = new PIXI.Graphics()
 
             scale.moveTo(0, 5)
@@ -784,6 +785,7 @@ export class FlowController {
      * @param {Edges} edges 
      */
     addNode(nodes, edges) {
+
         let total = 0;
         const weights = [];
 

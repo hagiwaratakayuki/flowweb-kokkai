@@ -20,9 +20,14 @@
   onMount(function () {
     isMounted = true;
   });
-  $: if (browser === true && isMounted === true) {
+  $: if (
+    browser === true &&
+    isMounted === true &&
+    !flow === false &&
+    Object.keys(flow).length > 0
+  ) {
     createFlowNetwork(flow).then(function () {
-      console.log("ok");
+      //console.log("ok");
     });
   }
   /**
@@ -55,7 +60,9 @@
     if (!reset === false) {
       reset();
     }
+
     [controller, reset] = await FlowControllerBuilder(container);
+
     controller.setData(data.nodes, data.edges);
     controller.on("node.over", onNodeOver);
     controller.on("node.over.out", onNodeOverOut);
