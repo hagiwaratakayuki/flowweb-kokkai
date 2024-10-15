@@ -31,7 +31,7 @@ class Meeting(Model):
     def upload(self, session, filename, data):
         filename = self._getDir(session) + '/' + filename
         blob = self.bucket.blob(filename)
-        upload_gzip(blob=blob, data=data)
+        return upload_gzip(blob=blob, data=data)
 
     def _getDir(self, session):
         return 'session_' + str(session)
