@@ -18,10 +18,8 @@
   let flowComponent;
 
   export function setInitData(overViews, isNextExist = false) {
-    _overViews = overViews;
     _flow = overviews_to_flow(overViews);
-
-    _isNextExist = isNextExist;
+    textList.setOverviews(overViews, isNextExist);
   }
   export function initError() {
     _isError = true;
@@ -54,12 +52,7 @@
 <Row class="flow">
   <Col class="h100" sm="2">
     <div class="sidebar vertical-scroll me-4">
-      <TextList
-        overViews={_overViews}
-        isNextExist={_isNextExist}
-        bind:this={textList}
-        on:mouseover={onListItemMouseOver}
-      />
+      <TextList bind:this={textList} on:mouseover={onListItemMouseOver} />
     </div>
   </Col>
   <Col class="h-100 p-2 border border-primary-subtle rounded-1" sm="10">
