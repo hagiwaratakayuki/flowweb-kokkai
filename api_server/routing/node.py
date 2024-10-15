@@ -72,13 +72,16 @@ def all_as_vertex() -> List[NodeOverview]:  # type: ignore
         direction_vectors[i] = entity_map[i]['direction']
         positions_vectors[i] = entity_map[i]['position']
     directions = np.dot(a=direction_vectors, b=center)  # type: ignore
-    directions[directions >= 0.0] = 1.0
-    directions[directions < 0.0] = -1.0
+    plus_direction_index = directions >= 0.0
+    minus_direction_index = directions < 0.0
+    directions[plus_direction_index] = 1.0
+    directions[minus_direction_index] = -1.0
     positions = np.linalg.norm(positions_vectors, axis=1)
-    max_norm = np.max(positions)
+    plus_max_norm = np.max(positions[plus_direction_index])
+    minus_max_norm = np.max(positions[minus_direction_index])
     positions *= directions
-    positions /= max_norm
-
+    positions[plus_direction_index] /= plus_max_norm
+    positions[minus_direction_index] /= minus_max_norm
     ret = [NodeOverview(
         id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name,
         position=positions[i],
