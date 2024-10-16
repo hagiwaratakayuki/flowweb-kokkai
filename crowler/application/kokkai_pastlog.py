@@ -32,10 +32,7 @@ def crowl(params: dict):
     if crowlResult == False:
         startR = startRecord or 1
         logging.error(f'session {sessionTo} start {startR} fail')
-        returnmemoModel = memo.Model(id='paging')
-    memoModel.value = json.dumps(
-        {'sessionTo': sessionTo, 'startRecord': startRecord})
-    memoModel.upsert()
+        return False
 
     if sessionTo not in params:
         value = crowlResult.records[0].id
@@ -47,25 +44,24 @@ def crowl(params: dict):
 
     isEnd = False
 
-    if crowlResult != False:
-        if crowlResult.next is False:
-            startRecord = None
-            if sessionTo == 1:
-                isEnd = True
+    if crowlResult.next is False:
+        startRecord = None
+        if sessionTo == 1:
+            isEnd = True
 
-            else:
-                logging.info(f'crowl end {sessionTo}')
-                sessionTo -= 1
         else:
-            startRecord = crowlResult.next
+            logging.info(f'crowl end {sessionTo}')
+            sessionTo -= 1
     else:
-        return False
+        startRecord = crowlResult.next
 
     ret = dict(sessionTo=sessionTo)
 
     if startRecord is not None:
         ret['startRecord'] = startRecord
-
+    memoModel = memo.Model(id='paging')
+    memoModel.value = json.dumps(ret)
+    memoModel.upsert()
     return isEnd, ret
 
 
