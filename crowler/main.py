@@ -14,7 +14,7 @@ def root():
 
 
 @app.route("/resume")
-def root():
+def resume():
     payload = {'resume': True}
     create_task(pyload=payload, in_seconds=None)
     return 'ok'
@@ -25,7 +25,8 @@ def crowl():
     request_paylod = request.get_json(force=True)
     if request_paylod.get('resume', False) == True:
         isEnd, next_payload = kokkai_pastlog.resume()
-    isEnd, next_payload = kokkai_pastlog.crowl(request_paylod)
+    else:
+        isEnd, next_payload = kokkai_pastlog.crowl(request_paylod)
     if isEnd != True:
 
         create_task(payload=next_payload)
