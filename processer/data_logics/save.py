@@ -9,6 +9,7 @@ from db import node_keyword
 
 from typing import Dict, Iterable
 from data_logics.node_logic import NodeLogic
+from data_logics import author_keyword
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
@@ -29,8 +30,9 @@ def buildVectaizer():
 
 
 class Logic:
-    def __init__(self, ClusterModelClass=cluster.Cluster) -> None:
+    def __init__(self, ClusterModelClass=cluster.Cluster, AutherKeywordSaverClass=author_keyword.Saver) -> None:
         self._cluster_model_class = ClusterModelClass
+        self._author_keyword_saver_class = AutherKeywordSaverClass
     # ファイルを読む
     # パース
     # クラスタリング　+ キーワード抽出
@@ -91,7 +93,8 @@ class Logic:
 
         member_model_chunk = ChunkedBatchSaver()
 
-        keyword_chunk = ChunkedBatchSaver()
+        # keyword_chunk = ChunkedBatchSaver()
+        author_keyword_saver = self._author_keyword_saver_class()
         index2weight = {}
 
         logging.info('start text save')
@@ -107,7 +110,10 @@ class Logic:
                                                             link_to=link_to, linked_count=linked_count, keywords=keywords)
 
             index2weight[index] = weight
+            author_keyword_saver.put(data.author_id, keywords=keywords)
+
             """
+            現状最大5つまでなので、そのまま格納する方式に
             for keyword in keywords:
                 keyword_model = node_keyword.NodeKeyword()
                 keyword_model.published = data.published
@@ -120,7 +126,7 @@ class Logic:
             """
 
         entities = nodeLogic.close()
-        keyword_chunk.close()
+        # keyword_chunk.close()
 
         cluster_keyword_chunk = deque()
         member_positions_chunk = deque()

@@ -19,6 +19,7 @@ import unicodedata
 
 
 number_pt = re.compile('\d+')
+whitespace_pt = re.compile('\s')
 
 
 class DTO(Base):
@@ -68,7 +69,8 @@ def load(storage_model_class=Meeting,
         speaker_id_map = {}
         speeches = deque()
         meetings = deque()
-        yield session, chain.from_iterable((processDownlod(comittie_map, session_comittie_data_map, meeting, speaker_id_map=speaker_id_map, speeches=speeches, meetings=meetings) for meeting in chain.from_iterable(meetingChunks)))
+        comittie_to_speaker = {}
+        yield session, chain.from_iterable((processDownlod(comittie_map, session_comittie_data_map, meeting, speaker_id_map=speaker_id_map, speeches=speeches, meetings=meetings, comittie_to_speaker=comittie_to_speaker) for meeting in chain.from_iterable(meetingChunks)))
         speaker_saver.save(speaker_id_map=speaker_id_map)
         speech_saver.save(session=session, speeches=speeches)
 
@@ -87,7 +89,7 @@ keywordgetter = itemgetter(0)
 scoregetter = itemgetter(1)
 
 
-def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque):
+def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque, comittie_to_speaker: Dict):
     global MEETING_MAP
     MEETING_MAP[meeting['id']] = meeting
     house = meeting['house']
@@ -109,7 +111,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         comittie_data.start = session
     _speaker_name_to_data = {}
     for speaker in meeting['speakers']:
-        name = speaker['name']
+        name = whitespace_pt.sub('', speaker['name'])
         group = speaker.get('group', '')
         position = speaker.get('position', '')
         role = speaker.get('role', '')

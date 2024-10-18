@@ -1,10 +1,10 @@
 
-from typing import Optional, Union
+from typing import Optional, List
 
 from google.cloud.datastore.entity import Entity
 from .model import Model
-from typing import List, Union
-import json
+
+
 from contract_logics.meeting import encode_moderators_contract, decode_moderators_contract
 
 

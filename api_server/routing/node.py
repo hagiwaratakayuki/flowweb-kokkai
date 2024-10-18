@@ -110,7 +110,7 @@ def get_entity_all(id: int) -> NodeFull:  # type: ignore
                     body=entity["body"],
                     published=entity["published"],
                     author=entity["author"],
-                    auther_id=entity["author_id"],
+                    author_id=entity["author_id"],
                     link_to=link_to,
                     clustres=[],
                     clustres_next="",
