@@ -9,14 +9,14 @@ app = Flask(__name__)
 @app.route("/")
 def root():
     payload = {'init': True}
-    create_task(pyload=payload, in_seconds=None)
+    create_task(payload=payload, in_seconds=None)
     return 'ok'
 
 
 @app.route("/resume")
 def resume():
     payload = {'resume': True}
-    create_task(pyload=payload, in_seconds=None)
+    create_task(payload=payload, in_seconds=None)
     return 'ok'
 
 

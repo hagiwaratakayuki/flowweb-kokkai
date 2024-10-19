@@ -16,6 +16,26 @@ class MyTestCase(unittest.TestCase):
     @patch('db.model.getDatastoreModule')
     @patch('core.kokkai.__init__.rest')
     @patch('main.create_task')
+    def test_start_crowl(self,
+                         mock_taskcreater: MagicMock,
+                         mock_restclient: MagicMock,
+                         mock_db: MagicMock,
+                         mock_metadata_storage: MagicMock,
+                         mock_storage: MagicMock):
+        client = app.test_client()
+        result = client.get('/')
+        exist_args, exist_kwargs = mock_taskcreater.call_args
+        if len(exist_args) > 0:
+            payload = exist_args[0]
+        else:
+            payload = exist_kwargs['payload']
+        print(payload)
+
+    @patch('storage.basic.storage')
+    @patch('storage.basic.get_metadata')
+    @patch('db.model.getDatastoreModule')
+    @patch('core.kokkai.__init__.rest')
+    @patch('main.create_task')
     def test_basic(self,
                    mock_taskcreater: MagicMock,
                    mock_restclient: MagicMock,

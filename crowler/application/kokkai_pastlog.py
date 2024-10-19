@@ -18,7 +18,7 @@ def resume():
     if not pagingMemo:
         logging.error('not crowled')
         return
-    params = json.loads(pagingMemo)
+    params = json.loads(pagingMemo.values)
     return crowl(params)
 
 
@@ -45,12 +45,13 @@ def crowl(params: dict):
     isEnd = False
 
     if crowlResult.next is False:
+        logging.info(f'crowl end {sessionTo}')
         startRecord = None
         if sessionTo == 1:
             isEnd = True
 
         else:
-            logging.info(f'crowl end {sessionTo}')
+
             sessionTo -= 1
     else:
         startRecord = crowlResult.next
