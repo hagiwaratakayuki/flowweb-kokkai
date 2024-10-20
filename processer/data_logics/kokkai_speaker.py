@@ -16,8 +16,8 @@ class Saver:
 
             model.name = speaker['name']
             for key in keys:
-                if key in speaker:
-                    setattr(model, key, speaker[key])
+
+                setattr(model, key, speaker.get(key, ''))
             self.saver.put(model)
 
     def close(self):
