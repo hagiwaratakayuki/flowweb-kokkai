@@ -11,14 +11,14 @@ app = Flask(__name__)
 def root():
 
     payload = {'init': True}
-    create_task(payload=payload, in_seconds=None)
+    create_task(payload=payload, in_seconds=1)
     return 'ok'
 
 
 @app.route("/resume")
 def resume():
     payload = {'resume': True}
-    create_task(payload=payload, in_seconds=None)
+    create_task(payload=payload, in_seconds=1)
     return 'ok'
 
 
@@ -31,7 +31,7 @@ def crowl():
         isEnd, next_payload = kokkai_pastlog.crowl(request_paylod)
     if isEnd != True:
 
-        create_task(payload=next_payload)
+        create_task(payload=next_payload, in_seconds=1)
     else:
         logging.info('crowl done')
 

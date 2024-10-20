@@ -1,14 +1,14 @@
 import re
 
 
-KANJI_COUNT = u"一二三四五六七八九"
-KANJI_COUNT_ONLY = re.compile('^[%s]+$' % KANJI_COUNT)
+KANJI_COUNT = r"一二三四五六七八九"
+KANJI_COUNT_ONLY = re.compile(r'^[%s]+$' % KANJI_COUNT)
 KANSUUJI_ZERO_TEXT = '〇0o\W'
 KANSUUJI_ZERO_PATTEN = re.compile(
     '[%s]' % KANSUUJI_ZERO_TEXT, re.IGNORECASE + re.UNICODE)
 KANJI_KETA_BASETEXT = '十百千'
 KANJI_KETA_EXTENDTEXT = '万憶兆京'
-KANSUUJI_PATTERN = re.compile('([{count}{keta_base}]+[{count}{keta_base}{keta_extend}{zero}]*)[条項節編章節款目](?!委員会)'.format(
+KANSUUJI_PATTERN = re.compile(r'([{count}{keta_base}]+[{count}{keta_base}{keta_extend}{zero}]*)[条項節編章節款目](?!委員会)'.format(
     count=KANJI_COUNT, keta_base=KANJI_KETA_BASETEXT, keta_extend=KANJI_KETA_EXTENDTEXT, zero=KANSUUJI_ZERO_TEXT))
 
 KANJI_KETA_MAP = {k: 10 ** v for v, k in enumerate(KANJI_KETA_BASETEXT, 1)}

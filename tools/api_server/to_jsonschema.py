@@ -5,8 +5,8 @@ import os
 import json
 import re
 import importlib
-pt_pyext = re.compile('.py$')
-sep_pt = re.compile('(\\|/)+')
+pt_pyext = re.compile(r'.py$')
+sep_pt = re.compile(r'(\\|/)+')
 new_import_path = os.path.abspath('./api_server/')
 sys.path.append(new_import_path)
 
@@ -19,7 +19,7 @@ def check_class(target):
 
 
 for root, dirs, files in os.walk('./api_server/routing/return_models'):
-    modroot = root.replace('/', '.').replace('\\', '.').replace('..', '')
+    modroot = root.replace('/', '.').replace(r'\\', '.').replace('..', '')
     \
     for file in files:
 

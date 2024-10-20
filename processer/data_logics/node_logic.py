@@ -9,7 +9,7 @@ import re
 import numpy as np
 from contract_logics.node import get_hash, get_ymd, NodeData, SentimentData
 from utillib import hash
-spliter = re.compile('[\s\w]+')
+spliter = re.compile(r'[\s\w]+')
 
 
 class NodeLogic(ChunkedBatchSaver):

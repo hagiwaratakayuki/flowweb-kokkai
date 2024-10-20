@@ -10,7 +10,7 @@ from data_loader.dto import DTO
 sortkey = itemgetter(1)
 
 section_text = "編章条項節款目"
-section_pt = re.compile('(?<!ス.パ.)\d+([' + section_text + '])')
+section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + '])')
 section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 

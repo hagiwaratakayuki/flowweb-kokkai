@@ -11,7 +11,7 @@ import re
 
 from data_logics import kokkai_comittie
 from db import meeting
-number_pt = re.compile('\d+')
+number_pt = re.compile(r'\d+')
 
 
 class ComittieData:

@@ -1,5 +1,5 @@
 import re
-pattern = re.compile('^\W+$', re.M)
+pattern = re.compile(r'^\W+$', re.M)
 
 
 def convert(text, speecData):

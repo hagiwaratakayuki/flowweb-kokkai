@@ -67,9 +67,9 @@ def get_targets(module, modpath):
         yield key, target, [], {}
 
 
-pt_pyext = re.compile('\.py$')
-pt_args = re.compile('[\s,\]\[]+')
-pt_sep = re.compile('[\\\/]+')
+pt_pyext = re.compile(r'\.py$')
+pt_args = re.compile(r'[\s,\]\[]+')
+pt_sep = re.compile(r'[\\\/]+')
 
 
 def generate(target_directry='./api_server/db',

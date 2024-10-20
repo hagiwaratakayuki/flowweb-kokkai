@@ -11,7 +11,7 @@ from collections import deque
 
 
 warnings.simplefilter('ignore')
-pt_pyext = re.compile('\.py$')
+pt_pyext = re.compile(r'\.py$')
 
 
 for root, dirs, files in os.walk('./db'):

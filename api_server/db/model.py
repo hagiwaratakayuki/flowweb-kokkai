@@ -27,7 +27,7 @@ def start_high_bulk():
     high_bulk_start = time.time()
 
 
-PT = re.compile('^_')
+PT = re.compile(r'^_')
 
 
 class Model(object):

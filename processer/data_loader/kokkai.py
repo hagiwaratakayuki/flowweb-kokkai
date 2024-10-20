@@ -18,8 +18,8 @@ from data_loader.kokkai_reguraizer import reguraizers
 import unicodedata
 
 
-number_pt = re.compile('\d+')
-whitespace_pt = re.compile('\s')
+number_pt = re.compile(r'\d+')
+whitespace_pt = re.compile(r'\s')
 
 
 class DTO(Base):

@@ -6,7 +6,7 @@ import re
 from utillib import envinit
 from ...japanese_language import rule_extractor
 from .template import TokenazierTemplate
-KUUHAKU = re.compile('\s+')
+KUUHAKU = re.compile(r'\s+')
 
 
 tagger = MeCab.Tagger(envinit.read('MeCab').get('config', ''))

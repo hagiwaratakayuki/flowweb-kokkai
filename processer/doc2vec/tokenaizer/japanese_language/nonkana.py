@@ -3,10 +3,10 @@ from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
 
-eisuu = re.compile('^[\w\d]+$', re.A)
-kigou = re.compile('^\W+$')
-kuuhaku = re.compile('\s+')
-nonhiragana_pt = re.compile('[\p{Hiragana},。、]')
+eisuu = re.compile(r'^[\w\d]+$', re.A)
+kigou = re.compile(r'^\W+$')
+kuuhaku = re.compile(r'\s+')
+nonhiragana_pt = re.compile(r'[\p{Hiragana},。、]')
 
 
 def extract(results: List[SpecificKeyword], parse_results: List, data):

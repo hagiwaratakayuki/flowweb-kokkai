@@ -3,7 +3,7 @@ import json
 import re
 
 from collections import defaultdict
-kuuhaku = re.compile('\s+[^\s]+$', re.U)
+kuuhaku = re.compile(r'\s+[^\s]+$', re.U)
 
 with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)

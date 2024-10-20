@@ -1,5 +1,5 @@
 import re
-pattern = re.compile('[^\w。、]\w+[^\w。、]', re.M)
+pattern = re.compile(r'[^\w。、]\w+[^\w。、]', re.M)
 
 
 def convert(text, speecData):

@@ -5,11 +5,11 @@ import subprocess
 from collections import defaultdict
 
 
-pt_pyext = re.compile('\.py$')
-pt_from = re.compile('^\s*from\s+([^\s]+)')
-pt_import = re.compile('^\s*import\s+([^\s]+\s*)+')
-sub_import = re.compile('^\s*import\s+')
-sub_as = re.compile('\s+as\s+[^\s]+')
+pt_pyext = re.compile(r'\.py$')
+pt_from = re.compile(r'^\s*from\s+([^\s]+)')
+pt_import = re.compile(r'^\s*import\s+([^\s]+\s*)+')
+sub_import = re.compile(r'^\s*import\s+')
+sub_as = re.compile(r'\s+as\s+[^\s]+')
 
 
 # パーサーの作成
@@ -68,7 +68,7 @@ output = subprocess.check_output('pip freeze',  text=True)
 output_lines = []
 for line in output.splitlines():
 
-    name = re.split('\W', line.split('==')[0])[0].lower()
+    name = re.split(r'\W', line.split('==')[0])[0].lower()
 
     if name in canditates:
         output_lines.append(line)

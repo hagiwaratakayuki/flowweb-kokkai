@@ -52,7 +52,7 @@ def scan_directory_and_check_update_time(directory_path):
     return file_update_times
 
 
-pt = re.compile('^/')
+pt = re.compile(r'^/')
 
 
 def compaire_file_update(target_directries):

@@ -8,9 +8,9 @@ Created on 2009/09/06
 from xml.etree import ElementTree
 import re
 # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
-RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
-                 u'|' + \
-                 u'([%s-%s][^%s-%s])|([^%s-%s][%s-%s])|([%s-%s]$)|(^[%s-%s])' % \
+RE_XML_ILLEGAL = r'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
+                 r'|' + \
+                 r'([%s-%s][^%s-%s])|([^%s-%s][%s-%s])|([%s-%s]$)|(^[%s-%s])' % \
     (chr(0xd800), chr(0xdbff), chr(0xdc00), chr(0xdfff),
      chr(0xd800), chr(0xdbff), chr(0xdc00), chr(0xdfff),
      chr(0xd800), chr(0xdbff), chr(0xdc00), chr(0xdfff))
