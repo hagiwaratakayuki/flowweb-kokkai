@@ -1,7 +1,7 @@
 # Copyright 2021 Google LLC
 
 
-runtime: python39
+runtime: python312
 
 handlers:
 - url: /.*

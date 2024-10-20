@@ -1,3 +1,4 @@
+# import traceback
 from flask import Flask, request
 from task import create_task
 from const import CROWL_PAST
@@ -8,6 +9,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
+
     payload = {'init': True}
     create_task(payload=payload, in_seconds=None)
     return 'ok'

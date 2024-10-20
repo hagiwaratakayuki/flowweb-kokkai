@@ -1,4 +1,4 @@
-from tkinter import NO
+
 from storage.meeting import Meeting
 from storage.speechlog import SpeechLog
 from core.kokkai import pastlog
@@ -9,7 +9,7 @@ from typing import List
 import hashlib
 import json
 import logging
-from storage.basic import upload_gzip
+
 from db import memo
 
 
