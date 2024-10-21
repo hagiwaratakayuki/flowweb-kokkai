@@ -1,3 +1,4 @@
+import logging
 from const import CROWL_PAST
 
 from google.protobuf import timestamp_pb2
@@ -22,9 +23,13 @@ def getTV2():
 
 def get_location():
     global LOCATION
+    '''
     if LOCATION is None:
         LOCATION = '-'.join(get_metadata("zone").split('-')[:-1])
-    return LOCATION
+    '''
+
+    # return LOCATION
+    return "asia-northeast1"
 
 
 def create_task(payload, uri=CROWL_PAST, in_seconds=1):
@@ -32,6 +37,9 @@ def create_task(payload, uri=CROWL_PAST, in_seconds=1):
     client = getTV2().CloudTasksClient()
 
     parent = client.queue_path(project, get_location(), queue)
+    # print(project)
+    # print(get_location())
+    # print(queue)
 
     task = {
         "app_engine_http_request": {  # Specify the type of request.

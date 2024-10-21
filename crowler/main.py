@@ -1,5 +1,7 @@
 # import traceback
+from tkinter import N
 from flask import Flask, request
+from db import memo
 from task import create_task
 from const import CROWL_PAST
 from application import kokkai_pastlog
@@ -24,6 +26,10 @@ def resume():
 
 @app.route(CROWL_PAST, methods=["POST"])
 def crowl():
+    memoModel = memo.Model.get(id='is_end')
+    if memoModel is not None and memoModel.get('value') is not None:
+        return
+
     request_paylod = request.get_json(force=True)
     if request_paylod.get('resume', False) == True:
         isEnd, next_payload = kokkai_pastlog.resume()
@@ -33,6 +39,9 @@ def crowl():
 
         create_task(payload=next_payload, in_seconds=1)
     else:
-        logging.info('crowl done')
+        memoModel = memo.Model(id='is_end')
+        memoModel.value = 'yes'
+        memoModel.upsert()
+        print('crowl done')
 
     return ''
