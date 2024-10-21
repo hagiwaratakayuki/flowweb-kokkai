@@ -56,7 +56,7 @@ class MyTestCase(unittest.TestCase):
         mock_restclient.Client.return_value = mockClient
 
         client = app.test_client()
-        result = client.post(CROWL_PAST, json={})
+        result = client.post(CROWL_PAST, json={'sessionTo': 212})
         exist_args, exist_kwargs = mock_taskcreater.call_args
         if len(exist_args) > 0:
             payload = exist_args[0]
@@ -90,13 +90,13 @@ class MyTestCase(unittest.TestCase):
         mock_restclient.Client.return_value = mockClient
 
         client = app.test_client()
-        result = client.post(CROWL_PAST, json={})
+        result = client.post(CROWL_PAST, json={'sessionTo': 212})
         exist_args, exist_kwargs = mock_taskcreater.call_args
         if len(exist_args) > 0:
             payload = exist_args[0]
         else:
             payload = exist_kwargs['payload']
-
+        print(payload)
         self.assertDictEqual(payload, {'sessionTo': 211})
 
     @patch('storage.basic.storage')
