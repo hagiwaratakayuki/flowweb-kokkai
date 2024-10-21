@@ -6,7 +6,7 @@ Created on 2016/01/02
 from .__init__ import search
 
 
-def crowl(startRecord=None, sessionTo=None):
+def crowl(startRecord=None, sessionFrom=None, sessionTo=None):
 
     params = {'maximumRecords': 10}
 
@@ -14,5 +14,7 @@ def crowl(startRecord=None, sessionTo=None):
         params['startRecord'] = startRecord
     if sessionTo is not None:
         params['sessionTo'] = sessionTo
+    if sessionFrom is not None:
+        params['sessionFrom'] = sessionFrom
 
     return search(params)

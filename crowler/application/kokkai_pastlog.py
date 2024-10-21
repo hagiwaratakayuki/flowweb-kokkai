@@ -28,7 +28,9 @@ def crowl(params: dict):
     startRecord = params.get('startRecord', None)
     if 'startRecord' not in params:
         logging.info(f'session {sessionTo} crowl start')
-    crowlResult = pastlog.crowl(startRecord=startRecord, sessionTo=sessionTo)
+    crowlResult = pastlog.crowl(
+        startRecord=startRecord, sessionFrom=sessionTo, sessionTo=sessionTo)
+
     if crowlResult == False:
         startR = startRecord or 1
         logging.error(f'session {sessionTo} start {startR} fail')

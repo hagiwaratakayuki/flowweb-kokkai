@@ -338,10 +338,12 @@ def search(params):
 
     client = rest.Client('http://kokkai.ndl.go.jp/api/1.0/meeting')
     client.setQueryParamByDict(params)
+
     status, result = client.send(True)
 
     if not status:
 
         logging.error(result)
         return False
+
     return MeetingRecords(result)
