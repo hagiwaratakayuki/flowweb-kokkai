@@ -27,13 +27,13 @@ def crowl(params: dict):
     sessionTo = params.get('sessionTo', LATEST_SESSION)
     startRecord = params.get('startRecord', None)
     if 'startRecord' not in params:
-        logging.info(f'session {sessionTo} crowl start')
+        print(f'session {sessionTo} crowl start')
     crowlResult = pastlog.crowl(
         startRecord=startRecord, sessionFrom=sessionTo, sessionTo=sessionTo)
 
     if crowlResult == False:
         startR = startRecord or 1
-        logging.error(f'session {sessionTo} start {startR} fail')
+        print(f'session {sessionTo} start {startR} fail')
         return False
 
     if sessionTo not in params:
@@ -47,7 +47,7 @@ def crowl(params: dict):
     isEnd = False
 
     if crowlResult.next is False:
-        logging.info(f'crowl end {sessionTo}')
+        print(f'crowl end {sessionTo}')
         startRecord = None
         if sessionTo == 1:
             isEnd = True
