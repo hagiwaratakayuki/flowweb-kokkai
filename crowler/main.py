@@ -1,5 +1,5 @@
 # import traceback
-from tkinter import N
+
 from flask import Flask, request
 from db import memo
 from task import create_task

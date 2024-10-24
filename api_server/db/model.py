@@ -118,7 +118,7 @@ class Model(object):
     @classmethod
     def _get_key(cls, path_args=[], kwargs={}, id=None):
 
-        _path = path_args[:]
+        _path = list(path_args)
         _path.append(cls.__name__)
         if id is not None:
             _path.append(id)
