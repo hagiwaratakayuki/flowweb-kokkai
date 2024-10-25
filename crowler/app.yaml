@@ -4,14 +4,9 @@
 runtime: python312
 
 handlers:
-- url: /
+- url: /.*
   script: auto
   login: admin
-- url: /resume
-  script: auto
-  login: admin
-- url: /.+
-  script: auto
  
 
 automatic_scaling:
