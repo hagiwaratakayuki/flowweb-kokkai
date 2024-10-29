@@ -14,7 +14,7 @@ from db import memo
 
 
 def resume():
-    pagingMemo = memo.Model.get(id='paging')
+    pagingMemo = memo.Memo.get(id='paging')
     if not pagingMemo:
         logging.error('not crowled')
         return
@@ -38,7 +38,7 @@ def crowl(params: dict):
 
     if sessionTo not in params:
         value = crowlResult.records[0].id
-        memoModel = memo.Model(id='headId')
+        memoModel = memo.Memo(id='headId')
         memoModel.value = value
         memoModel.upsert()
 
@@ -62,7 +62,7 @@ def crowl(params: dict):
 
     if startRecord is not None:
         ret['startRecord'] = startRecord
-    memoModel = memo.Model(id='paging')
+    memoModel = memo.Memo(id='paging')
     memoModel.value = json.dumps(ret)
     memoModel.upsert()
     return isEnd, ret

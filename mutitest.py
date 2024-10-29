@@ -6,6 +6,7 @@ from multiprocessing.pool import Pool
 from typing import TypedDict
 import unittest
 from unittest.mock import patch, MagicMock, call
+import traceback
 
 
 class Hoge:

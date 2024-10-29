@@ -13,13 +13,20 @@ PROJECT_ID = None
 LOCATION = None
 
 
+def set_location(location):
+    global LOCATION
+    LOCATION = location
+
+
 def get_location():
+    global LOCATION
     if LOCATION is None:
         LOCATION = '-'.join(get_metadata("zone").split('-')[:-1])
     return LOCATION
 
 
 def set_project_id(project_id='test'):
+    global PROJECT_ID
     PROJECT_ID = project_id
 
 
@@ -49,7 +56,7 @@ class Model:
     bucket: Bucket
 
     def __init__(self) -> None:
-        bucket_name = get_project_id() + '-' + self.__class__.__name__
+        bucket_name = get_project_id() + '-' + self.__class__.__name__.lower()
         self.bucket = get_bucket(bucket_name)
 
 

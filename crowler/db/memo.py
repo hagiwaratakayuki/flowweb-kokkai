@@ -1,5 +1,5 @@
 from .model import Model as Base
 
 
-class Model(Base):
+class Memo(Base):
     value: str
