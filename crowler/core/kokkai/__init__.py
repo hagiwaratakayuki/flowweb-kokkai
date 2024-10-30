@@ -135,6 +135,7 @@ class MeetingRecord(object):
         self.pdf = record.findtext('pdfURL')
         self.speeches = {}
         self.moderators = []
+
         year, month, date = [int(token)
                              for token in re.split(r'[^\d]+', self.date)]
 
@@ -330,7 +331,8 @@ class MeetingRecords(object):
         self.records = []
 
         for record in data.findall('records/record/recordData/meetingRecord'):
-
+            if not record.findtext('nameOfMeeting'):
+                continue
             self.records.append(MeetingRecord(record))
 
 

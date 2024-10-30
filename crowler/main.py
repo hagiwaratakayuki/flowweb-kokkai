@@ -50,6 +50,6 @@ def crowl():
             memoModel.upsert()
             print('crowl done')
     except Exception as e:
-        print(r'\n'.join(traceback.format_exception(e)))
+        print(r''.join(traceback.format_exception(e)))
 
     return ''
