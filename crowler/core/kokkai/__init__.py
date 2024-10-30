@@ -137,7 +137,7 @@ class MeetingRecord(object):
         self.moderators = []
 
         year, month, date = [int(token)
-                             for token in re.split(r'[^\d]+', self.date)]
+                             for token in re.split(r'[^\d]+', self.date) if token != '']
 
         speeches: Dict[Any, SpeechRecord] = {}
         speakers: Dict[str, Speaker] = {}
