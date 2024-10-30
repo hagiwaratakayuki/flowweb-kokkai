@@ -18,7 +18,7 @@ def resume():
     if not pagingMemo:
         logging.error('not crowled')
         return
-    params = json.loads(pagingMemo.values)
+    params = json.loads(pagingMemo.value)
 
     return crowl(params)
 
