@@ -22,17 +22,27 @@ from xml.etree.ElementTree import Element
 KUGIRI = re.compile(r'^[\W\s]+$', re.UNICODE + re.MULTILINE)
 KANJI_COUNT = r"一二三四五六七八九"
 KANJI_COUNT_ONLY = re.compile(r'^[%s]+$' % KANJI_COUNT)
+
 KANSUUJI_ZERO_TEXT = r'〇0o\W'
 KANSUUJI_ZERO_PATTEN = re.compile(
     r'[%s]' % KANSUUJI_ZERO_TEXT, re.IGNORECASE + re.UNICODE)
 KANJI_KETA_BASETEXT = r'十百千'
 KANJI_KETA_EXTENDTEXT = r'万憶兆京'
-KANSUUJI_PATTERN = re.compile(r'([{count}{keta_base}]+[{count}{keta_base}{keta_extend}{zero}]*)[条項節編章節款目](?!委員会)'.format(
-    count=KANJI_COUNT, keta_base=KANJI_KETA_BASETEXT, keta_extend=KANJI_KETA_EXTENDTEXT, zero=KANSUUJI_ZERO_TEXT))
+KANSUUJI_BASIC = r'[{count}{keta_base}{keta_base}{keta_extend}{zero}]+'.format(
+    count=KANJI_COUNT, keta_base=KANJI_KETA_BASETEXT, keta_extend=KANJI_KETA_EXTENDTEXT, zero=KANSUUJI_ZERO_TEXT)
+# KANSUUJI_LOW_PATTERN = re.compile(
+#    r'({basic}*)[条項節編章節款目](?!委員会)'.format(basic=KANSUUJI_BASIC))
+KANJI_DAY_PATTERN = re.compile(
+    r'(昭和|平成|令和)?({basic}|元|\d+)?年?({basic}+|\d+)月({basic}+|\d+)日'.format(basic=KANSUUJI_BASIC))
+
+GENGOU_TO_YEAR = {"昭和": 1926, "平成": 1989, "令和": 2019}
+NUMBER_ONLY_PATTERN = re.compile(r'^\d+$')
 
 KANJI_KETA_MAP = {k: 10 ** v for v, k in enumerate(KANJI_KETA_BASETEXT, 1)}
 KANJI_KETA_EXTEND_MAP = {k: 10 ** v for v,
                          k in enumerate(KANJI_KETA_EXTENDTEXT, 4)}
+
+NUMBER_ONLY_PATTERN
 
 kansuuji = {r'零': '0', r'一': '1', r'壱': '1', r'二': '2', r'弐': '2', r'三': '3',
             r'四': '4', r'五': '5', r'六': '6', r'七': r'7', r'八': '8', r'九': '9'}
@@ -125,6 +135,7 @@ class SpeechRecord(object):
 
 class MeetingRecord(object):
     def __init__(self, record: Element):
+        global KANJI_DAY_PATTERN
         self.session = record.findtext('session')
         self.id = record.findtext('issueID')
         self.house = record.findtext('nameOfHouse')
@@ -151,7 +162,7 @@ class MeetingRecord(object):
         is_explanation = False
         is_explanation_first = False
         explantion_speech = None
-
+        endRecord = None
         for speechRecordNode in record.findall('speechRecord'):
             order = int(speechRecordNode.findtext('speechOrder'))
             speaker = speechRecordNode.findtext('speaker')
@@ -179,7 +190,7 @@ class MeetingRecord(object):
                         is_explanation_first = False
 
                     if speechRecord.speaker.isDietMember == True:
-                        speakerData.name
+
                         cand = ""
 
                         for token in speaker:
@@ -223,10 +234,27 @@ class MeetingRecord(object):
 
             endRecord = speechRecord
 
-        hour, minutes = self.getKanjiTime(endRecord.speech, isClose=True)
+        if endRecord is not None:
+            endyear = year
+            endmonth = month
+            enddate = date
+            hour, minutes = self.getKanjiTime(endRecord.speech)
+            all_m = KANJI_DAY_PATTERN.findall(endRecord.speech)
+            if len(all_m) > 0:
+                gengou, kyear, kmonth, kdate = all_m[-1]
+                if kyear != '':
+                    endyear = self._parseKanjiNumber(kyear) or year
+                    if gengou in GENGOU_TO_YEAR:
+                        endyear += GENGOU_TO_YEAR[gengou] - 1
+                if kmonth != '':
+                    endmonth = self._parseKanjiNumber(kmonth)
+                if kdate != '':
+                    enddate = self._parseKanjiNumber(kdate)
 
-        self.end = datetime.datetime(
-            year, month, date, hour, minutes).isoformat()
+            self.end = datetime.datetime(
+                endyear, endmonth, enddate, hour, minutes).isoformat()
+        else:
+            self.end = self.start
 
         self.speeches = speeches
         self.speakers = speakers
@@ -253,14 +281,18 @@ class MeetingRecord(object):
         self.start = datetime.datetime(
             year, month, date, hour, minutes).isoformat()
 
-    def getKanjiTime(self, text, isClose=False):
+    def getKanjiTime(self, text):
+
         if text.count(r'正午'):
             return 12, 0
 
-        pt = r'(午前|午後)(.+)時(.+分)?'
+        pt = r'(午前|午後)(.+)時(.+分)?(?!現在)'
 
         allm = re.findall(pt, text)
-        ampm, hour, minute = allm.pop()
+        if len(allm) == 0:
+            return 10, 0
+
+        ampm, hour, minute = allm[-1]
         hour = self._parseKanjiNumber(hour)
         if ampm == r'午後':
             hour += 12
@@ -274,7 +306,8 @@ class MeetingRecord(object):
     def _parseKanjiNumber(self, text):
         if not text:
             return
-
+        if NUMBER_ONLY_PATTERN.match(text):
+            return int(text)
         numText = ''
         match = re.search(r'^.十.$', text)
 
@@ -303,10 +336,13 @@ class MeetingRecord(object):
         if text == r'十':
             return 10
         for target in text:
+            if target not in kansuuji:
+                continue
 
             numString = kansuuji[target]
             numText += numString
-
+        if not numText:
+            return 0
         return int(numText)
 
 
@@ -331,7 +367,7 @@ class MeetingRecords(object):
         self.records = []
 
         for record in data.findall('records/record/recordData/meetingRecord'):
-            if not record.findtext('nameOfMeeting'):
+            if not record.findtext('nameOfMeeting') or not record.findtext('date'):
                 continue
             self.records.append(MeetingRecord(record))
 
