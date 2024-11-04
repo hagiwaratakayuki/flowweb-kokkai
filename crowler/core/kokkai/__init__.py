@@ -7,6 +7,8 @@ Created on 2015/12/20
 @author: Hagiwara Takayuki
 '''
 
+from email import message
+import json
 import urllib.parse
 import re
 import unicodedata
@@ -19,6 +21,7 @@ import itertools
 from typing import Dict, Any
 from xml.etree.ElementTree import Element
 
+
 KUGIRI = re.compile(r'^[\W\s]+$', re.UNICODE + re.MULTILINE)
 KANJI_COUNT = r"一二三四五六七八九"
 KANJI_COUNT_ONLY = re.compile(r'^[%s]+$' % KANJI_COUNT)
@@ -30,6 +33,8 @@ KANJI_KETA_BASETEXT = r'十百千'
 KANJI_KETA_EXTENDTEXT = r'万憶兆京'
 KANSUUJI_BASIC = r'[{count}{keta_base}{keta_base}{keta_extend}{zero}]+'.format(
     count=KANJI_COUNT, keta_base=KANJI_KETA_BASETEXT, keta_extend=KANJI_KETA_EXTENDTEXT, zero=KANSUUJI_ZERO_TEXT)
+SUUJI_BASIC_PATTERN = re.compile(
+    r'\d+|{ksuuji}'.format(ksuuji=KANSUUJI_BASIC))
 # KANSUUJI_LOW_PATTERN = re.compile(
 #    r'({basic}*)[条項節編章節款目](?!委員会)'.format(basic=KANSUUJI_BASIC))
 KANJI_DAY_PATTERN = re.compile(
@@ -239,6 +244,10 @@ class MeetingRecord(object):
             endmonth = month
             enddate = date
             hour, minutes = self.getKanjiTime(endRecord.speech)
+            if hour == None:
+                hour = self._hour
+            if minutes == None:
+                minutes = self._minutes
             all_m = KANJI_DAY_PATTERN.findall(endRecord.speech)
             if len(all_m) > 0:
                 gengou, kyear, kmonth, kdate = all_m[-1]
@@ -262,11 +271,12 @@ class MeetingRecord(object):
     def toDict(self):
         ret = {}
         for key, prop in self.__dict__.items():
+
             if key in ['speeches', 'speakers']:
                 ret[key] = [obj.toDict() for obj in prop.values()]
             elif hasattr(prop, 'toDict'):
                 ret[key] = prop.toDict()
-            else:
+            elif key.find('_') != 0:
                 ret[key] = prop
         return ret
 
@@ -278,9 +288,18 @@ class MeetingRecord(object):
         self.headerRecord = sentence
 
         hour, minutes = self.getKanjiTime(sentence)
+        if hour == None:
+            hour = 10
+        if minutes == None:
+            minutes = 0
 
         self.start = datetime.datetime(
             year, month, date, hour, minutes).isoformat()
+        self._year = year
+        self._month = month
+        self._date = date
+        self._hour = hour
+        self._minutes = minutes
 
     def getKanjiTime(self, text):
 
@@ -291,25 +310,44 @@ class MeetingRecord(object):
 
         allm = re.findall(pt, text)
         if len(allm) == 0:
-            return 10, 0
+            return None, None
 
         ampm, khour, kminute = allm[-1]
-        hour = self._parseKanjiNumber(khour)
 
-        if ampm == r'午後':
-            hour += 12
+        hour = self._parseKanjiNumber(khour)
+        is_typo = False
+        if hour is not None:
+            if ampm == r'午後':
+                hour += 12
+            if hour > 23:
+                is_typo = True
+                hour = 12
+        else:
+            is_typo = True
+        minute = None
         try:
 
-            minute = self._parseKanjiNumber(kminute.replace(r'分', '')) or 0
+            minute = self._parseKanjiNumber(kminute) or 0
+            if minute > 59:
+                minute = None
+                is_typo = True
+
         except Exception:
-            print("ex:", text)
+            is_typo = True
+        if is_typo == True:
+            entry = dict(
+                severity="TYPO",
+                message=text
+            )
+            print(json.dumps(entry, ensure_ascii=False))
 
         return hour, minute
 
     def _parseKanjiNumber(self, text):
-
+        text = ''.join(SUUJI_BASIC_PATTERN.findall(text))
         if not text:
             return
+
         if NUMBER_ONLY_PATTERN.match(text):
             return int(text)
         if text == "零":

@@ -17,4 +17,5 @@ class MyTestCase(unittest.TestCase):
                    mock_metadata_storage: MagicMock,
                    mock_storage: MagicMock):
         mock_metadata_storage.return_value = 'test'
-        print(crowl({"sessionTo": 166, "startRecord": 201}))
+        # print(crowl({"sessionTo": 126, "startRecord": 31})) 午後入時
+        print(crowl({"sessionTo": 126, "startRecord": 31}))
