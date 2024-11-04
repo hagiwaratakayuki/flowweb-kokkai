@@ -23,7 +23,7 @@ KUGIRI = re.compile(r'^[\W\s]+$', re.UNICODE + re.MULTILINE)
 KANJI_COUNT = r"一二三四五六七八九"
 KANJI_COUNT_ONLY = re.compile(r'^[%s]+$' % KANJI_COUNT)
 
-KANSUUJI_ZERO_TEXT = r'〇0o\W'
+KANSUUJI_ZERO_TEXT = r'〇0o零'
 KANSUUJI_ZERO_PATTEN = re.compile(
     r'[%s]' % KANSUUJI_ZERO_TEXT, re.IGNORECASE + re.UNICODE)
 KANJI_KETA_BASETEXT = r'十百千'
@@ -276,6 +276,7 @@ class MeetingRecord(object):
 
         sentence = speechRecord.findtext('speech')
         self.headerRecord = sentence
+
         hour, minutes = self.getKanjiTime(sentence)
 
         self.start = datetime.datetime(
@@ -286,28 +287,33 @@ class MeetingRecord(object):
         if text.count(r'正午'):
             return 12, 0
 
-        pt = r'(午前|午後)(.+)時(.+分)?(?!現在)'
+        pt = r'(午前|午後)(.+?)時(.+?分)?(?!現在)'
 
         allm = re.findall(pt, text)
         if len(allm) == 0:
             return 10, 0
 
-        ampm, hour, minute = allm[-1]
-        hour = self._parseKanjiNumber(hour)
+        ampm, khour, kminute = allm[-1]
+        hour = self._parseKanjiNumber(khour)
+
         if ampm == r'午後':
             hour += 12
         try:
 
-            minute = self._parseKanjiNumber(minute.replace(r'分', '')) or 0
+            minute = self._parseKanjiNumber(kminute.replace(r'分', '')) or 0
         except Exception:
-            print(text)
+            print("ex:", text)
+
         return hour, minute
 
     def _parseKanjiNumber(self, text):
+
         if not text:
             return
         if NUMBER_ONLY_PATTERN.match(text):
             return int(text)
+        if text == "零":
+            return 0
         numText = ''
         match = re.search(r'^.十.$', text)
 
