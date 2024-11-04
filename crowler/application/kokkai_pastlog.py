@@ -37,7 +37,7 @@ def crowl(params: dict):
         print(f'session {sessionTo} start {startR} fail')
         return False
 
-    if sessionTo not in params:
+    if 'sessionTo' not in params:
         value = crowlResult.records[0].id
         memoModel = memo.Memo(id='headId')
         memoModel.value = value
