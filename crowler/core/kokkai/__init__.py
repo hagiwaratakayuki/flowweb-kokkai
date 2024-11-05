@@ -317,7 +317,7 @@ class MeetingRecord(object):
         hour = self._parseKanjiNumber(khour)
         is_typo = False
         if hour is not None:
-            if ampm == r'午後':
+            if ampm == r'午後' and hour != 12:
                 hour += 12
             if hour > 23:
                 is_typo = True
