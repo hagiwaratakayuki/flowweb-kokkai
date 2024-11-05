@@ -147,7 +147,7 @@ class MeetingRecord(object):
         self.name = record.findtext('nameOfMeeting')
         self.date = record.findtext('date')
         self.issue = record.findtext('issue').replace(r'\D+', r'', re.U)
-        self.url = record.findtext('meetingURL')
+        self.url = record.findtext('meetingURL') or ''
         self.pdf = record.findtext('pdfURL')
         self.speeches = {}
         self.moderators = []
@@ -249,6 +249,7 @@ class MeetingRecord(object):
             if minutes == None:
                 minutes = self._minutes
             all_m = KANJI_DAY_PATTERN.findall(endRecord.speech)
+            is_past = False
             if len(all_m) > 0:
                 gengou, kyear, kmonth, kdate = all_m[-1]
                 if kyear != '':
@@ -256,12 +257,24 @@ class MeetingRecord(object):
                     if gengou in GENGOU_TO_YEAR:
                         endyear += GENGOU_TO_YEAR[gengou] - 1
                 if kmonth != '':
-                    endmonth = self._parseKanjiNumber(kmonth)
-                if kdate != '':
-                    enddate = self._parseKanjiNumber(kdate)
 
-            self.end = datetime.datetime(
-                endyear, endmonth, enddate, hour, minutes).isoformat()
+                    endmonth = self._parseKanjiNumber(kmonth)
+                    if endmonth == None or endmonth < self._month:
+                        endmonth = self._month
+                        is_past = True
+                if is_past == False:
+                    if kdate != '':
+                        enddate = self._parseKanjiNumber(kdate) or self._date
+            try:
+                self.end = datetime.datetime(
+                    endyear, endmonth, enddate, hour, minutes).isoformat()
+            except:
+                entry = dict(
+                    severity="TYPO",
+                    message=''.join([endRecord.speech, self.url])
+                )
+                print(json.dumps(entry, ensure_ascii=False))
+                self.end = self.start
         else:
             self.end = self.start
 
@@ -337,7 +350,7 @@ class MeetingRecord(object):
         if is_typo == True:
             entry = dict(
                 severity="TYPO",
-                message=text
+                message=''.join([text, self.url])
             )
             print(json.dumps(entry, ensure_ascii=False))
 
