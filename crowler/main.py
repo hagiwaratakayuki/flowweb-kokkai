@@ -16,6 +16,12 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
+    endMemoModel = memo.Memo.get(id='is_end')
+    if endMemoModel is not None and endMemoModel.get('value') is not None:
+        return 'end'
+    headMemoModel = memo.Memo(id='headId')
+    if headMemoModel is not None and headMemoModel.get('value') is not None:
+        return 'started'
 
     payload = {'init': True}
     create_task(payload=payload, in_seconds=1)
@@ -25,6 +31,9 @@ def root():
 @app.route("/resume")
 def resume():
     payload = {'resume': True}
+    memoModel = memo.Memo.get(id='is_end')
+    if memoModel is not None and memoModel.get('value') is not None:
+        return 'end'
     create_task(payload=payload, in_seconds=1)
     return 'ok'
 
@@ -32,9 +41,6 @@ def resume():
 @app.route(CROWL_PAST, methods=["POST"])
 def crowl():
     try:
-        memoModel = memo.Memo.get(id='is_end')
-        if memoModel is not None and memoModel.get('value') is not None:
-            return
 
         request_payload = request.get_json(force=True)
         if request_payload.get('resume', False) == True:
