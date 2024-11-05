@@ -6,8 +6,7 @@ Created on 2015/12/20
 
 @author: Hagiwara Takayuki
 '''
-
-from email import message
+from calendar import monthrange
 import json
 import urllib.parse
 import re
@@ -154,6 +153,15 @@ class MeetingRecord(object):
 
         year, month, date = [int(token)
                              for token in re.split(r'[^\d]+', self.date) if token != '']
+        if monthrange(year, month)[1] < date:
+            entry = dict(
+                severity="MISS_DATE",
+                message=' '.join([self.date, self.url])
+            )
+            print(json.dumps(entry, ensure_ascii=False))
+            year = 9999
+            month = 1
+            date = 1
 
         speeches: Dict[Any, SpeechRecord] = {}
         speakers: Dict[str, Speaker] = {}
@@ -271,10 +279,14 @@ class MeetingRecord(object):
             except:
                 entry = dict(
                     severity="TYPO",
-                    message=''.join([endRecord.speech, self.url])
+                    message=' '.join([endRecord.speech, self.url])
                 )
                 print(json.dumps(entry, ensure_ascii=False))
-                self.end = self.start
+                try:
+                    self.end = datetime.datetime(
+                        self._year, self._month, self._date, hour, minutes).isoformat()
+                except:
+                    self.end = self.start
         else:
             self.end = self.start
 
@@ -350,7 +362,7 @@ class MeetingRecord(object):
         if is_typo == True:
             entry = dict(
                 severity="TYPO",
-                message=''.join([text, self.url])
+                message=' '.join([text, self.url])
             )
             print(json.dumps(entry, ensure_ascii=False))
 
