@@ -10,10 +10,9 @@ def read(group):
     data = None
     if envname is None:
         return {}
-    if config is not None:
-        if not config:
-            return {}
-        return config[group]
+    if CONFIG is not None:
+
+        return CONFIG[group]
 
     config = configparser.ConfigParser()
     paths = [
