@@ -1,10 +1,8 @@
-gensim==4.3.2
+
 google-api-core==2.11.1
 google-auth==2.23.0
 google-cloud-core==2.3.3
 google-cloud-datastore==2.18.0
-lorem==0.1.1
-lorem-text==2.1
-nltk==3.8.1
 numpy==1.26.0
-sklearn==0.0.post9
+oseti
+emoji==1.7

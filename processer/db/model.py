@@ -40,6 +40,9 @@ class Model(object):
         self._entity_options = entity_options
         self._id = id
 
+    def get_id(self):
+        return self._id
+
     @classmethod
     def query(cls):
 

@@ -1,11 +1,11 @@
 from math import inf
 from operator import itemgetter
 
-from more_itertools import tail
+
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from typing import Any, Dict, Tuple, TypedDict
 from db.kokkai_comittie import KokkaiComittie, KokkaiComittieAndSession
-from contract_logics.kokkai_comittie import start_end, name_escape, get_supersets
+from contract_logics.kokkai_comittie import start_end,  get_supersets
 
 import re
 

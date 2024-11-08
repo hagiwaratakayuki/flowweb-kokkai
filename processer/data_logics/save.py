@@ -11,6 +11,7 @@ from db import node_keyword
 from typing import Dict, Iterable
 from data_logics.node_logic import NodeLogic
 from data_logics import author_keyword
+from data_logics import cluster_link
 from ridgedetect.taged import Taged
 from doc2vec import Doc2Vec
 from doc2vec.indexer.dto import SentimentResult
@@ -47,6 +48,7 @@ class Logic:
         index2sentiments: dict[int, SentimentResult] = {}
 
         index2vector = {}
+        innerid2clusterid = {}
 
         index = 0
 
@@ -133,15 +135,16 @@ class Logic:
         member_positions_chunk = deque()
         keyword_model_chunk = ChunkedBatchSaver()
         logging.info('start cluster save')
-        for cluster_id, cluster_members in taged.clusters.items():
+        for innerid, cluster_members in taged.clusters.items():
             positions = get_position(
                 index2sentiments=index2sentiments, cluster_members=cluster_members)
             member_positions_chunk.append(positions)
 
             cluster_model = self._get_cluster_model(
-                cluster_id=cluster_id, taged=taged,  cluster_members=cluster_members, weight_map=index2weight)
+                innerid=innerid, taged=taged,  cluster_members=cluster_members, weight_map=index2weight)
+            innerid2clusterid[innerid] = cluster_model.get_id()
             entities = cluster_chunker.put(cluster_model)
-            cluster_keyword_chunk.append(taged.tag_index[cluster_id])
+            cluster_keyword_chunk.append(taged.tag_index[innerid])
             members_chunk.append(cluster_members)
 
             if entities != None:
@@ -180,13 +183,16 @@ class Logic:
                 member_positions_chunk=member_positions_chunk,
                 weight_map=index2weight
             )
-
+        cluster_link_saver = cluster_link.Saver()
+        cluster_link_saver.put(
+            taged.cluster_link, innerid2clusterid=innerid2clusterid)
+        cluster_link_saver.close()
         member_model_chunk.close()
         keyword_model_chunk.close()
 
         logging.info('done')
 
-    def _get_cluster_model(self, taged, cluster_id, cluster_members, weight_map: Dict):
+    def _get_cluster_model(self, taged, innerid, cluster_members, weight_map: Dict):
 
         modelid = md5('//'.join(set(cluster_members)
                                 ).encode('utf-8')).hexdigest()
@@ -194,7 +200,7 @@ class Logic:
 
         cluster_model.member_count = len(cluster_members)
         cluster_model.keywords = list(
-            taged.tag_index[cluster_id])[:5]
+            taged.tag_index[innerid])[:5]
         total_weight = 0.0
         member_count = 0
         for member in cluster_members:
@@ -225,7 +231,7 @@ class Logic:
             for member, position in zip(members, positions):
                 loop_count += 1
                 member_model = cluster_member.ClusterMember()
-                member_model.cluster_id = entity.id
+                member_model.cluster_id = entity.key.id_or_name
                 member_model.node_id = index2id[member]
                 linked_count = linked_counts_map[member]
                 published = index2published[member]
