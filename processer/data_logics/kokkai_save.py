@@ -11,7 +11,7 @@ from .save import Logic
 from db.node_kokkai import NodeKokkai
 from db.kokkai_cluster import KokkaiCluster
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from db.cluster_link import ClusterLink
+from db.kokkai_cluster_link import ClusterLink
 
 
 class KokkaiNodeLogic(NodeLogic):

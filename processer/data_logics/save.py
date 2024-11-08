@@ -1,5 +1,6 @@
 
 from functools import reduce
+from hashlib import md5
 import numpy as np
 import logging
 from db import cluster, cluster_member
@@ -186,7 +187,10 @@ class Logic:
         logging.info('done')
 
     def _get_cluster_model(self, taged, cluster_id, cluster_members, weight_map: Dict):
-        cluster_model = self._cluster_model_class()
+
+        modelid = md5('//'.join(set(cluster_members)
+                                ).encode('utf-8')).hexdigest()
+        cluster_model = self._cluster_model_class(id=modelid)
 
         cluster_model.member_count = len(cluster_members)
         cluster_model.keywords = list(

@@ -8,7 +8,7 @@ class Meeting(Model):
     def __init__(self) -> None:
         super().__init__()
 
-    def downloadAll(self):
+    def downloadAll(self, session=1):
         session = 1
         self._isContinue = True
 

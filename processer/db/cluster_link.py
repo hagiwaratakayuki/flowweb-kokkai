@@ -1,8 +1,11 @@
 from .model import Model
-from google.cloud.datastore.key import Key
-from typing import List
 
 
 class ClusterLink(Model):
-    from_cluster: str
-    to_cluster: str
+    link_start: str
+    link_target: str
+    link_count: int
+
+    def __init__(self, id=None) -> None:
+        super().__init__(id, entity_options={
+            "exclude_from_indexes": ("link_target")})

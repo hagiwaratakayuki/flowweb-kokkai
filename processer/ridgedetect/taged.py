@@ -1,3 +1,4 @@
+from processer import cluster
 from .basic import RidgeDitect
 import numpy as np
 from collections import defaultdict, deque
@@ -26,10 +27,11 @@ class Taged(RidgeDitect):
 
         new_clusters = {}
         cluster_id = 0
-        member_to_clusters = defaultdict(deque)
-
+        cluster_link = defaultdict(deque)
+        empty_set = frozenset([])
         for cluster_members in clusters.values():
-
+            cluster_group_id = 0
+            cluster_group = {}
             tags_2_members = defaultdict(deque)
             sub_clusters = defaultdict(set)
 
@@ -49,16 +51,21 @@ class Taged(RidgeDitect):
 
                 new_clusters[cluster_id] = members
                 tag_index[cluster_id] = tags
-                """
-                for member in members:
-                    member_to_clusters[member].append(cluster_id)
-                """
+                cluster_group[cluster_group_id] = cluster_id
+                cluster_group_id += 1
                 cluster_id += 1
+            for cgid in range(cluster_group_id):
+                cid = cluster_group[cgid]
+                gmember = new_clusters[cid]
+                for gtid in range(cgid + 1, cluster_group_id):
+                    tid = cluster_group[gtid]
+                    cross_set = gmember & new_clusters[tid]
+                    if cross_set == empty_set:
+                        continue
+                    cross_count = len(cross_set)
+                    cluster_link[cid].append((tid, cross_count,))
+                    cluster_link[tid].append((cid, cross_count, ))
 
         self.clusters = new_clusters
         self.tag_index = tag_index
-
-        # self.sub_tags = sub_tags
-        # self.member_to_clusters = member_to_clusters
-
-        # self.member_to_clusters = {member: list(_clusters) for member, _clusters in member_to_clusters} /
+        self.cluster_link = cluster_link

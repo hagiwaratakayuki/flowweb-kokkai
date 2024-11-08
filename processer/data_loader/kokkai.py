@@ -1,7 +1,7 @@
 
 from collections.abc import Iterable
 from operator import itemgetter
-
+from db.memo import Memo
 
 from storage.meeting import Meeting
 from itertools import chain
