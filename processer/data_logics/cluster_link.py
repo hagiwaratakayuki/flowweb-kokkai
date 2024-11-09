@@ -1,7 +1,7 @@
 
 from hashlib import md5
 from os import link
-from typing import DefaultDict, Deque, Dict, Tuple
+from typing import Any, DefaultDict, Deque, Dict, Tuple
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.cluster_link import ClusterLink
 
@@ -10,8 +10,8 @@ class Saver:
     def __init__(self) -> None:
         self.saver = ChunkedBatchSaver()
 
-    def put(self, cluster_links: DefaultDict[Deque[Tuple[int, int]]], innerid2clusterid):
-        for start_index, links in cluster_links:
+    def put(self, cluster_links: DefaultDict[Any, Deque[Tuple[int, int]]], innerid2clusterid):
+        for start_index, links in cluster_links.items():
             link_start = innerid2clusterid[start_index]
             for target_index, link_count in links:
                 link_target = innerid2clusterid[target_index]

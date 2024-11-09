@@ -31,19 +31,19 @@ class MyTestCase(unittest.TestCase):
 
             for i in range(n_samples)
         ]
-        datas = [DTO(body=lorem.sentence(), title='', data={}, speaker=create_dummy_string(
-        ), authorid=create_dummy_string(), published=get_random_date(2014, 2023)) for i in range(n_samples)]
+        datas = [DTO(body=lorem.sentence(), title='', data={}, author=create_dummy_string(
+        ), author_id=create_dummy_string(), published=get_random_date(2014, 2023)) for i in range(n_samples)]
         vectors = np.random.rand(n_samples, 10)
         sentiments = [build_mock_sentiment_result(
             d1=10) for i in range(n_samples)]
 
-        db_model = buildModel()
+        nodeLogic = buildModel()
 
         with patch("db.model.client") as client_mock:
             logic = Logic()
 
             print(logic.save(datas=list(
-                zip(vectors, sentiments, keywords, datas)), model=db_model))
+                zip(vectors, sentiments, keywords, datas)), nodeLogic=nodeLogic))
 
 
 def get_random_date(startYear, endYear):

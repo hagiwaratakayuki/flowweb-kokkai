@@ -25,7 +25,7 @@ class Meeting(Model):
 
     def __init__(self, id=None) -> None:
         entity_options = {
-            "exclude_from_indexes": ("header_text", "pdf", "url", "moderators")}
+            "exclude_from_indexes": ("header_text", "pdf", "url", "moderators",)}
         super().__init__(id, entity_options)
 
     def get_entity(self, id=None, path_args=None, kwargs=None):

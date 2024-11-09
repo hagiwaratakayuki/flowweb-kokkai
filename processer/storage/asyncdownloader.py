@@ -4,7 +4,7 @@ from google.cloud.storage import Blob
 from collections.abc import Iterable
 
 
-def download(blobs: Iterable[Blob], chunkedSizeLimit=100):
+def download(blobs: Iterable[Blob], chunkedSizeLimit=10):
     chunk = deque()
     chunkedSize = 0
 

@@ -6,7 +6,7 @@ import logging
 from db import cluster, cluster_member
 from multiprocessing import Pool
 from collections import deque, defaultdict
-from db import node_keyword
+
 
 from typing import Dict, Iterable
 from data_logics.node_logic import NodeLogic
@@ -141,7 +141,7 @@ class Logic:
             member_positions_chunk.append(positions)
 
             cluster_model = self._get_cluster_model(
-                innerid=innerid, taged=taged,  cluster_members=cluster_members, weight_map=index2weight)
+                innerid=innerid, taged=taged,  cluster_members=cluster_members, weight_map=index2weight, index2id=index2id)
             innerid2clusterid[innerid] = cluster_model.get_id()
             entities = cluster_chunker.put(cluster_model)
             cluster_keyword_chunk.append(taged.tag_index[innerid])
@@ -192,9 +192,9 @@ class Logic:
 
         logging.info('done')
 
-    def _get_cluster_model(self, taged, innerid, cluster_members, weight_map: Dict):
+    def _get_cluster_model(self, taged, innerid, cluster_members, weight_map: Dict, index2id: Dict):
 
-        modelid = md5('//'.join(set(cluster_members)
+        modelid = md5('//'.join(set([index2id[index] for index in cluster_members])
                                 ).encode('utf-8')).hexdigest()
         cluster_model = self._cluster_model_class(id=modelid)
 
@@ -251,6 +251,7 @@ class Logic:
                 keyword_model.cluster_id = entity.id
                 keyword_model_chunk.put(keyword_model)
             """
+        print(loop_count)
 
 
 def process(loader, logicBuilder=Logic):
