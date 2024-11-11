@@ -11,11 +11,24 @@ import random
 import datetime
 import calendar
 from lorem_text import lorem
+from cProfile import Profile
+from pstats import Stats
+
+
+class Mock:
+    def __getattr__(self, name: str):
+        return Mock()
+
+    def __setattr__(self, name: str, value) -> None:
+        pass
+
+    def __call__(self, *args, **kwds):
+        return Mock()
 
 
 class MyTestCase(unittest.TestCase):
 
-    def test_basic(self):
+    def _test_basic(self):
         keyword_map = [
             create_dummy_string()
             for n in range(random.randint(5, 20))
@@ -39,11 +52,22 @@ class MyTestCase(unittest.TestCase):
 
         nodeLogic = buildModel()
 
-        with patch("db.model.client") as client_mock:
+        with patch("db.model.client", Mock()) as client_mock:
             logic = Logic()
 
             print(logic.save(datas=list(
                 zip(vectors, sentiments, keywords, datas)), nodeLogic=nodeLogic))
+
+    def test_profile(self):
+        profiler = Profile()
+        profiler.runcall(self._test_basic)
+        stats = Stats(profiler)
+        stats.strip_dirs()
+        stats.sort_stats('time')
+        print("++++++++++++++++++++++++++++++++++++++++++++++")
+        stats.print_stats()
+        print("++++++++++++++++++++++++++++++++++++++++++++++")
+        self.assertTrue(1)
 
 
 def get_random_date(startYear, endYear):

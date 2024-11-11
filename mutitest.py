@@ -1,3 +1,4 @@
+from collections import deque
 from multiprocessing import Pool, TimeoutError
 import time
 import os
@@ -7,59 +8,28 @@ from typing import TypedDict
 import unittest
 from unittest.mock import patch, MagicMock, call
 import traceback
+import asyncio
 
 
-class Hoge:
-    a: str
+async def test():
+    await asyncio.sleep(1)
 
 
-class Fuga(TypedDict, Hoge):
-    pass
+async def asyncrunner():
+    cors = deque()
+    print('start')
+    start = time.time()
+    for i in range(1, 10 ** 5):
+        cors.append(test())
+    print(time.time() - start)
+    await asyncio.gather(*cors)
 
 
-class MyTestCase(unittest.TestCase):
-    def test_basic(self):
-        with Pool() as pool:
-            imap = pool.imap_unordered(example, range(10), chunksize=100)
-            itr = test(imap)
-            imap2 = pool.imap_unordered(example, itr, chunksize=100)
-            t = [i for i in imap2]
-            print(t)
+def main():
+    asyncio.run(asyncrunner())
 
 
-class Fuga:
-    t: int
-
-    def test(self):
-        class Hoge(type(self)):
-            pass
-        Hoge.__annotations__['c'] = str
-        return Hoge()
-
-
-print(__name__)
-
-
-def example(i):
-    print("ok")
-
-
-def test(itr):
-    for i in itr:
-        yield i
-
-
-def test2():
-    return 1
-
-
-def runner(pool):
-    # print same numbers in arbitrary order
-    for i in pool.imap_unordered(example, test(pool.imap_unordered(example, range(10)))):
-
-        return 1, 2, 3, 4
-
-
+main()
 """
 if __name__ == '__main__':
     # start 4 worker processes

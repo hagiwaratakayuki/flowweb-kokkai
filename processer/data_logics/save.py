@@ -251,7 +251,7 @@ class Logic:
                 keyword_model.cluster_id = entity.id
                 keyword_model_chunk.put(keyword_model)
             """
-        print(loop_count)
+        # print(loop_count)
 
 
 def process(loader, logicBuilder=Logic):

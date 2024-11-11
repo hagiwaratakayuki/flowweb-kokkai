@@ -53,7 +53,7 @@ class Taged(RidgeDitect):
         global EMPTY_SET
         tag_index = {}
 
-        cluster_link = defaultdict(deque)
+        cluster_link = defaultdict(dict)
         new_clusters = {}
         cluster_group_id = 0
         cluster_group = {}
@@ -71,23 +71,24 @@ class Taged(RidgeDitect):
         for tags, members in tags_2_members.items():
             members_set = frozenset(members)
             sub_clusters[members_set].update(tags)
-
+        tag2subclsuter = defaultdict(deque)
         for members, tags in sub_clusters.items():
             subcluster_id = uuid.uuid4().hex
             new_clusters[subcluster_id] = members
             tag_index[subcluster_id] = tags
-            cluster_group[cluster_group_id] = subcluster_id
-            cluster_group_id += 1
+            for tag in tag2subclsuter:
 
-        for cgid in range(cluster_group_id):
-            cid = cluster_group[cgid]
-            gmember = new_clusters[cid]
-            for gtid in range(cgid + 1, cluster_group_id):
-                tid = cluster_group[gtid]
-                cross_set = gmember & new_clusters[tid]
-                if cross_set == EMPTY_SET:
-                    continue
-                cross_count = len(cross_set)
-                cluster_link[cid].append((tid, cross_count,))
-                cluster_link[tid].append((cid, cross_count, ))
+                tag2subclsuter[tag].append(subcluster_id)
+        links_set = set([frozenset(paire) for paire in [combinations(
+            canditates, 2) for canditates in tag2subclsuter.values()]])
+        for start, target in links_set:
+            start_members = new_clusters[start]
+            target_members = new_clusters[target]
+
+            cross_set = start_members & target_members
+
+            cross_count = len(cross_set)
+            cluster_link[start][target] = cross_count
+            cluster_link[target][start] = cross_count
+
         return tag_index, cluster_link,  new_clusters

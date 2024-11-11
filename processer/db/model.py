@@ -13,6 +13,7 @@ high_bulk_limit_base = 500
 high_bulk_step_range = 0.5
 high_bulk_limit = high_bulk_limit_base
 high_bulk_start = 0
+DIRS = {}
 
 
 def get_client():
@@ -35,10 +36,15 @@ class Model(object):
     _entity = None
 
     def __init__(self, id=None, entity_options={}, path_args=[], kwargs={}) -> None:
+        global dirs
         self._path_args = path_args
         self._kwargs = kwargs
         self._entity_options = entity_options
         self._id = id
+        if self.__class__.__name__ not in DIRS:
+            DIRS[self.__class__.__name__] = [
+                key for key in filter(self._filter, dir(self))]
+        self._dirs = DIRS[self.__class__.__name__]
 
     def get_id(self):
         return self._id
@@ -48,8 +54,8 @@ class Model(object):
 
         return get_client().query(kind=cls.__name__)
 
-    def _filter(self, key):
-        if PT.search(key) is not None:
+    def _filter(self, key: str):
+        if key.startswith('_') == True:
             return False
         if callable(getattr(self, key)):
             return False
@@ -76,7 +82,7 @@ class Model(object):
                 path_args or self._path_args, kwargs or self._kwargs, id or self._id)
             entity = datastore.Entity(key=key, **options)
         data = {key: self._get_attr(key=key)
-                for key in filter(self._filter, dir(self))}
+                for key in self._dirs}
 
         entity.update(data)
         return entity

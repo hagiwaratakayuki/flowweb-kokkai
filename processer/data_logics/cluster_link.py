@@ -10,10 +10,10 @@ class Saver:
     def __init__(self) -> None:
         self.saver = ChunkedBatchSaver()
 
-    def put(self, cluster_links: DefaultDict[Any, Deque[Tuple[int, int]]], innerid2clusterid):
+    def put(self, cluster_links: DefaultDict[Any, Dict[Any, Any]], innerid2clusterid):
         for start_index, links in cluster_links.items():
             link_start = innerid2clusterid[start_index]
-            for target_index, link_count in links:
+            for target_index, link_count in links.items():
                 link_target = innerid2clusterid[target_index]
                 model = ClusterLink(
                     id=md5('_'.join((link_start, link_target,)).encode()).hexdigest())
