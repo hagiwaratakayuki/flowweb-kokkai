@@ -61,9 +61,9 @@ class KokkaiLogic(Logic):
         self._link_map.update(self._next_link)
         return self._link_map, nodeLogic
 
-    def _get_cluster_model(self, taged, cluster_id, cluster_members, weight_map):
+    def _get_cluster_model(self, taged, innerid, cluster_members, weight_map: Dict, index2id: Dict):
         cluster_model = super()._get_cluster_model(
-            taged, cluster_id, cluster_members, weight_map)
+            taged, innerid, cluster_members, weight_map, index2id)
         cluster_model.session = self.session
         return cluster_model
 

@@ -6,6 +6,10 @@ from doc2vec.indexer.japanese_language.indexer import JapaneseLanguageIndexer
 from data_loader import kokkai
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from multiprocessing.pool import Pool
+from metadata import LOCATION, PROJECT_ID
+from storage import basic as storage
+storage.set_location(LOCATION)
+storage.set_project_id(PROJECT_ID)
 
 
 def execute(loader=kokkai, LogicClass=KokkaiLogic, NodeLogicClass=KokkaiNodeLogic, Doc2VecClass=Doc2Vec, AnalizerClass=OsetiAnalizer, TokenaizerClass=MeCabTokenazier, IndexerClass=JapaneseLanguageIndexer):

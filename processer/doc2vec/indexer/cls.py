@@ -67,7 +67,7 @@ class Indexer:
         reguraised = {k: v / total for k, v in key_map.items()}
 
         filtered_map = {k: {'vector': vector_map[k], 'weight': w} for k, w in reguraised.items(
-        ) if vector_map[k] is not False}
+        ) if vector_map.get(k, False) is not False}
 
         vector = np.sum([v['vector'] * v['weight']
                         for k, v in filtered_map.items()], 0)
@@ -112,7 +112,7 @@ class Indexer:
                 total = 1
             reguraised = {k: v / total for k, v in sentimentWords.items()}
             setattr(sentimentVectors, sentiment,  sum(
-                [vector_map[k] * w for k, w in reguraised.items()]))
+                [vector_map[k] * w for k, w in reguraised.items() if vector_map.get(k, False) is not False]))
 
         total = sum(sentimentRatio.values())
         sentimentWeights = SentimentWeights()

@@ -12,5 +12,6 @@ def decode_moderators_contract(entity: ModeratorProtocol):
 
 
 def encode_moderators_contract(entity: ModeratorProtocol):
-    entity['moderators'] = json.dumps(entity['moderators'], ensure_ascii=False)
+    entity['moderators'] = json.dumps(
+        entity.get('moderators', []), ensure_ascii=False)
     return entity

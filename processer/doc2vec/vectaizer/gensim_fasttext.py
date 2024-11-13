@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 kv: Union[KeyedVectors,  None] = None
 projected = {}
 
-MODEL_PATH = 'example/fasttext_model/wiki-news-300d-1M.vec'
+MODEL_PATH = 'model/cc.ja.300.vec'
 
 
 def loadVectors(filepath=MODEL_PATH, basepath=os.getcwd()) -> KeyedVectors:
@@ -46,14 +46,19 @@ class Vectaizer:
         unprojected_vecs = deque()
         unprojected_words = deque()
         unprojected_count = 0
+        hit_count = 0
+        unhit_count = 0
 
         for word in words:
 
             if word in projected is True:
+                hit_count += 1
                 ret[word] = projected[word]
             elif word not in kv:
+                unhit_count += 1
                 continue
             else:
+                hit_count += 1
                 vec = kv[word]
                 dt = vec.dtype
                 dimn = vec.shape[0]
@@ -69,4 +74,6 @@ class Vectaizer:
             for word, projected_vec in zip(unprojected_words, projected_mat):
                 projected[word] = projected_vec
                 ret[word] = projected_vec
+        print('hit:', hit_count)
+        print('misshit', unhit_count)
         return ret

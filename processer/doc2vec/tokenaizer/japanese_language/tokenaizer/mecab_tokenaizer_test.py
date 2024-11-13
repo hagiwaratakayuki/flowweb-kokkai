@@ -29,3 +29,47 @@ class TestMecabTokenizer(unittest.TestCase):
         for spk in res[1]:
             print(spk.headword)
             print(spk.subwords)
+
+
+class TestMecabTokenizer(unittest.TestCase):
+    def test_lowname(self):
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+        res = toknaizer.exec(
+            "今回質問したいのは、金商法でございます。この5章第6項のですね、13条であります、この改正について議論したいと思います。", data)
+        specific_keyword: SpecificKeyword = res[1][0]
+        print(specific_keyword.headword)
+        print(specific_keyword.subwords)
+
+    def test_aynu(self):
+
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+        res = toknaizer.exec(
+            "アイヌ新法について質問させていただきます。", data)
+
+        specific_keyword: SpecificKeyword = res[1][0]
+
+        print(specific_keyword.headword)
+        print(specific_keyword.subwords)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)
+
+    def test_aynu(self):
+
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+        res = toknaizer.exec(
+            "桜を見る会について質問させていただきます。", data)
+
+        specific_keyword: SpecificKeyword = res[1][0]
+
+        print(specific_keyword.headword)
+        print(specific_keyword.subwords)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)

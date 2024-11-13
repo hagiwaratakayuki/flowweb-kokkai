@@ -26,6 +26,7 @@ def set_location(location):
 
 
 def set_project_id(project_id='test'):
+    global PROJECT_ID
     PROJECT_ID = project_id
 
 

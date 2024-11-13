@@ -21,3 +21,5 @@ nasa_sti
 pyvenv.cfg
 .venv
 pip-selfcheck.json
+/tools/emurater_data/WEB-INF/appengine-generated/local_db.bin
+/processer/model

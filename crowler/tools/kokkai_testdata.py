@@ -8,11 +8,11 @@ import os
 import json
 
 with patch('core.kokkai.rest') as mockRest:
-    os.getcwd()
+
     mockClient = MagicMock()
     parser = ParserObject()
 
-    with open(os.path.join(os.getcwd(), "../testdata/kokkai/1-end.xml"), "r", encoding='utf-8') as file:
+    with open(os.path.join(os.getcwd(), "../testdata/kokkai/212-plane.xml"), "r", encoding='utf-8') as file:
         xml = file.read()
         parsed = parser.execute(xml)
 
@@ -22,5 +22,5 @@ with patch('core.kokkai.rest') as mockRest:
     res = search({})
     if res:
         data, filename = createDataAndFileName(res.records)
-        with open(os.path.join(os.getcwd(), "../testdata/kokkai/1-end.json"), "w", encoding='utf-8') as file:
-            json.dump(obj=data, fp=file, ensure_ascii=False)
+        with open(os.path.join(os.getcwd(), "../testdata/kokkai/212-plane.json"), "w", encoding='utf-8') as file:
+            json.dump(obj=data, fp=file)
