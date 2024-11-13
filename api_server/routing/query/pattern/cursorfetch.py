@@ -6,7 +6,8 @@ from google.cloud.datastore.query import Query
 
 def fetch(query: Query, cursor: Optional[str] = None, limit: int = 10):
     start_cursor = None
-    if cursor != None:
+
+    if (not cursor) is False:
         start_cursor = cursor.encode('utf-8')
     itr = query.fetch(start_cursor=start_cursor, limit=limit)
     next_page_token = False

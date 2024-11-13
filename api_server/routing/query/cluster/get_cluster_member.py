@@ -17,3 +17,7 @@ def fetch(cluster_id: int, cursor: Optional[str] = None, limit: int = 100):
         next_page_token = itr.next_page_token.decode("utf-8")
 
     return Node.get_multi([{"id": e["node_id"]} for e in itr]), next_page_token
+
+
+def indexer():
+    fetch(1)

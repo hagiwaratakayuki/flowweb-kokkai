@@ -12,9 +12,6 @@ class Meeting(Model):
     session: int
     issue: int
     name: str
-    start: str
-    end: str
-    response_from: str
     url: str
     pdf: str
     session: int
@@ -22,25 +19,3 @@ class Meeting(Model):
     moderators: str
     moderator_ids: List[str]
     keywords: List[str]
-
-    def __init__(self, id=None) -> None:
-        entity_options = {
-            "exclude_from_indexes": ("header_text", "pdf", "url", "moderators")}
-        super().__init__(id, entity_options)
-
-    def get_entity(self, id=None, path_args=None, kwargs=None):
-        return encode_moderators_contract(super().get_entity(id, path_args, kwargs))
-
-    @classmethod
-    def get(cls, id, *path_args, **kwargs):
-        return decode_moderators_contract(super().get(id, *path_args, **kwargs))
-
-    @classmethod
-    def get_multi(cls, params) -> Optional[List[Entity]]:
-        r = super().get_multi(params)
-        if r is None:
-            return r
-        ret = []
-        for e in r:
-            ret.append(decode_moderators_contract(e))
-        return ret

@@ -13,3 +13,7 @@ async def fetch(node_id: str, cursor: Optional[str] = None, limit: int = 10):
     itr, next_token = cursorfetch.fetch(query=q, cursor=cursor, limit=limit)
 
     return Cluster.get_multi([{"id": e["cluster_id"]} for e in itr]), next_token
+
+
+def indexer():
+    asyncio.run(fetch(0))

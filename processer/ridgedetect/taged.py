@@ -80,7 +80,7 @@ class Taged(RidgeDitect):
 
                 tag2subclsuter[tag].append(subcluster_id)
         links_set = set([frozenset(paire) for paire in [combinations(
-            canditates, 2) for canditates in tag2subclsuter.values()]])
+            canditates, 2) for canditates in tag2subclsuter.values() if len(canditates) > 1]])
         for start, target in links_set:
             start_members = new_clusters[start]
             target_members = new_clusters[target]

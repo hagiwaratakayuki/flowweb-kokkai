@@ -1,3 +1,4 @@
+import asyncio
 from db.kokkai_comittie import KokkaiComittie
 from routing.entity_types.kokkai_comittie import KokkaiComittie as KokkaiComittieEntity
 

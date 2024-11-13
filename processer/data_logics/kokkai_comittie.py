@@ -38,7 +38,7 @@ class Saver:
         for name, data in comittie_map.items():
             entity = KokkaiComittie()
             entity.name = name
-            entity.start = data.start
+            entity.start = int(data.start)
             entity.end = data.end
             entity.start_end = start_end(data.start, data.end)
 

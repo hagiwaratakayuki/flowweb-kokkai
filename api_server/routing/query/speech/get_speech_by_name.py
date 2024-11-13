@@ -1,6 +1,6 @@
-from typing import Iterable, Literal, Union
+from typing import Iterable, Literal, Union, Tuple
 
-from click import Tuple
+
 from db.speaker import Speaker
 from routing.entity_types.speech import Speech as SpeechEntity
 import asyncio

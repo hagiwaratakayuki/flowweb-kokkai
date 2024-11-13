@@ -21,18 +21,15 @@ def fetch(cluster_id: str,
     q1 = ClusterMember.query()
 
     q1.add_filter("cluster_id", "=", cluster_id)
-    q1.add_filter("count_published" ">=", start)
-    q1.add_filter("count_published" "<", mid)
+    q1.add_filter("published", ">=", start)
+    q1.add_filter("published", "<=", end)
 
     q1.projection = ["node_id"]
-    q1.order = ["published"]
-    q2 = ClusterMember.query()
-    q2.add_filter("cluster_id", "=", cluster_id)
-    q2.add_filter("count_published" ">=", mid)
-    q2.add_filter("count_published" "<=", end)
-
-    q2.projection = ["node_id"]
-    q2.order = ["-published"]
+    q1.order = ["-published"]
     itr1 = q1.fetch(limit=limit)
-    itr2 = q2.fetch(limit=limit)
-    return Node.get_multi([e["node_id"] for e in chain.from_iterable([itr1, itr2])])
+
+    return Node.get_multi([e["node_id"] for e in itr1])
+
+
+def indexer():
+    fetch(0, 1, 1, 1, 1, 1, 1)

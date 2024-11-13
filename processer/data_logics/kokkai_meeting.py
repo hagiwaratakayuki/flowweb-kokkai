@@ -10,6 +10,7 @@ class Saver:
 
         model = Meeting(id=meeting['id'])
         model.session = meeting['session']
+        model.issue = meeting['issue']
 
         model.name = meeting['name']
 

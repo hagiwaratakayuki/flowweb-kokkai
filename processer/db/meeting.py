@@ -12,9 +12,6 @@ class Meeting(Model):
     session: int
     issue: int
     name: str
-    start: str
-    end: str
-    response_from: str
     url: str
     pdf: str
     session: int
