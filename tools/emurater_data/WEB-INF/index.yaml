@@ -12,6 +12,17 @@ indexes:
   ancestor: no
   properties:
   - name: cluster_id
+    direction: asc 
+  - name: linked_count
+    direction: desc  
+  - name: node_id
+    direction: asc
+ 
+
+- kind: ClusterMember
+  ancestor: no
+  properties:
+  - name: cluster_id
     direction: asc  
   - name: published
     direction: desc
