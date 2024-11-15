@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from h11 import Response
 from pydantic import BaseModel
-from main import app_api
+from main import app
 
-app_api = FastAPI()
+app = FastAPI()
 
 
 class Item(BaseModel):
@@ -17,12 +17,12 @@ class Response(BaseModel):
     hoge: Optional[str] = None
 
 
-@app_api.get("/", response_model_exclude_none=True)
+@app.get("/", response_model_exclude_none=True)
 async def read_main():
     return {'item': Item(**{"msg": "Hello World"})}
 
 
-client = TestClient(app_api)
+client = TestClient(app)
 
 
 def test_read_main():

@@ -1,4 +1,5 @@
 from collections import defaultdict, deque
+import keyword
 import math
 import numpy as np
 
@@ -23,18 +24,19 @@ class Indexer:
         else:
             text = dto.body
 
-        token_lines, specifickeywords = self._tokenaizer.exec(text, dto)
+        token_lines, specifickeywords, keyword_set = self._tokenaizer.exec(
+            text, dto)
 
         token_map = {}
         for verbs, line in token_lines:
             for verb in verbs:
                 token_map[verb] = True
 
-        return token_lines, list(token_map.keys()), specifickeywords, dto.id
+        return token_lines, list(token_map.keys()), keyword_set, specifickeywords, dto.id
 
     def compute(self, args):
 
-        token_lines, vector_map, specifickeywords, data_id = args
+        token_lines, vector_map, keyword_set, specifickeywords, data_id = args
         nodes = []
         count = 0
         for subnodes, line in token_lines:
@@ -76,11 +78,11 @@ class Indexer:
             vector_map, vector, sentimentWordMap=sentimentWordMap, sentimentRatio=sentimentRatio)
 
         scored_keywords = self._extract_keywords(
-            filtered_map=filtered_map, vector=vector, specific_keywords=specifickeywords)
+            filtered_map=filtered_map, vector=vector, keyword_set=keyword_set, specific_keywords=specifickeywords)
 
         return vector, sentimentResults, scored_keywords, data_id
 
-    def _extract_keywords(self, filtered_map, vector, specific_keywords):
+    def _extract_keywords(self, filtered_map, vector, keyword_set, specific_keywords):
         word_index = dict(enumerate(filtered_map.keys()))
 
         word_length = len(filtered_map)
@@ -94,11 +96,11 @@ class Indexer:
         limit = avg - std
 
         scored_keywords: list[str] = [word_index[i]
-                                      for i in sorted_array if norms[i] <= limit][:5]
+                                      for i in sorted_array if norms[i] <= limit]
         if len(scored_keywords) == 0:
             scored_keywords = [word_index[sorted_array[0]]]
 
-        return scored_keywords
+        return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
         sentimentVectors = SentimentVector()
@@ -111,7 +113,7 @@ class Indexer:
 
                 total = 1
             reguraised = {k: v / total for k, v in sentimentWords.items()}
-            setattr(sentimentVectors, sentiment,  sum(
+            setattr(sentimentVectors, sentiment, sum(
                 [vector_map[k] * w for k, w in reguraised.items() if vector_map.get(k, False) is not False]))
 
         total = sum(sentimentRatio.values())

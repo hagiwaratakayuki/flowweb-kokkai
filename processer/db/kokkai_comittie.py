@@ -14,7 +14,7 @@ class KokkaiComittieAndSession(Model):
     house: str
     session: int
     issue_count: int
-    meeting_ids: list[str]
+    meeting_ids: str
 
     def __init__(self, id=None, path_args=[], kwargs={}) -> None:
         entity_options = {

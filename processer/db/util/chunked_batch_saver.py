@@ -41,6 +41,7 @@ class ChunkedBatchSaver:
         now = time.time()
 
         chunk = self._clear_chunk()
+
         return put_multi(chunk)
         """"
         self._weightings.append(chunk)

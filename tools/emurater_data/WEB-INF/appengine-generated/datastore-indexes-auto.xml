@@ -1,32 +1,4 @@
-<!-- Indices written at 水, 13 11月 2024 14:28:06 JST -->
+<!-- Indices written at 木, 14 11月 2024 12:02:45 JST -->
 
-<datastore-indexes autoGenerate="true">
+<datastore-indexes autoGenerate="true"/>
 
-    <!-- Used 5 times in query history -->
-    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
-        <property name="node_id" direction="asc"/>
-        <property name="linked_count" direction="desc"/>
-        <property name="cluster_id" direction="asc"/>
-    </datastore-index>
-
-    <!-- Used 5 times in query history -->
-    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
-        <property name="cluster_id" direction="asc"/>
-        <property name="linked_count" direction="desc"/>
-        <property name="node_id" direction="asc"/>
-    </datastore-index>
-
-    <!-- Used 5 times in query history -->
-    <datastore-index kind="ClusterMember" ancestor="false" source="auto">
-        <property name="cluster_id" direction="asc"/>
-        <property name="published" direction="asc"/>
-        <property name="node_id" direction="asc"/>
-    </datastore-index>
-
-    <!-- Used 2 times in query history -->
-    <datastore-index kind="Speaker" ancestor="false" source="auto">
-        <property name="house" direction="asc"/>
-        <property name="name" direction="asc"/>
-    </datastore-index>
-
-</datastore-indexes>

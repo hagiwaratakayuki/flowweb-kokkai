@@ -24,7 +24,7 @@ class Doc2Vec:
                                      is_use_title=is_use_title
                                      )
 
-    def exec(self, pool: Pool,  datas: Iterable[DTO]):
+    def exec(self, pool: Pool, datas: Iterable[DTO]):
         dto_map = {}
         generater = self.get_data_itr(dtos=datas, data_map=dto_map)
 
@@ -51,8 +51,9 @@ class Doc2Vec:
 
     def get_word_vector(self, parse_itr, dto_map):
 
-        for first, keywords, third, force in parse_itr:
+        for first, tokens, keywords, third, force in parse_itr:
 
-            vector, sentimentResults, scored_keywords,  dataid = self._indexer.compute(
-                [first, self._vectaizer.exec_dict(keywords), third, force])
-            yield vector, sentimentResults, scored_keywords,  dto_map[dataid]
+            vector, sentimentResults, scored_keywords, dataid = self._indexer.compute(
+                [first, self._vectaizer.exec_dict(tokens), keywords, third, force])
+
+            yield vector, sentimentResults, scored_keywords, dto_map[dataid]

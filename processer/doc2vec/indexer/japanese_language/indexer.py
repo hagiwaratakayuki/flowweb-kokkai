@@ -6,7 +6,7 @@ from doc2vec.util.specific_keyword import SpecificKeyword
 
 
 class JapaneseLanguageIndexer(Indexer):
-    def _extract_keywords(self, filtered_map: Dict, vector, specific_keywords: List[SpecificKeyword]):
+    def _extract_keywords(self, filtered_map: Dict, vector, keyword_set, specific_keywords: List[SpecificKeyword]):
 
         _cand_words = remove_stopwords(list(filtered_map))
         if len(_cand_words) == 0:
@@ -15,7 +15,8 @@ class JapaneseLanguageIndexer(Indexer):
         else:
 
             _filtered_map = {k: filtered_map[k] for k in _cand_words}
-            cand_words = super()._extract_keywords(_filtered_map, vector, specific_keywords)
+            cand_words = super()._extract_keywords(
+                _filtered_map, vector, keyword_set, specific_keywords)
 
         keywords_dict = OrderedDict()
 
@@ -35,5 +36,6 @@ class JapaneseLanguageIndexer(Indexer):
 
             except:
                 keywords_dict[(word,)] = True
+        ret = remove_stopwords(['/'.join(kw) for kw in keywords_dict.keys()])
 
-        return ['/'.join(kw) for kw in keywords_dict.keys()]
+        return ret

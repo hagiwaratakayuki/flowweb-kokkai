@@ -36,6 +36,7 @@ class NodeLogic(ChunkedBatchSaver):
             linked_count=linked_count,
             sentiment=sentiment,
             keywords=keywords)
+
         return self.put(nodeEntity), weight, publishedlist
 
     def set_vectors(self, sentiment_result: SentimentResult):
@@ -85,10 +86,12 @@ class NodeLogic(ChunkedBatchSaver):
                                                float(published.month) / 100.0 + float(published.day) / 10000.0)
 
         entity.weight = weight
+
         return weight, entity.published_list
 
     def close(self, is_return=True):
         res = super().close(is_return)
+
         self.nodeBodySaver.close()
         if is_return == True:
             return res

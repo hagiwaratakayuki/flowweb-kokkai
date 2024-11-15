@@ -1,3 +1,4 @@
+import json
 from math import inf
 from operator import itemgetter
 
@@ -5,7 +6,7 @@ from operator import itemgetter
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from typing import Any, Dict, Tuple, TypedDict
 from db.kokkai_comittie import KokkaiComittie, KokkaiComittieAndSession
-from contract_logics.kokkai_comittie import start_end,  get_supersets
+from contract_logics.kokkai_comittie import start_end, get_supersets
 
 import re
 
@@ -63,8 +64,8 @@ class SessionSaver:
                 entity.issue_count = data['max_issue']
                 entity.name = name
                 entity.session = session
-                entity.meeting_ids = map(meeting_getter, sorted(
-                    data['meetings'], key=issue_getter))
+                entity.meeting_ids = json.dumps([meeting_getter(meeting) for meeting in sorted(
+                    data['meetings'], key=issue_getter)])
                 self.saver.put(entity)
 
     def _reguraise(self, row):

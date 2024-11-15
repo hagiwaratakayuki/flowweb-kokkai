@@ -52,13 +52,13 @@ class Vectaizer:
         for word in words:
 
             if word in projected is True:
-                hit_count += 1
+
                 ret[word] = projected[word]
             elif word not in kv:
-                unhit_count += 1
+
                 continue
             else:
-                hit_count += 1
+
                 vec = kv[word]
                 dt = vec.dtype
                 dimn = vec.shape[0]
@@ -74,6 +74,5 @@ class Vectaizer:
             for word, projected_vec in zip(unprojected_words, projected_mat):
                 projected[word] = projected_vec
                 ret[word] = projected_vec
-        print('hit:', hit_count)
-        print('misshit', unhit_count)
+
         return ret

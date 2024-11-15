@@ -35,13 +35,16 @@ class NodeFull(NodeOverview):
 
 
 @router.get('/all_summary')
-def all_as_vertex() -> List[NodeOverview]:  # type: ignore
+async def all_as_vertex() -> List[NodeOverview]:  # type: ignore
     index = 0.0
     total_center: Optional[np.ndarray] = None
     entity_map = {}
     shape = [0, 0]
     is_first = True
-    for e in get_all_summary.fetch():
+
+    itr = await get_all_summary.fetch()
+
+    for e in itr:
 
         data: PositionData = json.loads(e['data'])['sentiment']
 

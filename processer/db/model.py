@@ -13,7 +13,6 @@ high_bulk_limit_base = 500
 high_bulk_step_range = 0.5
 high_bulk_limit = high_bulk_limit_base
 high_bulk_start = 0
-DIRS = {}
 
 
 def get_client():
@@ -41,10 +40,6 @@ class Model(object):
         self._kwargs = kwargs
         self._entity_options = entity_options
         self._id = id
-        if self.__class__.__name__ not in DIRS:
-            DIRS[self.__class__.__name__] = [
-                key for key in filter(self._filter, dir(self))]
-        self._dirs = DIRS[self.__class__.__name__]
 
     def get_id(self):
         return self._id
@@ -82,7 +77,7 @@ class Model(object):
                 path_args or self._path_args, kwargs or self._kwargs, id or self._id)
             entity = datastore.Entity(key=key, **options)
         data = {key: self._get_attr(key=key)
-                for key in self._dirs}
+                for key in dir(self) if self._filter(key) == True}
 
         entity.update(data)
         return entity

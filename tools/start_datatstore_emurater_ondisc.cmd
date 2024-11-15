@@ -1,1 +1,1 @@
-gcloud beta emulators datastore start  --project flowweb --data-dir=./emurater_data
+gcloud beta emulators datastore start  --project flowweb --data-dir=./tools/emurater_data

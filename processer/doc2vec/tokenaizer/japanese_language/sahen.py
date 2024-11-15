@@ -1,7 +1,7 @@
 from typing import Dict, List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
-meishi_blockpattern = re.compile(r'[所々]$')
+meishi_blockpattern = re.compile(r'[所々\W]+$')
 sahen_blockpattern = re.compile(
     '^[\W\p{Katakana}]+$|^お|^[^\p{Han}]*\p{Han}[^\p{Han}]*$')
 
@@ -29,7 +29,10 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     head2word: Dict[SpecificKeyword] = {}
 
     for headword, subword in combine_set:
-
+        """"
+        if len(headword) == 1:
+            continue
+        """
         if headword in head2word:
 
             if subword in results:

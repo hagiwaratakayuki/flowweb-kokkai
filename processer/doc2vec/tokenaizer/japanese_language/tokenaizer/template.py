@@ -19,13 +19,15 @@ class TokenazierTemplate:
         senetence_number = 0
         tokens = deque()
         parse_results = deque()
-
+        keywos_set = set()
         for face, datas in self._parse(text):
 
             tokens.append((face, datas,))
 
             if datas[0] == "名詞":
                 verbs.append(face)
+                if datas[1] != 'サ変接続' and len(face) > 1:
+                    keywos_set.add(face)
             if face == "。":
                 parse_results.append((sentences[senetence_number], tokens,))
                 tokens = deque()
@@ -46,7 +48,7 @@ class TokenazierTemplate:
         for extractor in self._extractors:
             specific_words = extractor(specific_words, parse_results, data)
 
-        return results, specific_words
+        return results, specific_words, []
 
     def _parse(self, text):
         return []
