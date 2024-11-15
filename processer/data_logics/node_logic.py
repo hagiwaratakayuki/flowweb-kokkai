@@ -13,7 +13,7 @@ spliter = re.compile(r'[\s\w]+')
 
 
 class NodeLogic(ChunkedBatchSaver):
-    def __init__(self, NodeModel: node.Node = node.Node,  NodeBodyModel=node_body.NodeBody, NodBodySaverClass: ChunkedBatchSaver = ChunkedBatchSaver, size: int = 30):
+    def __init__(self, NodeModel: node.Node = node.Node, NodeBodyModel=node_body.NodeBody, NodBodySaverClass: ChunkedBatchSaver = ChunkedBatchSaver, size: int = 30):
         super().__init__(size)
         self.nodeModel = NodeModel
         self.nodeBodyModel = NodeBodyModel
@@ -67,6 +67,7 @@ class NodeLogic(ChunkedBatchSaver):
 
         if type(published) == str:
             published = datetime.datetime.fromisoformat(published)
+
         entity.author = author
         entity.author_id = author_id
         entity.published = published

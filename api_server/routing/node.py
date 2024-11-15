@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, status
 import json
 import numpy as np
@@ -49,6 +50,7 @@ async def all_as_vertex() -> List[NodeOverview]:  # type: ignore
         data: PositionData = json.loads(e['data'])['sentiment']
 
         position = np.array(data['position'])
+
         direction = np.array(data['direction'])
         if is_first == True:
             is_first = False
@@ -62,24 +64,25 @@ async def all_as_vertex() -> List[NodeOverview]:  # type: ignore
                              'position': position, 'direction': direction}
         index += 1.0
 
-    center: np.ndarray = total_center / index  # type: ignore
-
     totaldifference = 0.0
     intindex = int(index)
     shape[0] = intindex
 
     direction_vectors = np.zeros(shape=shape)
     positions_vectors = np.zeros(shape=shape)
+
     for i in range(0, intindex):
 
         direction_vectors[i] = entity_map[i]['direction']
         positions_vectors[i] = entity_map[i]['position']
-    directions = np.dot(a=direction_vectors, b=center)  # type: ignore
+    directions = np.dot(a=direction_vectors, b=total_center)  # type: ignore
+
     plus_direction_index = directions >= 0.0
     minus_direction_index = directions < 0.0
     directions[plus_direction_index] = 1.0
     directions[minus_direction_index] = -1.0
     positions = np.linalg.norm(positions_vectors, axis=1)
+
     plus_max_norm = np.max(positions[plus_direction_index])
     minus_max_norm = np.max(positions[minus_direction_index])
     positions *= directions

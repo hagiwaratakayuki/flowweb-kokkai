@@ -16,7 +16,7 @@ def execute(loader=kokkai, LogicClass=KokkaiLogic, NodeLogicClass=KokkaiNodeLogi
 
     d2v = Doc2VecClass(
         is_use_title=False,
-        chunksize=50,
+        chunksize=5,
         TokenaizerClass=TokenaizerClass,
         AnalizerClass=AnalizerClass,
         IndexerClass=IndexerClass)

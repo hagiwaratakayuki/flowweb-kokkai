@@ -8,7 +8,7 @@ import logging
 
 from utillib.random_projection import projection
 logging.basicConfig(level=logging.INFO)
-kv: Union[KeyedVectors,  None] = None
+kv: Union[KeyedVectors, None] = None
 projected = {}
 
 MODEL_PATH = 'model/cc.ja.300.vec'
@@ -66,6 +66,7 @@ class Vectaizer:
                 unprojected_vecs.append(vec)
                 unprojected_words.append(word)
                 unprojected_count += 1
+
         if unprojected_count > 0:
 
             unprojected_mat = np.fromiter(

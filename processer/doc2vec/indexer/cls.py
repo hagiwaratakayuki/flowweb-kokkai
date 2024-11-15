@@ -113,6 +113,7 @@ class Indexer:
 
                 total = 1
             reguraised = {k: v / total for k, v in sentimentWords.items()}
+
             setattr(sentimentVectors, sentiment, sum(
                 [vector_map[k] * w for k, w in reguraised.items() if vector_map.get(k, False) is not False]))
 
@@ -121,6 +122,7 @@ class Indexer:
         for sentiment, weight in sentimentRatio.items():
             setattr(sentimentWeights, sentiment, weight / total)
         ret = SentimentResult()
+
         ret.vectors = sentimentVectors
         ret.weights = sentimentWeights
 

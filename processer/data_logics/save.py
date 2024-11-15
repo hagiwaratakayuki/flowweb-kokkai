@@ -106,6 +106,7 @@ class Logic:
             vector = index2vector[index]
             data = index2data[index]
             keywords = index2tag[index]
+            sentimentResult = index2sentiments[index]
 
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
             linked_count = linked_counts_map[id]
@@ -141,7 +142,7 @@ class Logic:
             member_positions_chunk.append(positions)
 
             cluster_model = self._get_cluster_model(
-                innerid=innerid, taged=taged,  cluster_members=cluster_members, weight_map=index2weight, index2id=index2id)
+                innerid=innerid, taged=taged, cluster_members=cluster_members, weight_map=index2weight, index2id=index2id)
             innerid2clusterid[innerid] = cluster_model.get_id()
             entities = cluster_chunker.put(cluster_model)
             cluster_keyword_chunk.append(taged.tag_index[innerid])
