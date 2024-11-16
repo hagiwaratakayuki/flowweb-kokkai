@@ -16,31 +16,31 @@ hiragana_pt = re.compile(r'[\p{Hiragana},。、]')
 
 def extract(results: List[SpecificKeyword], parse_results: List, data):
     nonhiragana_set = set()
-    chunk = ''
-    concat_count = False
+    chunk = []
+    chunklen = 0
 
     for line, tokens in parse_results:
-        if len(chunk) > 1:
-            nonhiragana_set.add(chunk)
-        chunk = ''
+        if chunklen > 1:
+            nonhiragana_set.add(''.join(chunk))
+        chunk = []
         for face, data in tokens:
             chunklen = len(chunk)
 
             if data[0] == '接頭詞':
-                chunk = ''
+                chunk = []
                 continue
             if data[2] == '数助詞':
                 if chunklen > 0:
-                    chunk += face
+                    _add_to_chunk(face, chunk)
                 else:
-                    chunk = ''
+                    chunk = []
                     continue
 
             if eisuu.search(face) is not None:
-                chunk += face
+                _add_to_chunk(face, chunk)
                 continue
             if kigou.search(face) is not None:
-                if chunklen > 0:
+                if chunklen > 1:
 
                     if data[1] == '括弧開' or data[1] == '括弧閉' or data[1] == 'サ変接続' or data[1] == '句点' or data[1] == '読点':
                         nonhiragana_set.add(chunk)
@@ -49,25 +49,20 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                     else:
                         chunk += face
                 continue
-            if data[1] == 'サ変接続':
-                if chunklen > 0:
-                    chunk += face
-                else:
-                    chunk = ''
-                continue
+
             if data[1] == '接尾':
-                if chunklen > 1:
-                    chunk += face
-                    nonhiragana_set.add(chunk)
-                chunk = ''
+                if chunklen > 0:
+                    _add_to_chunk(face=face, chunk=chunk)
+                    _add_to_nonhiragana_set(nonhiragana_set, chunk)
+                chunk = []
                 continue
             if data[1] == '名詞':
-                chunk += face
+                _add_to_chunk(face, chunk)
                 continue
 
             if chunklen > 1:
-                nonhiragana_set.add(chunk)
-            chunk = ''
+                _add_to_nonhiragana_set(nonhiragana_set=nonhiragana_set)
+            chunk = []
 
     for nonhiragana in check_stopword_with_itr(nonhiragana_set):
         if nonhiragana in results:
@@ -76,3 +71,11 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
             headword=nonhiragana, is_one_grame=True))
 
     return results
+
+
+def _add_to_nonhiragana_set(nonhiragana_set: set, chunk):
+    return nonhiragana_set.add(''.join(chunk))
+
+
+def _add_to_chunk(face, chunk):
+    chunk.append(face)

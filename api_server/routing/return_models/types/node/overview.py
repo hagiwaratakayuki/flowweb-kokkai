@@ -19,3 +19,4 @@ class NodeOverview(BaseModel):
     house: str
     session: int
     position: Any
+    linked_count: Any

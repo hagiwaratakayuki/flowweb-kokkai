@@ -17,7 +17,9 @@ export function overviews_to_flow(overViews) {
     const edges = [];
 
     for (const overview of overViews) {
+
         maxConnected = Math.max(maxConnected, overview.linked_count);
+
         for (const to of overview.link_to || []) {
             edges.push({
                 from: overview.id,
@@ -25,6 +27,7 @@ export function overviews_to_flow(overViews) {
             });
         }
     }
+
     const maxWeight = Math.log(maxConnected);
     const nodes = overViews.map(function (row) {
         row.weight = Math.max(Math.log(row.linked_count) / maxWeight, 0.1);

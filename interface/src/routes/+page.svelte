@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { all_summary } from "$lib/ml_api/api/text/all_summary";
+  import { all_summary } from "$lib/ml_api/api/node/all_summary";
   import FlowWithTextList from "$lib/elements/Kokkai/Flow.svelte";
   import { pushState } from "$app/navigation";
   import { page } from "$app/stores";
@@ -8,7 +8,7 @@
   /** @type {import('./$types').PageData} */
   export let data;
   /** @type {import('./$types').PageData} */
-
+  console.log(data);
   /* let _data;
   $: {
     _data = getData($page.state, data);
@@ -18,4 +18,4 @@
 
 <h1 class="w-100 text-center mb-5">会議録鉱山　国会編</h1>
 <h2 class="mb-3 section_header">最近の主な議論</h2>
-<FlowWithTextList data={data.texts} />
+<FlowWithTextList data={data.summary} />

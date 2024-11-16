@@ -2,7 +2,7 @@
   import FlowWithTextList from "./FlowWithTextList.svelte";
   import Layout from "../ComponentLayout.svelte";
   import { onMount } from "svelte";
-  import { all_summary } from "$lib/ml_api/api/text/all_summary";
+  import { all_summary } from "$lib/ml_api/api/node/all_summary";
   import Flow from "./Flow.svelte";
   export let Hst;
   /**

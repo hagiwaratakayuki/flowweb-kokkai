@@ -852,6 +852,7 @@ export class FlowController {
             const x = this._getXFromYearMonthDate(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date);
 
             const y = (1 - node.y) * this.app.screen.height / 2;
+            console.log(x, y)
 
 
 
@@ -884,6 +885,7 @@ export class FlowController {
                 this._interactiveGrid[grid] = interactiveData
 
             }
+
             this._index[node.id] = Object.assign(node, { x, y, size, grids })
 
             //@todo 中心を基準に並び順を変更
@@ -891,6 +893,7 @@ export class FlowController {
             const graphic = new PIXI.Graphics()
 
             graphic.circle(x, y, size);
+
             graphic.fill("#0683c9ff")
 
 
