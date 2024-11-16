@@ -21,8 +21,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
     for line, tokens in parse_results:
         if chunklen > 1:
-            nonhiragana_set.add(''.join(chunk))
+            _add_to_nonhiragana_set(
+                nonhiragana_set=nonhiragana_set, chunk=chunk)
         chunk = []
+        chunklen = 0
         for face, data in tokens:
             chunklen = len(chunk)
 
@@ -43,11 +45,12 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                 if chunklen > 1:
 
                     if data[1] == '括弧開' or data[1] == '括弧閉' or data[1] == 'サ変接続' or data[1] == '句点' or data[1] == '読点':
-                        nonhiragana_set.add(chunk)
-                        chunk = ''
+                        _add_to_nonhiragana_set(
+                            nonhiragana_set=nonhiragana_set, chunk=chunk)
+                        chunk = []
 
                     else:
-                        chunk += face
+                        _add_to_chunk(face=face, chunk=chunk)
                 continue
 
             if data[1] == '接尾':
@@ -55,6 +58,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                     _add_to_chunk(face=face, chunk=chunk)
                     _add_to_nonhiragana_set(nonhiragana_set, chunk)
                 chunk = []
+
                 continue
             if data[1] == '名詞':
                 _add_to_chunk(face, chunk)
@@ -63,7 +67,9 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
             if chunklen > 1:
                 _add_to_nonhiragana_set(nonhiragana_set=nonhiragana_set)
             chunk = []
-
+    chunklen = len(chunk)
+    if chunklen > 1:
+        _add_to_nonhiragana_set(nonhiragana_set=nonhiragana_set, chunk=chunk)
     for nonhiragana in check_stopword_with_itr(nonhiragana_set):
         if nonhiragana in results:
             continue
