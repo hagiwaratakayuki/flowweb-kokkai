@@ -24,6 +24,7 @@ class JapaneseLanguageIndexer(Indexer):
         for specific_keyword in specific_keywords:
             if specific_keyword.is_force is False:
                 continue
+            keywords_dict[(specific_keyword.headword,)] = True
             keywords_dict.update(
                 {specific_keyword.to_tuple(): True})
 
@@ -32,6 +33,7 @@ class JapaneseLanguageIndexer(Indexer):
             try:
                 specific_keyword = specific_keywords[specific_keywords.index(
                     word)]
+                keywords_dict[(specific_keyword.headword,)] = True
                 keywords_dict.update(
                     {specific_keyword.to_tuple(): True})
             except:
