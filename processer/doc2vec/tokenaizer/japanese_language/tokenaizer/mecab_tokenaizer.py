@@ -4,7 +4,7 @@ from collections import deque
 
 import re
 from utillib import envinit
-from ...japanese_language import rule_extractor
+from ..extracter import rule_extractor
 from .template import TokenazierTemplate
 KUUHAKU = re.compile(r'\s+')
 

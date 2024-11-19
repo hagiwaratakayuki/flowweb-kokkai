@@ -18,7 +18,9 @@ with open("./rows.txt", mode="r", encoding="utf-8") as fp:
         "アイヌ文化法": "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律",
         "中央省庁等改革関連法": "中央省庁等改革関連法",
         "組織犯罪対策三法": "組織犯罪対策三法",
-        "高プロ": "高度プロフェッショナル制度"
+        "BSE特措法": "牛海綿状脳症対策特別措置法"
+
+
     }
     for 行 in fp.read().replace("抄", "").strip().splitlines():
         if 略称が含まれる行を表す正規表現.search(行) is None:
@@ -47,7 +49,7 @@ def custom(v):
 for 略称 in 略称と正式名称の対応表.keys():
     リスト化した略称 = [略称]
     for 開始地点 in range(len(略称) - 1):
-        キー = 略称[開始地点:開始地点+2]
+        キー = 略称[開始地点:開始地点 + 2]
         略称の転置インデックス[キー].update(リスト化した略称)
 with open("../processer/doc2vec/tokenaizer/japanese_language/kokkai_specificword/ryakusyou_tenchi.json", mode="w", encoding="utf-8") as fp:
     json.dump(obj=略称の転置インデックス, fp=fp, ensure_ascii=False, default=custom)

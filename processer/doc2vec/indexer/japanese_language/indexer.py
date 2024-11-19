@@ -9,6 +9,7 @@ class JapaneseLanguageIndexer(Indexer):
     def _extract_keywords(self, filtered_map: Dict, vector, keyword_set, specific_keywords: List[SpecificKeyword]):
 
         _cand_words = remove_stopwords(list(filtered_map))
+
         if len(_cand_words) == 0:
             cand_words = []
 
@@ -24,7 +25,7 @@ class JapaneseLanguageIndexer(Indexer):
             if specific_keyword.is_force is False:
                 continue
             keywords_dict.update(
-                {k: True for k in specific_keyword.to_extender()})
+                {specific_keyword.to_tuple(): True})
 
         for word in cand_words:
 
@@ -32,10 +33,11 @@ class JapaneseLanguageIndexer(Indexer):
                 specific_keyword = specific_keywords[specific_keywords.index(
                     word)]
                 keywords_dict.update(
-                    {k: True for k in specific_keyword.to_extender()})
-
+                    {specific_keyword.to_tuple(): True})
             except:
-                keywords_dict[(word,)] = True
-        ret = remove_stopwords(['/'.join(kw) for kw in keywords_dict.keys()])
 
+                keywords_dict[(word,)] = True
+
+        ret = remove_stopwords(['/'.join(kw) for kw in keywords_dict.keys()])
+        print(ret)
         return ret

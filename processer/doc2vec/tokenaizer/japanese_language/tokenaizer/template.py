@@ -3,7 +3,7 @@
 from collections import deque
 
 
-from doc2vec.tokenaizer.japanese_language import rule_extractor
+from doc2vec.tokenaizer.japanese_language.extracter import rule_extractor
 
 
 class TokenazierTemplate:
@@ -19,15 +19,15 @@ class TokenazierTemplate:
         senetence_number = 0
         tokens = deque()
         parse_results = deque()
-        keywos_set = set()
+        keywords_set = set()
         for face, datas in self._parse(text):
 
             tokens.append((face, datas,))
 
             if datas[0] == "名詞":
                 verbs.append(face)
-                if datas[1] != 'サ変接続' and len(face) > 1:
-                    keywos_set.add(face)
+                if (datas[1] == '固有名詞' or datas[1] == '一般') and len(face) > 1:
+                    keywords_set.add(face)
             if face == "。":
                 parse_results.append((sentences[senetence_number], tokens,))
                 tokens = deque()
@@ -48,7 +48,7 @@ class TokenazierTemplate:
         for extractor in self._extractors:
             specific_words = extractor(specific_words, parse_results, data)
 
-        return results, specific_words, []
+        return results, specific_words, keywords_set
 
     def _parse(self, text):
         return []

@@ -18,7 +18,9 @@ with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
 
         for i in range(len(value)):
 
-            key = value[i:i+2]
+            key = value[i:i + 2]
+            if key == '法律':
+                continue
             ngram_dict[key].update(update)
 
 

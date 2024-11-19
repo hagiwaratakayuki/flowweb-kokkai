@@ -97,6 +97,7 @@ class Indexer:
 
         scored_keywords: list[str] = [word_index[i]
                                       for i in sorted_array if norms[i] <= limit]
+
         if len(scored_keywords) == 0:
             scored_keywords = [word_index[sorted_array[0]]]
 

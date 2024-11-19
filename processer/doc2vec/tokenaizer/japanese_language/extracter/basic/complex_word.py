@@ -5,7 +5,7 @@ from typing import List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
-from .extract_stopwords import check_stopword, check_stopword_with_itr
+from ...extract_stopwords import check_stopword, check_stopword_with_itr
 
 
 eisuu = re.compile(r'^[\w\d]+$', re.A)
@@ -60,16 +60,19 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                 chunk = []
 
                 continue
-            if data[1] == '名詞':
+            if data[0] == '名詞' and (data[1] == '一般' or data[1] == 'サ変接続'):
                 _add_to_chunk(face, chunk)
                 continue
 
             if chunklen > 1:
-                _add_to_nonhiragana_set(nonhiragana_set=nonhiragana_set)
+                _add_to_nonhiragana_set(
+                    nonhiragana_set=nonhiragana_set, chunk=chunk)
             chunk = []
+
     chunklen = len(chunk)
     if chunklen > 1:
         _add_to_nonhiragana_set(nonhiragana_set=nonhiragana_set, chunk=chunk)
+
     for nonhiragana in check_stopword_with_itr(nonhiragana_set):
         if nonhiragana in results:
             continue

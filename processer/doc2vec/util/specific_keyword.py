@@ -1,4 +1,4 @@
-from typing import List, Union, Tuple, Set
+from typing import Iterator, List, Union, Tuple, Set
 
 
 class EqIn:
@@ -19,10 +19,12 @@ class SpecificKeyword:
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
     _index: Union[Set, None]
+    line_numbers: set[int]
 
-    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None, index=None) -> None:
+    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None, index=None, line_numbers: Iterator = []) -> None:
 
         self.headword = headword
+        self.line_numbers = set(line_numbers)
 
         self._tuple = None
         self._subwords = []
@@ -51,7 +53,10 @@ class SpecificKeyword:
         return __value in self.headword or self.headword in __value
 
     def add_subword(self, subword):
-        self.subwords.append(subword)
+        if isinstance(subword, str):
+            self.subwords.append(subword)
+        else:
+            self.subwords.extend(subword)
         if self._index is None:
             self._subwords.append(EqIn(subword))
 
@@ -64,4 +69,5 @@ class SpecificKeyword:
     def to_tuple(self):
         if self._tuple is None:
             self._tuple = tuple([self.headword] + self.subwords)
+
         return self._tuple

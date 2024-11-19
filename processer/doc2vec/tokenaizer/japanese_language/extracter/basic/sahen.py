@@ -10,38 +10,43 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     combine_set = set()
     target = None
 
-    for line, tokens in parse_results:
+    weightings = []
 
+    is_meishirennzoku = False
+    is_force_split = False
+    for line, tokens in parse_results:
+        is_meishirennzoku = False
+
+        if len(weightings) > 0:
+            combine_set.add((target, tuple(weightings)))
+        target = None
+        weightings = []
         for face, data in tokens:
 
-            if data[0] != '名詞':
+            if data[0] != '名詞' or data[1] == '代名詞':
+                is_meishirennzoku = False
+                if len(weightings) > 0:
+                    combine_set.add((target, tuple(weightings)))
+                target = None
+                weightings = []
                 continue
             if target is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None:
-                check_pt = re.compile(r'[\p{Hiragana}、]' + target)
-                if check_pt.search(line):
-                    combine_set.add((target, face,))
+
+                if (target + face) not in line:
+
+                    weightings.append(face)
 
             if data[1] == '一般' and not meishi_blockpattern.search(face):
+                if is_meishirennzoku == True:
+                    weightings.append(face)
+                else:
 
-                target = face
+                    target = face
 
     new_results = []
-    head2word: Dict[SpecificKeyword] = {}
+    head2word: Dict[str, SpecificKeyword] = {}
 
     for headword, subword in combine_set:
-        """"
-        if len(headword) == 1:
-            continue
-        """
-        if headword in head2word:
-
-            if subword in results:
-                continue
-
-            clone: SpecificKeyword = head2word[headword].clone()
-            clone.add_subword(subword=subword)
-            new_results.append(clone)
-            continue
 
         if headword in results:
 

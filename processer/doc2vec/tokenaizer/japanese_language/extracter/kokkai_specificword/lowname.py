@@ -1,11 +1,16 @@
-from typing import List
+from functools import reduce
+from re import X
+from typing import Deque, List, Tuple
+from unittest import result
+
+from numpy import append
 from doc2vec.util.specific_keyword import SpecificKeyword, EqIn
 import regex as re
 
 import os
 import json
 from operator import itemgetter
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 from data_loader.dto import DTO
 sortkey = itemgetter(1)
 
@@ -17,11 +22,11 @@ section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 アイヌ新法 = "アイヌ新法"
 
 name_index_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/kokkai_specificword/nameindex.json')
+    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/nameindex.json')
 ryakusyou_tenchi_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/kokkai_specificword/ryakusyou_tenchi.json')
+    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou_tenchi.json')
 ryakusyou_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/kokkai_specificword/ryakusyou.json')
+    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou.json')
 with open(file=name_index_path, mode='r', encoding="utf-8") as fp:
     name_index = json.load(fp)
 with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
@@ -29,6 +34,7 @@ with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
 
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
+low_standard_phrases = ['法の下の平等', '法の支配']
 
 
 class EqInShorter:
@@ -44,14 +50,42 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
     target_low = []
     waiting_sections = []
     tail_rank = None
-    low_set = set()
+    low_index = defaultdict(deque)
 
     lowword_set = set()
     reverse_dict = {}
+    line_number = 0
+    all_text = ''.join([parse_result[0] for parse_result in parse_results])
+    low_count = all_text.count('法')
+    if low_count == 0:
+        return results
+    standard_phrase_count = 0
+    detected_phrases = set()
+    for phrase in low_standard_phrases:
+        detected_phrase_count = all_text.count(phrase)
 
+        standard_phrase_count += detected_phrase_count
+        if detected_phrase_count > 0:
+            detected_phrases.add(phrase)
+    for detected_phrase in detected_phrases:
+
+        results.append(SpecificKeyword(
+            headword=detected_phrase, is_force=True))
+
+    if low_count == standard_phrase_count:
+        return results
+    pendings = Counter()
+    ryakusyou_pendings = Counter()
+    lowable_lines = deque()
+    non_low_lines: Deque[str] = deque()
     for line, tokens in parse_results:
-        canditates_set = set()
-        ryakusyou_canditates_set = set()
+        if '法' not in line:
+            non_low_lines.append(line)
+            line_number += 1
+            continue
+
+        canditates_counter = Counter()
+        ryakusyou_canditates_counter = Counter()
         line_lows = []
         アイヌ新法が含まれるか = アイヌ新法 in line
 
@@ -62,23 +96,22 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 アイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
             lowword_set.add(アイヌ新法)
             reverse_dict[アイヌ新法の正式名称] = アイヌ新法
-            line_lows.append((アイヌ新法の正式名称,  line.find(アイヌ新法), 0,))
-        for i in range(len(line)-1):
-            gram = line[i:i+2]
-            canditates = name_index.get(gram)
-            ryakusyou_canditates = ryakusyou_tench.get(gram)
-            if canditates is not None:
-                canditates_set.update(canditates)
+            line_lows.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
+        for i in range(len(line) - 1):
+            gram = line[i:i + 2]
+            canditates_counter.update(name_index.get(gram, []))
 
-            if ryakusyou_canditates is not None:
-                ryakusyou_canditates_set.update(ryakusyou_canditates)
+            ryakusyou_canditates_counter.update(ryakusyou_tench.get(gram, []))
+
+        if max(max(canditates_counter.values()), max(ryakusyou_canditates_counter.values())) == 1:
+            continue
 
         _ryakusyous = [
-            canditate for canditate in ryakusyou_canditates_set if canditate in line]
+            canditate for canditate in ryakusyou_canditates_counter if canditate in line]
 
         ryakusyou_index = [EqInShorter(ry) for ry in _ryakusyous]
         not_ryakusyous = [
-            canditate for canditate in canditates_set if canditate in line and canditate not in ryakusyou_index]
+            canditate for canditate in canditates_counter if canditate in line and canditate not in ryakusyou_index]
 
         not_ryakusyou_index = [EqInShorter(not_ry)
                                for not_ry in not_ryakusyous]
@@ -94,7 +127,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         line_lows.extend([(canditate, line.find(canditate), 0,)
                           for canditate in not_ryakusyous])
 
-        line_lows.extend([(ryakusyou_dict[ryakusyou],  line.find(
+        line_lows.extend([(ryakusyou_dict[ryakusyou], line.find(
             ryakusyou), 0, ) for ryakusyou in ryakusyous])
 
         section_words = [(m.group(0), m.start(), section_rank[m.group(1)], )
@@ -118,25 +151,26 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 waiting_length = len(waiting_sections)
                 if waiting_length > 0:
                     waiting_sections.sort(key=sortkey)
-                    target_low.extend([r[0] for r in waiting_sections])
+                    target_low.extend(waiting_sections)
                     tail_rank = waiting_sections[waiting_length - 1][1]
                 continue
 
             if rank <= tail_rank:
-                low_set.add(tuple(r[0] for r in target_low))
+                low_index[tuple(r[0] for r in target_low)].append(line_number)
                 target_low = [
-                    r for r, target_rank in target_low if target_rank < rank]
+                    (r, target_rank, ) for r, target_rank in target_low if target_rank < rank]
                 target_low.append((face, rank, ))
                 tail_rank = rank
                 continue
             target_low.append((face, rank, ))
+        line_number += 1
 
     if len(target_low) > 0:
-        low_set.add(tuple(r[0] for r in target_low))
+        low_index[tuple(r[0] for r in target_low)].append(line_number)
 
     kws = []
 
-    for low_tupple in low_set:
+    for low_tupple, line_numbers in low_index.items():
 
         headword = low_tupple[0]
 
@@ -145,13 +179,13 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         is_one_gram = index_word is None
 
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, is_one_grame=is_one_gram, index_word=index_word)
+            headword=headword, subwords=subwords, is_force=True, is_one_grame=is_one_gram, index_word=index_word, line_numbers=line_numbers)
 
         kws.append(kw)
 
     lowword_list = [EqIn(lowword) for lowword in lowword_set]
 
-    results = [spk for spk in results if spk.headword not in lowword_list]
+    # results = [spk for spk in results if spk.headword not in lowword_list]
     results.extend(kws)
 
     return results
