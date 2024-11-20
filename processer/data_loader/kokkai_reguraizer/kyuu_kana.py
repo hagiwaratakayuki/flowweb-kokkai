@@ -34,19 +34,20 @@ import regex as re
            'チェ', 'シェ', 'ジェ', 'ティ', 'ディ', 'デュ'
            'トゥ']
 カタカナの拗音の対応表 = {k.replace('ャ', 'ヤ').replace(
-    'ュ', 'ユ').replace('ョ', 'ヨ'): k for k in カタカナの拗音}
+    'ュ', 'ユ').replace('ョ', 'ヨ').replace('ァ', 'ア').replace('ィ', 'イ').replace('ゥ', 'ウ').replace('ェ', 'エ').replace('ォ', 'オ'): k for k in カタカナの拗音}
 促音付きカタカナの拗音の対応表 = {k + 'ツ': v + 'ッ' for k, v in カタカナの拗音の対応表.items()}
 旧仮名遣いの対応表 = {}
-旧仮名遣いの対応表.update(ひらがなの拗音の対応表)
-旧仮名遣いの対応表.update(促音付きひらがなの拗音の対応表)
+# 旧仮名遣いの対応表.update(ひらがなの拗音の対応表)0000
+# 旧仮名遣いの対応表.update(促音付きひらがなの拗音の対応表)
 旧仮名遣いの対応表.update(カタカナの拗音の対応表)
 旧仮名遣いの対応表.update(促音付きカタカナの拗音の対応表)
-旧仮名遣いの促音のパターン = re.compile(r'([^且つ])つ([^つ\p{Han}])')
-re.sub()
+旧仮名遣いの促音のパターン = re.compile(r'([^且つも幾く一二三四五六七八九])つ([^つ\p{Han}])')
 
 
 def convert(text: str, speechData):
-    for 旧仮名遣い, 新仮名遣い in 旧仮名遣いの対応表:
+
+    for 旧仮名遣い, 新仮名遣い in 旧仮名遣いの対応表.items():
         text = text.replace(旧仮名遣い, 新仮名遣い)
-    text = 旧仮名遣いの促音のパターン.sub(r'\1っ\2', text)
+    # text = 旧仮名遣いの促音のパターン.sub(r'\1っ\2', text)
+
     return text

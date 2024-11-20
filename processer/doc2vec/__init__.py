@@ -28,8 +28,11 @@ class Doc2Vec:
         dto_map = {}
         generater = self.get_data_itr(dtos=datas, data_map=dto_map)
 
+        """
         parsed = pool.imap_unordered(
             func=self._indexer.parse, iterable=generater, chunksize=self._chunk_size)
+        """
+        parsed = (self._indexer.parse(r) for r in generater)
         return self.get_word_vector(parsed, dto_map=dto_map)
 
         """
