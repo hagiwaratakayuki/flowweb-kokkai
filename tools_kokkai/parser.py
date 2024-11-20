@@ -1,8 +1,8 @@
 import re
 import json
 from collections import defaultdict
-略称が含まれる行を表す正規表現 = re.compile("^(明治|大正|昭和|平成|令和)[^（]+\s", re.U)
-空白を表す正規表現 = re.compile("\s+", re.U)
+略称が含まれる行を表す正規表現 = re.compile(r"^(明治|大正|昭和|平成|令和)[^（]+\s", re.U)
+空白を表す正規表現 = re.compile(r"\s+", re.U)
 間違っている略称のリスト = ["保安四法", "中央省庁等改革関連法", "組織犯罪対策三法"]
 
 
@@ -18,8 +18,11 @@ with open("./rows.txt", mode="r", encoding="utf-8") as fp:
         "アイヌ文化法": "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律",
         "中央省庁等改革関連法": "中央省庁等改革関連法",
         "組織犯罪対策三法": "組織犯罪対策三法",
-        "BSE特措法": "牛海綿状脳症対策特別措置法"
-
+        "BSE特措法": "牛海綿状脳症対策特別措置法",
+        "憲法": "日本国憲法",
+        "同和立法": "同和対策事業特別措置法",
+        "地対法": "地域改善対策特別措置法",
+        "地対財特法": "地域改善対策特定事業に係る国の財政上の特別措置に関する法律"
 
     }
     for 行 in fp.read().replace("抄", "").strip().splitlines():
@@ -51,7 +54,7 @@ for 略称 in 略称と正式名称の対応表.keys():
     for 開始地点 in range(len(略称) - 1):
         キー = 略称[開始地点:開始地点 + 2]
         略称の転置インデックス[キー].update(リスト化した略称)
-with open("../processer/doc2vec/tokenaizer/japanese_language/kokkai_specificword/ryakusyou_tenchi.json", mode="w", encoding="utf-8") as fp:
+with open("../processer/doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou_tenchi.json", mode="w", encoding="utf-8") as fp:
     json.dump(obj=略称の転置インデックス, fp=fp, ensure_ascii=False, default=custom)
-with open("../processer/doc2vec/tokenaizer/japanese_language/kokkai_specificword/ryakusyou.json", mode="w", encoding="utf-8") as fp:
+with open("../processer/doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou.json", mode="w", encoding="utf-8") as fp:
     json.dump(obj=略称と正式名称の対応表, fp=fp, ensure_ascii=False, default=custom)

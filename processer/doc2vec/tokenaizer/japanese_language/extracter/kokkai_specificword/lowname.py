@@ -102,9 +102,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             canditates_counter.update(name_index.get(gram, []))
 
             ryakusyou_canditates_counter.update(ryakusyou_tench.get(gram, []))
-
-        if max(max(canditates_counter.values()), max(ryakusyou_canditates_counter.values())) == 1:
-            continue
+        if "憲法" in line:
+            lowword_set.add("憲法")
 
         _ryakusyous = [
             canditate for canditate in ryakusyou_canditates_counter if canditate in line]
