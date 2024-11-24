@@ -18,7 +18,7 @@ class TokenazierTemplate:
         sentences = text.split("。")
         senetence_number = 0
         tokens = deque()
-        parse_results = deque()
+        parse_results = []
         keywords_set = set()
         for face, datas in self._parse(text):
 

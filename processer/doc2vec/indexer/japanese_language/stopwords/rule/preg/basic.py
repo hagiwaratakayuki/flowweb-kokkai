@@ -16,7 +16,7 @@ class Pattern:
             __value) is not None and self._is_positive_filter
 
 
-class Remover:
+class RegexRemover:
     def __init__(self, patterns: List) -> None:
         self._patterns = []
         for pattern in patterns:

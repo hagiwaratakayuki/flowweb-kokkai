@@ -1,5 +1,5 @@
 from .kokkai_specificword import lowname, super_301, sakura
-from . basic import complex_word, sahen
+from .basic import complex_word, sahen
 
 
 rule_extractor = [

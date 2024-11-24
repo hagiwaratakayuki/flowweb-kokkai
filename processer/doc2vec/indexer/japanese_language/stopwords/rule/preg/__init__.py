@@ -1,10 +1,11 @@
-from .basic import Remover
-from .kanji_ichimoji import kanji_itchimoji
+from .basic import RegexRemover
+from .ichimoji import itchimoji
 from .o_kanji import o_kanji
-
-preg_remover = Remover(
+from .kyuujitai_brokun import kyuujitai_broken
+preg_remover = RegexRemover(
     [
-        kanji_itchimoji,
-        o_kanji
+        itchimoji,
+        o_kanji,
+        kyuujitai_broken
     ]
 )
