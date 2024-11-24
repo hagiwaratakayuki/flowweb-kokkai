@@ -19,11 +19,11 @@ class SpecificKeyword:
     is_fixed_headword: bool
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
-    _index: Union[Set, None]
+    _target_word: Union[Set, None]
     line_numbers: set[int]
 
-    def __init__(self, headword, subwords=[], is_force=False, is_one_grame=False, index_word=None, index=None, line_numbers: Iterator = [], is_fixed_headword=False) -> None:
-        self.is_fixed_headword
+    def __init__(self, headword, subwords=[], is_force=False, target_word=None, line_numbers: Iterator = [], is_fixed_headword=False) -> None:
+        self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.line_numbers = set(line_numbers)
 
@@ -31,26 +31,18 @@ class SpecificKeyword:
         self._subwords = []
         self.subwords = subwords[:]
         self.is_force = is_force
-        if index != None:
-            self._index = index
-            return
-        if is_one_grame == False and index_word is None:
-            self._index = None
-        elif index_word is not None:
-            self._index = set(index_word)
-        else:
-            self._index = set(headword)
+        self._target_word = target_word
 
     def clone(self):
-        ret = self.__class__(self.headword, index=self._index)
+        ret = self.__class__(self.headword, index=self._target_word)
         ret.subwords = self.subwords[:]
         ret._subwords = self._subwords[:]
         return ret
 
     def __eq__(self, __value: object) -> bool:
-        if self._index is not None:
+        if self._target_word is not None:
 
-            return (set(__value) & self._index) != empty_set
+            return __value in self._target_word or self._target_word in __value
         return __value in self.headword or self.headword in __value
 
     def add_subword(self, subword):
@@ -58,7 +50,7 @@ class SpecificKeyword:
             self.subwords.append(subword)
         else:
             self.subwords.extend(subword)
-        if self._index is None:
+        if self._target_word is None:
             self._subwords.append(EqIn(subword))
 
     def to_extender(self):

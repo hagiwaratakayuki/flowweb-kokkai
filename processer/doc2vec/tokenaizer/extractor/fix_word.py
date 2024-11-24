@@ -1,5 +1,5 @@
 from collections import defaultdict, deque
-from typing import List, Any
+from typing import List, Any, Optional, Union
 from ...util.specific_keyword import SpecificKeyword
 import re
 
@@ -28,24 +28,34 @@ class StringExtractor:
 
 
 class RegexExtractor:
-    def __init__(self, word_pt: re.Pattern, result_word=None, is_force=True) -> None:
+    def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, list] = None, is_force=True) -> None:
         self.word_pt = word_pt
-        self.result_word = result_word
+        if isinstance(result_words, list) == True:
+            result_words = [result_words]
+
+        self.result_words = result_words
         self.is_force = is_force
 
     def __call__(self, results: List[SpecificKeyword], parse_results: List, data) -> Any:
         line_number = 0
-        headword_to_line_nunmbers = defaultdict(deque)
+        headword_to_line_numbers = defaultdict(deque)
+
         for line, tokens in parse_results:
             checked = self.word_pt.search(line)
             if checked is not None:
-                if self.result_word is not None:
-                    headword = self.result_word
+                if self.result_words is not None:
+                    headwords = self.result_words
+                    target_word = checked.group(0)
                 else:
-                    headword = checked.group(0)
-                headword_to_line_nunmbers[headword].append(line_number)
-        for headword, line_numbers in headword_to_line_nunmbers.items():
+                    headwords = [checked.group(0)]
+                    target_word = None
+                for headword in headwords:
+
+                    headword_to_line_numbers[(
+                        headword, target_word)].append(line_number)
+        for key, line_numbers in headword_to_line_numbers.items():
+            headword, target_word = key
             results.append(SpecificKeyword(
-                headword=headword, is_force=self.is_force, is_one_grame=True, line_numbers=line_numbers))
+                headword=headword, is_force=self.is_force, target_word=target_word, line_numbers=line_numbers))
 
         return results

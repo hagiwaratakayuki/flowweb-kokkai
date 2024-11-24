@@ -1,6 +1,6 @@
 from functools import reduce
 from re import X
-from typing import Deque, List, Tuple
+from typing import Deque, Iterator, List, Tuple
 from unittest import result
 
 from numpy import append
@@ -53,8 +53,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
     low_index = defaultdict(deque)
 
     lowword_set = set()
-    reverse_dict = {}
-    line_number = 0
+    reverse_dict = defaultdict(lambda: defaultdict(set))
+    line_number = -1
     all_text = ''.join([parse_result[0] for parse_result in parse_results])
     low_count = all_text.count('法')
     if low_count == 0:
@@ -74,14 +74,11 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
     if low_count == standard_phrase_count:
         return results
-    pendings = Counter()
-    ryakusyou_pendings = Counter()
-    lowable_lines = deque()
-    non_low_lines: Deque[str] = deque()
+
     for line, tokens in parse_results:
+        line_number += 1
         if '法' not in line:
-            non_low_lines.append(line)
-            line_number += 1
+
             continue
 
         canditates_counter = Counter()
@@ -95,7 +92,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             else:
                 アイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
             lowword_set.add(アイヌ新法)
-            reverse_dict[アイヌ新法の正式名称] = アイヌ新法
+            reverse_dict[アイヌ新法の正式名称][アイヌ新法].add(line_number)
             line_lows.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
         for i in range(len(line) - 1):
             gram = line[i:i + 2]
@@ -116,8 +113,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                                for not_ry in not_ryakusyous]
         ryakusyous = [
             canditate for canditate in _ryakusyous if canditate not in not_ryakusyou_index]
-        reverse_dict.update(
-            {ryakusyou_dict[ryakusyou]: ryakusyou for ryakusyou in ryakusyous if ryakusyou != アイヌ新法})
+        for ryakusyou in ryakusyous:
+            if ryakusyou == アイヌ新法:
+                continue
+            reverse_dict[ryakusyou_dict[ryakusyou]][ryakusyou].add(line_number)
 
         lowword_set.update(not_ryakusyous)
 
@@ -162,27 +161,32 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 tail_rank = rank
                 continue
             target_low.append((face, rank, ))
-        line_number += 1
 
     if len(target_low) > 0:
         low_index[tuple(r[0] for r in target_low)].append(line_number)
 
     kws = []
-
+    empty_set = set()
     for low_tupple, line_numbers in low_index.items():
 
         headword = low_tupple[0]
 
         subwords = list(low_tupple[1:])
-        index_word = reverse_dict.get(headword)
-        is_one_gram = index_word is None
 
-        kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, is_one_grame=is_one_gram, index_word=index_word, line_numbers=line_numbers)
+        target_words = reverse_dict.get(headword, {})
+        for target_word, target_line_number in target_words:
 
-        kws.append(kw)
+            kw = SpecificKeyword(
+                headword=headword, subwords=subwords, is_force=True, target_word=target_word, line_numbers=target_line_number)
+            line_numbers -= target_line_number
 
-    lowword_list = [EqIn(lowword) for lowword in lowword_set]
+            kws.append(kw)
+        if line_numbers != empty_set:
+            kw = SpecificKeyword(
+                headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers)
+
+    # pending
+    # lowword_list = [EqIn(lowword) for lowword in lowword_set]
 
     # results = [spk for spk in results if spk.headword not in lowword_list]
     results.extend(kws)
