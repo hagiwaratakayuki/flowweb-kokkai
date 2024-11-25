@@ -6,11 +6,11 @@ kigou_pt = re.compile(r'^\W+$')
 
 
 def check_symbol_without_bracket(face, data):
-    return check_symbol(face) and check_is_bracket(data=data)
+    return check_symbol(face) and check_is_breaktoken(data=data)
 
 
-def check_is_bracket(data):
-    return data[1] == '括弧開' or data[1] == '括弧閉' or data[1] == 'サ変接続' or data[1] == '句点'
+def check_is_breaktoken(data):
+    return data[1] == '括弧開' or data[1] == '括弧閉' or data[1] == 'サ変接続' or data[1] == '句点' or data[1] == '読点'
 
 
 def check_symbol(face):

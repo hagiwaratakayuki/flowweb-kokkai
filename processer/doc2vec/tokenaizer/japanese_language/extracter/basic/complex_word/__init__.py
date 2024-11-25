@@ -41,6 +41,7 @@ class Context:
 
 
 def extract(results: List[SpecificKeyword], parse_results: List, data):
+
     complexword_set = set()
     context = Context()
     context.chunklen = 0
@@ -61,6 +62,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
         len_tokens = len(tokens)
         index = -1
         while index < len_tokens - 1:
+
             index += 1
             face, data = tokens[index]
 
@@ -73,7 +75,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
                 continue
             if data[2] == '数助詞':
-                if context.chunklen > 1:
+                if context.chunklen >= 1:
                     context.append(face)
 
                 continue
@@ -84,7 +86,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                 continue
             if data[1] == '数':
                 if index == len_tokens - 1:
-                    if context.chunklen > 1:
+                    if context.chunklen >= 1:
                         context.append(face)
                     continue
 
@@ -100,8 +102,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                         index = subindex
                         break
                     if symbol_not_bracket.check_symbol(face=subface) == True:
-                        if symbol_not_bracket.check_is_bracket(data=data) == True:
-                            is_add_chunk = len(subchunk) > 1
+                        if symbol_not_bracket.check_is_breaktoken(data=data) == True:
+                            is_add_chunk = len(subchunk) >= 1
                             index = index
                             break
                         else:
@@ -115,19 +117,21 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                     context.extend_face(subchunk)
 
                 continue
+
             if symbol_not_bracket.check_symbol(face=face) == True:
+                if symbol_not_bracket.check_is_breaktoken(data=data):
+                    if context.chunklen > 1:
 
-                if context.chunklen > 1:
-
-                    if symbol_not_bracket.check_is_bracket(data=data):
                         _add_to_complexword_set(
                             complexword_set=complexword_set, context=context, word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
-
                     else:
-                        context.append_face(face=face)
+                        context.clear()
+                else:
+                    context.append_face(face=face)
                 continue
 
             if check_valid_noun(face) == False:
+
                 if context.chunklen > 1:
                     _add_to_complexword_set(complexword_set=complexword_set, context=context,
                                             word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
@@ -135,13 +139,16 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                     context.clear()
                 continue
             if data[0] == '名詞' and check_ususal_and_sahen(data=data):
+
                 context.append_face(face)
                 continue
-            if data[0] == '名詞' and data[1] == '接尾' and data[2] == '一般' and context.chunklen > 1:
+
+            if data[0] == '名詞' and data[1] == '接尾' and data[2] == '一般' and context.chunklen > 0:
+
                 context.append_face(face)
                 context.force_headword = True
                 continue
-            if face == '問題' and context.chunklen > 1:
+            if face == '問題' and context.chunklen > 0:
                 context.append_face('問題')
                 continue
 
@@ -156,7 +163,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                                 word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
 
     for complexword in complexword_set:
-        print('complex:', complexword)
+
         if complexword in results:
             continue
         results.append(SpecificKeyword(

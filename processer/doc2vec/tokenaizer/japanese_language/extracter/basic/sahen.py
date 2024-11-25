@@ -7,7 +7,7 @@ from httpx import delete
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.symbol_not_bracket import check_is_bracket, check_symbol, check_symbol_without_bracket
+from doc2vec.tokenaizer.japanese_language.extracter.components.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.valid_noun_jp import check_valid_noun
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.usual_and_sahen import check_ususal_and_sahen
 from ..components.regex_patterns.hiragana_2or1 import hiragana_2or1_pt
@@ -39,7 +39,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             if data[2] == '形容動詞語幹':
                 noun = None
             if check_symbol(face=face):
-                if noun == None and check_is_bracket(data=data) == False:
+                if noun == None and check_is_breaktoken(data=data) == False:
                     noun = face
                 continue
             if noun == None and eiji.search(face) is not None:
