@@ -50,7 +50,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
     target_low = []
     waiting_sections = []
     tail_rank = None
-    low_index = defaultdict(deque)
+    low_index = defaultdict(set)
 
     lowword_set = set()
     reverse_dict = defaultdict(lambda: defaultdict(set))
@@ -154,7 +154,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 continue
 
             if rank <= tail_rank:
-                low_index[tuple(r[0] for r in target_low)].append(line_number)
+                low_index[tuple(r[0] for r in target_low)].add(line_number)
                 target_low = [
                     (r, target_rank, ) for r, target_rank in target_low if target_rank < rank]
                 target_low.append((face, rank, ))
@@ -163,7 +163,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             target_low.append((face, rank, ))
 
     if len(target_low) > 0:
-        low_index[tuple(r[0] for r in target_low)].append(line_number)
+        low_index[tuple(r[0] for r in target_low)].add(line_number)
 
     kws = []
     empty_set = set()
@@ -174,7 +174,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         subwords = list(low_tupple[1:])
 
         target_words = reverse_dict.get(headword, {})
-        for target_word, target_line_number in target_words:
+        for target_word, target_line_number in target_words.items():
 
             kw = SpecificKeyword(
                 headword=headword, subwords=subwords, is_force=True, target_word=target_word, line_numbers=target_line_number)

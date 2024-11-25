@@ -68,8 +68,8 @@ class SpecificKeyword:
 
     def _flatten(self, target, init: list):
         if isinstance(target, str):
-            list.append(init)
-            return
+            init.append(target)
+            return init
         try:
             iter(target)
 
@@ -77,7 +77,8 @@ class SpecificKeyword:
                 self._flatten(t, init)
 
         except:
-            return
+            init.append(target)
+        return init
 
     def index_of(self, needle):
         return self.headword.find(needle)

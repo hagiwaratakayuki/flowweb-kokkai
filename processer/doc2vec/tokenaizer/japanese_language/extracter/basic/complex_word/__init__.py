@@ -29,7 +29,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
     word_to_linenumber = defaultdict(deque)
 
     line_number = -1
-    for tokens, data in parse_results:
+    for line, tokens in parse_results:
         line_number += 1
         if chunklen > 1:
             _add_to_complexword_set(
@@ -97,7 +97,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
             if symbol_not_bracket.check_symbol(face=face) == True:
                 if chunklen > 1:
 
-                    if symbol_not_bracket.check_is_bracket(face):
+                    if symbol_not_bracket.check_is_bracket(data=data):
                         _add_to_complexword_set(
                             complexword_set=complexword_set, chunk=chunk, word_to_linenumber=word_to_linenumber, line_number=line_number)
                         chunk = []
@@ -108,7 +108,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
             if check_valid_noun(face) == False:
                 if chunklen > 1:
-                    _add_to_complexword_set(chunk=chunk)
+                    _add_to_complexword_set(complexword_set=complexword_set, chunk=chunk,
+                                            word_to_linenumber=word_to_linenumber, line_number=line_number)
                 chunk = []
                 continue
             if data[0] == '名詞' and (data[1] == '一般' or data[1] == 'サ変接続'):
@@ -128,10 +129,11 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                                 word_to_linenumber=word_to_linenumber, line_number=line_number)
 
     for complexword in complexword_set:
+        print(complexword)
         if complexword in results:
             continue
         results.append(SpecificKeyword(
-            headword=complexword, is_one_grame=True, line_numbers=word_to_linenumber[complexword]))
+            headword=complexword, line_numbers=word_to_linenumber[complexword]))
 
     return results
 

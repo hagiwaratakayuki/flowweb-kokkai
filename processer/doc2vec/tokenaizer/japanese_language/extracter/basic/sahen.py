@@ -27,13 +27,10 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     for line, tokens in parse_results:
         noun = None
         line_number += 1
-        index = 0
-        if isinstance(tokens, list) == False:
-            tokens = list(tokens)
-        len_token = len(tokens)
-        while index < len_token:
+        index = -1
 
-            face, data = [index]
+        for face, data in tokens:
+
             index += 1
 
             if data[1] != '名詞':
@@ -58,11 +55,11 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     # 　複合語にサ変が含まれるものを取り出し。法律などの強制的に主語(?)になりうるものでないのを確認。最初の単語がサ変ならば名詞＋サ変としてペアに設定。以降の名詞によるペアを削除
     # 　名詞が含まれるものを取得。サ変を追加。　
     new_results = []
-    head2word: Dict[str, SpecificKeyword] = {}
+
     empty_set = set()
     keys = list(noun_sahen.keys())
-    least_line_numbers = defaultdict(set())
-    remove_index = set()
+    least_line_numbers = defaultdict(set)
+
     index_to_key = defaultdict(set)
     deleted_keys = {}
     newpaire_map = defaultdict(lambda: defaultdict(set))
