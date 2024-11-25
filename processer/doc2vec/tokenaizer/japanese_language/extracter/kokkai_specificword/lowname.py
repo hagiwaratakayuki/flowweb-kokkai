@@ -14,8 +14,8 @@ from collections import Counter, defaultdict, deque
 from data_loader.dto import DTO
 sortkey = itemgetter(1)
 
-section_text = "編章条項節款目"
-section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + '])')
+section_text = r"編章条項節款目"
+section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + r'])')
 section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
@@ -76,10 +76,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         return results
 
     for line, tokens in parse_results:
-        line_number += 1
-        if '法' not in line:
 
-            continue
+        line_number += 1
 
         canditates_counter = Counter()
         ryakusyou_canditates_counter = Counter()

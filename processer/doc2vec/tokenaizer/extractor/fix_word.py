@@ -30,7 +30,7 @@ class StringExtractor:
 class RegexExtractor:
     def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, list] = None, is_force=True) -> None:
         self.word_pt = word_pt
-        if isinstance(result_words, list) == True:
+        if isinstance(result_words, list) == False:
             result_words = [result_words]
 
         self.result_words = result_words
