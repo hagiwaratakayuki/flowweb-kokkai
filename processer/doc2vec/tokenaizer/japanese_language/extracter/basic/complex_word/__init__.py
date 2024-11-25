@@ -3,7 +3,7 @@
 from collections import defaultdict, deque
 from operator import is_not
 from re import L
-from typing import DefaultDict, Deque, List
+from typing import DefaultDict, Deque, Dict, List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
@@ -22,20 +22,40 @@ hiragana_itimoji_pt = re.compile(r'\p{Hiragana}{2}')
 式と型 = set(['式', '型'])
 
 
+class Context:
+    def __init__(self) -> None:
+        self.clear()
+
+    def clear(self):
+        self.chunk = []
+        self.force_headword = False
+        self.chunklen = 0
+
+    def append_face(self, face):
+        self.chunk.append(face)
+        self.chunklen += 1
+
+    def extend_face(self, faces):
+        self.chunk.extend(faces)
+        self.chunklen += len(faces)
+
+
 def extract(results: List[SpecificKeyword], parse_results: List, data):
     complexword_set = set()
-    chunk = []
-    chunklen = 0
+    context = Context()
+    context.chunklen = 0
     word_to_linenumber = defaultdict(deque)
+    force_headword_map = {}
 
     line_number = -1
     for line, tokens in parse_results:
         line_number += 1
-        if chunklen > 1:
+        if context.chunklen > 1:
             _add_to_complexword_set(
-                complexword_set=complexword_set, chunk=chunk, line_number=line_number, word_to_linenumber=word_to_linenumber)
-        chunk = []
-        chunklen = 0
+                complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)
+        else:
+            context.clear()
+
         if isinstance(tokens, list) == False:
             tokens = list(tokens)
         len_tokens = len(tokens)
@@ -43,29 +63,29 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
         while index < len_tokens - 1:
             index += 1
             face, data = tokens[index]
-            chunklen = len(chunk)
 
             if data[0] == '接頭詞':
-                chunk = []
+                context.clear()
                 continue
             if data[2] == '形容動詞語幹':
 
-                chunk = []
+                context.clear()
 
                 continue
             if data[2] == '数助詞':
-                if chunklen > 1:
-                    _add_to_chunk(face=face, chunk=chunk)
+                if context.chunklen > 1:
+                    context.append(face)
 
                 continue
 
             if eiji_pt.search(face) is not None:
-                _add_to_chunk(chunk=chunk, face=face)
+
+                context.append_face(face=face)
                 continue
             if data[1] == '数':
                 if index == len_tokens - 1:
-                    if chunklen > 1:
-                        _add_to_chunk(face, chunk)
+                    if context.chunklen > 1:
+                        context.append(face)
                     continue
 
                 subchunk = []
@@ -92,57 +112,62 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
                         break
                 if is_add_chunk:
-                    _add_to_chunk(face=face, chunk=chunk)
+                    context.extend_face(subchunk)
+
                 continue
             if symbol_not_bracket.check_symbol(face=face) == True:
-                if chunklen > 1:
+
+                if context.chunklen > 1:
 
                     if symbol_not_bracket.check_is_bracket(data=data):
                         _add_to_complexword_set(
-                            complexword_set=complexword_set, chunk=chunk, word_to_linenumber=word_to_linenumber, line_number=line_number)
-                        chunk = []
+                            complexword_set=complexword_set, context=context, word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
 
                     else:
-                        _add_to_chunk(face=face, chunk=chunk)
+                        context.append_face(face=face)
                 continue
 
             if check_valid_noun(face) == False:
-                if chunklen > 1:
-                    _add_to_complexword_set(complexword_set=complexword_set, chunk=chunk,
-                                            word_to_linenumber=word_to_linenumber, line_number=line_number)
-                chunk = []
+                if context.chunklen > 1:
+                    _add_to_complexword_set(complexword_set=complexword_set, context=context,
+                                            word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
+                else:
+                    context.clear()
                 continue
-            if data[0] == '名詞' and (data[1] == '一般' or data[1] == 'サ変接続'):
-                _add_to_chunk(face, chunk)
+            if data[0] == '名詞' and check_ususal_and_sahen(data=data):
+                context.append_face(face)
                 continue
-            if face == '問題' and chunklen > 1:
-                _add_to_chunk('問題', chunk=chunk)
+            if data[0] == '名詞' and data[1] == '接尾' and data[2] == '一般' and context.chunklen > 1:
+                context.append_face(face)
+                context.force_headword = True
                 continue
-            if chunklen > 1:
-                _add_to_complexword_set(
-                    complexword_set=complexword_set, chunk=chunk, word_to_linenumber=word_to_linenumber, line_number=line_number)
-            chunk = []
+            if face == '問題' and context.chunklen > 1:
+                context.append_face('問題')
+                continue
 
-    chunklen = len(chunk)
-    if chunklen > 1:
-        _add_to_complexword_set(complexword_set=complexword_set, chunk=chunk,
-                                word_to_linenumber=word_to_linenumber, line_number=line_number)
+            if context.chunklen > 1:
+                _add_to_complexword_set(
+                    complexword_set=complexword_set, context=context, word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
+            else:
+                context.clear()
+
+    if context.chunklen > 1:
+        _add_to_complexword_set(complexword_set=complexword_set, context=context,
+                                word_to_linenumber=word_to_linenumber, line_number=line_number, force_headword_map=force_headword_map)
 
     for complexword in complexword_set:
-        print(complexword)
+        print('complex:', complexword)
         if complexword in results:
             continue
         results.append(SpecificKeyword(
-            headword=complexword, line_numbers=word_to_linenumber[complexword]))
+            headword=complexword, line_numbers=word_to_linenumber[complexword], is_fixed_headword=force_headword_map[complexword]))
 
     return results
 
 
-def _add_to_complexword_set(complexword_set: set, chunk, word_to_linenumber: DefaultDict[str, Deque], line_number):
-    word = ''.join(chunk)
+def _add_to_complexword_set(complexword_set: set, context: Context, word_to_linenumber: DefaultDict[str, set], line_number, force_headword_map: Dict):
+    word = ''.join(context.chunk)
     word_to_linenumber[word].append(line_number)
-    return complexword_set.add(word)
-
-
-def _add_to_chunk(face, chunk):
-    chunk.append(face)
+    complexword_set.add(word)
+    force_headword_map[word] = context.force_headword
+    context.clear()
