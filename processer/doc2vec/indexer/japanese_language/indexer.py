@@ -22,7 +22,7 @@ class JapaneseLanguageIndexer(Indexer):
         keywords_dict = OrderedDict()
 
         for specific_keyword in specific_keywords:
-            print(specific_keyword.headword)
+            # print(specific_keyword.headword)
             if specific_keyword.is_force is False:
                 continue
             keywords_dict[(specific_keyword.headword,)] = True
@@ -42,5 +42,5 @@ class JapaneseLanguageIndexer(Indexer):
                 keywords_dict[(word,)] = True
 
         ret = remove_stopwords(['/'.join(kw) for kw in keywords_dict.keys()])
-        print(ret)
+        # print(ret)
         return ret

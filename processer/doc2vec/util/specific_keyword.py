@@ -31,7 +31,12 @@ class SpecificKeyword:
 
         self.subwords = subwords[:]
         self.is_force = is_force
-        self._target_words = target_words
+        if target_words == None:
+            self._target_words = target_words
+        else:
+            if isinstance(target_words, str):
+                target_words = [target_words]
+            self._target_words = [EqIn(tw) for tw in target_words]
 
     def clone(self):
         ret = self.__class__(
@@ -39,6 +44,7 @@ class SpecificKeyword:
         ret.add_subword(self.subwords)
         ret.is_fixed_headword = self.is_fixed_headword
         ret.is_force = self.is_force
+
         ret._target_words = self._target_words
 
         return ret

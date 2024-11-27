@@ -37,13 +37,13 @@ class MyTestCase(unittest.TestCase):
     def test_kv2itr(self, loader_mock: MagicMock):
         kv_mock = MockKeyedVector()
         loader_mock.return_value = kv_mock
-        print(list(kv2itr()))
+        # print(list(kv2itr()))
         self.assertEqual(set(kv_mock.call_keys),
                          set(kv_mock.key_to_index.keys()))
 
     @patch('gensim.models.keyedvectors.KeyedVectors.load_word2vec_format')
     @patch('db.model.get_client')
-    def test_kv2store(self,  put_multi_mock: MagicMock, loader_mock: MagicMock):
+    def test_kv2store(self, put_multi_mock: MagicMock, loader_mock: MagicMock):
         kv_mock = MockKeyedVector()
         loader_mock.return_value = kv_mock
         kv2store()

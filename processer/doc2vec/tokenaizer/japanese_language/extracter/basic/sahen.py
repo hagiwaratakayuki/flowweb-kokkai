@@ -111,8 +111,8 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                 continue
 
             if keyword_obj == noun:
-
-                keyword_obj.add_subword(sahen)
+                if keyword_obj != sahen:
+                    keyword_obj.add_subword(sahen)
                 noun_sahen[key] -= inter
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
 
@@ -132,11 +132,10 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 noun_sahen[key] -= inter
                 if keyword_obj.is_fixed_headword == False:
-                    keyword_obj.line_numbers -= inter
 
                     position = keyword_obj.index_of(sahen)
                     if position == 0:
-
+                        keyword_obj.line_numbers -= inter
                         noun_sahen[(noun, keyword_obj.headword,)] = inter
         if keyword_obj.line_numbers != empty_set:
             new_results.append(keyword_obj)
