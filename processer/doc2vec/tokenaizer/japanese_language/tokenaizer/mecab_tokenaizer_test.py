@@ -10,10 +10,10 @@ class TestMecabTokenizer(unittest.TestCase):
         data = DTO()
         data.published = "1999-07-01"
         res = toknaizer.exec(
-            "今回質問したいのは、金商法でございます。この5章第6項のですね、13条であります、この改正について議論したいと思います。", data)
-        specific_keyword: SpecificKeyword = res[1][0]
-        print(specific_keyword.headword)
-        print(specific_keyword.subwords)
+            "今回質問したいのは、金商法でございます。この5章第6項のですね、13条であります、この設置基準について議論したいと思います。", data)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)
 
     def test_aynu(self):
 

@@ -19,43 +19,48 @@ class SpecificKeyword:
     is_fixed_headword: bool
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
-    _target_word: Union[Set, None]
+    _target_words: Union[Set, None]
     line_numbers: set[int]
 
-    def __init__(self, headword, subwords=[], is_force=False, target_word=None, line_numbers: Iterator = [], is_fixed_headword=False) -> None:
+    def __init__(self, headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.line_numbers = set(line_numbers)
 
         self._tuple = None
-        self._subwords = []
+
         self.subwords = subwords[:]
         self.is_force = is_force
-        self._target_word = target_word
+        self._target_words = target_words
 
     def clone(self):
-        ret = self.__class__(self.headword, index=self._target_word)
-        ret.subwords = self.subwords[:]
-        ret._subwords = self._subwords[:]
+        ret = self.__class__(
+            self.headword)
+        ret.add_subword(self.subwords)
+        ret.is_fixed_headword = self.is_fixed_headword
+        ret.is_force = self.is_force
+        ret._target_words = self._target_words
+
         return ret
 
     def __eq__(self, __value: object) -> bool:
-        if self._target_word is not None:
+        ret = False
+        if self._target_words is not None:
 
-            return __value in self._target_word or self._target_word in __value
-        return __value in self.headword or self.headword in __value
+            ret |= __value in self._target_words
+        ret |= __value in self.headword or self.headword in __value
+
+        return ret
 
     def add_subword(self, subword):
         if isinstance(subword, str):
             self.subwords.append(subword)
         else:
             self.subwords.extend(subword)
-        if self._target_word is None:
-            self._subwords.append(EqIn(subword))
 
     def to_extender(self):
         ret = [(self.headword, )]
-        if len(self._subwords) == 0:
+        if len(self.subwords) != 0:
             ret.append(self.to_tuple())
         return ret
 
@@ -85,4 +90,3 @@ class SpecificKeyword:
 
     def clear_subword(self):
         self.subwords = []
-        self._subwords = []

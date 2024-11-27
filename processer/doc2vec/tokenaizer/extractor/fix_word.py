@@ -56,6 +56,6 @@ class RegexExtractor:
         for key, line_numbers in headword_to_line_numbers.items():
             headword, target_word = key
             results.append(SpecificKeyword(
-                headword=headword, is_force=self.is_force, target_word=target_word, line_numbers=line_numbers))
+                headword=headword, is_force=self.is_force, target_words=target_word, line_numbers=line_numbers))
 
         return results

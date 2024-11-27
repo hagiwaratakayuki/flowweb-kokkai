@@ -12,6 +12,7 @@ import json
 from operator import itemgetter
 from collections import Counter, defaultdict, deque
 from data_loader.dto import DTO
+
 sortkey = itemgetter(1)
 
 section_text = r"編章条項節款目"
@@ -37,6 +38,10 @@ with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
 low_standard_phrases = ['法の下の平等', '法の支配']
 
 
+class Low(SpecificKeyword):
+    pass
+
+
 class EqInShorter:
     def __init__(self, value) -> None:
         self.value = value
@@ -49,11 +54,13 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
     target_low = []
     waiting_sections = []
+    waiting_line_numbers = set()
+
     tail_rank = None
     low_index = defaultdict(set)
 
     lowword_set = set()
-    reverse_dict = defaultdict(lambda: defaultdict(set))
+    reverse_dict = defaultdict(set)
     line_number = -1
     all_text = ''.join([parse_result[0] for parse_result in parse_results])
     low_count = all_text.count('法')
@@ -90,7 +97,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             else:
                 アイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
             lowword_set.add(アイヌ新法)
-            reverse_dict[アイヌ新法の正式名称][アイヌ新法].add(line_number)
+            reverse_dict[アイヌ新法の正式名称].add(アイヌ新法)
             line_lows.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
         for i in range(len(line) - 1):
             gram = line[i:i + 2]
@@ -114,7 +121,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         for ryakusyou in ryakusyous:
             if ryakusyou == アイヌ新法:
                 continue
-            reverse_dict[ryakusyou_dict[ryakusyou]][ryakusyou].add(line_number)
+            reverse_dict[ryakusyou_dict[ryakusyou]].add(ryakusyou)
 
         lowword_set.update(not_ryakusyous)
 
@@ -138,9 +145,12 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         for face, position, rank in line_lows:
 
             if tail_rank is None:
+                waiting_line_numbers.add(line_number)
                 if rank > 0:
+
                     waiting_sections.append((face, rank,))
                     continue
+
                 tail_rank = 0
 
                 target_low.append((face, 0,))
@@ -152,16 +162,23 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 continue
 
             if rank <= tail_rank:
-                low_index[tuple(r[0] for r in target_low)].add(line_number)
+
                 target_low = [
                     (r, target_rank, ) for r, target_rank in target_low if target_rank < rank]
                 target_low.append((face, rank, ))
+
                 tail_rank = rank
+
+                if rank == 0:
+                    waiting_sections = []
+                    waiting_line_numbers = set()
                 continue
             target_low.append((face, rank, ))
 
-    if len(target_low) > 0:
-        low_index[tuple(r[0] for r in target_low)].add(line_number)
+        if len(line_lows) > 0 & tail_rank is not None:
+            k = tuple(r[0] for r in target_low)
+            low_index[k].add(line_number)
+            low_index[k].update(waiting_line_numbers)
 
     kws = []
     empty_set = set()
@@ -172,16 +189,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         subwords = list(low_tupple[1:])
 
         target_words = reverse_dict.get(headword, {})
-        for target_word, target_line_number in target_words.items():
 
-            kw = SpecificKeyword(
-                headword=headword, subwords=subwords, is_force=True, target_word=target_word, line_numbers=target_line_number)
-            line_numbers -= target_line_number
-
-            kws.append(kw)
-        if line_numbers != empty_set:
-            kw = SpecificKeyword(
-                headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers)
+        kw = SpecificKeyword(
+            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words)
+        kws.append(kw)
 
     # pending
     # lowword_list = [EqIn(lowword) for lowword in lowword_set]

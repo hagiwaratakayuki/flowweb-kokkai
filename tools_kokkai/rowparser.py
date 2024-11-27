@@ -5,7 +5,18 @@ import re
 from collections import defaultdict
 kuuhaku = re.compile(r'\s+[^\s]+$', re.U)
 
-with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
+
+def create_dict(value, ngram_dict):
+    update = [value]
+    for i in range(len(value) - 1):
+
+        key = value[i:i + 2]
+        if key == '法律':
+            continue
+        ngram_dict[key].update(update)
+
+
+with open('../../laws/all_law_list.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
 
     next(reader, None)
@@ -14,14 +25,7 @@ with open('../../rows/all_law_list.csv', 'r', encoding='utf-8') as f:
     for row in reader:
         row = kuuhaku.sub(row, '')
         value = row[2]
-        update = [value]
-
-        for i in range(len(value)):
-
-            key = value[i:i + 2]
-            if key == '法律':
-                continue
-            ngram_dict[key].update(update)
+        create_dict(value=value)
 
 
 def custom(v):

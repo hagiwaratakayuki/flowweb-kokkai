@@ -1,9 +1,7 @@
-from collections import defaultdict
-import keyword
-from os import remove
-from typing import Dict, List
+from collections import defaultdict, deque
 
-from httpx import delete
+from typing import Deque, Dict, List
+
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
@@ -19,103 +17,164 @@ sahen_blockpattern = re.compile('^お')
 一般と固有名詞 = {'一般', '固有名詞'}
 
 
+class Context:
+    def __init__(self) -> None:
+        self.clear()
+
+    def clear(self):
+        self.noun = None
+        self.index = -2
+        self.pending = None
+
+    def set_noun(self, noun, index):
+        self.noun = noun
+        self.index = index
+
+    def set_pending_noun(self, noun, index):
+        self.pending = (noun, index,)
+
+    def clear_pending(self):
+        self.pending = None
+
+    def use_pending(self, additional_face=''):
+        noun, index = self.pending
+        noun += additional_face
+        self.set_noun(noun=noun, index=index)
+        self.clear_pending()
+
+
 def extract(results: List[SpecificKeyword], parse_results, data):
-    combine_set = set()
 
     line_number = -1
     noun_sahen = defaultdict(set)
+    context = Context()
     for line, tokens in parse_results:
-        noun = None
+        context.clear()
         line_number += 1
         index = -1
 
         for face, data in tokens:
 
             index += 1
+            if context.pending != None:
+                if face in "編章条項節款目":
+                    context.use_pending(face)
+                else:
+                    context.clear_pending()
 
-            if data[1] != '名詞':
                 continue
-
             if data[2] == '形容動詞語幹':
-                noun = None
-            if check_symbol(face=face):
-                if noun == None and check_is_breaktoken(data=data) == False:
-                    noun = face
+                if context.index + 1 == index:
+                    context.clear()
                 continue
-            if noun == None and eiji.search(face) is not None:
-                noun = face
+            if check_symbol(face=face):
+                if context.noun == None and check_is_breaktoken(data=data) == False:
+                    context.set_noun(face, index)
+                continue
+
+            if data[1] == '数':
+                context.set_pending_noun(face, index)
+                continue
+            if eiji.search(face) is not None:
+
+                context.set_noun(face, index)
                 continue
             if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True:
-                noun = face
-            if noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face):
-                k = (noun, face,)
+                context.set_noun(face, index)
+                continue
+            if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None:
+                k = (context.noun, face,)
                 noun_sahen[k].add(line_number)
 
-    # todo ここから複合語と法律用語にサ変接続を付け加えていく
-    # 　複合語にサ変が含まれるものを取り出し。法律などの強制的に主語(?)になりうるものでないのを確認。最初の単語がサ変ならば名詞＋サ変としてペアに設定。以降の名詞によるペアを削除
-    # 　名詞が含まれるものを取得。サ変を追加。　
+    # 複合語チェック(サ変接続)
+    # 複合語チェック(名詞)
+    # サブワードリンクチェック
+    # 元の特定語と現在のペアから新しいリストを生成
     new_results = []
 
     empty_set = set()
     keys = list(noun_sahen.keys())
-    least_line_numbers = defaultdict(set)
 
-    index_to_key = defaultdict(set)
-    deleted_keys = {}
-    newpaire_map = defaultdict(lambda: defaultdict(set))
+    new_results: Deque[SpecificKeyword] = deque()
 
-    for i, keyword_obj in enumerate(results):
+    for keyword_obj in results:
 
         for key in keys:
+
             line_numbers = noun_sahen[key]
             noun, sahen = key
+
+            inter = keyword_obj.line_numbers & line_numbers
+
+            if inter == empty_set:
+
+                continue
+
+            if keyword_obj == noun:
+
+                keyword_obj.add_subword(sahen)
+                noun_sahen[key] -= inter
+    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+
+    for keyword_obj in results:
+
+        for key in keys:
+
+            line_numbers = noun_sahen[key]
+            noun, sahen = key
+
             inter = keyword_obj.line_numbers & line_numbers
 
             if inter == empty_set:
                 continue
-            least_line_numbers[key].update(inter)
+
             if keyword_obj == sahen:
 
-                if keyword_obj.is_fixed_headword == True:
+                noun_sahen[key] -= inter
+                if keyword_obj.is_fixed_headword == False:
+                    keyword_obj.line_numbers -= inter
 
-                    is_delete_key = line_numbers == least_line_numbers[key]
-
-                else:
                     position = keyword_obj.index_of(sahen)
                     if position == 0:
 
-                        newpaire_map[key][keyword_obj.headword].update(inter)
-
-                    is_delete_key = line_numbers == least_line_numbers[key]
-
-            if keyword_obj == noun:
-                index_to_key[i].add((key, inter))
-                is_delete_key = line_numbers == least_line_numbers[key]
-            if deleted_keys.get(key, False) == True:
-                continue
-            if is_delete_key == True:
-                deleted_keys[key] = True
-
-    # サ変を追加する作業ここから
-
-    for i, keyword_obj in enumerate(results):
-
-        least_line_numbers = keyword_obj.line_numbers
-        for key in index_to_key.get(i, []):
-            for new_subword, line_numbers in newpaire_map[key].items():
-                inter = keyword_obj.line_numbers & line_numbers
-                least_line_numbers -= inter
-                noun_sahen[key] -= inter
-                if inter == empty_set:
-                    continue
-
-                new_obj = keyword_obj.clone()
-                new_obj.add_subword(new_subword)
-                new_results.append(new_obj)
-        if least_line_numbers != empty_set:
+                        noun_sahen[(noun, keyword_obj.headword,)] = inter
+        if keyword_obj.line_numbers != empty_set:
             new_results.append(keyword_obj)
-    for key, line_numbers in noun_sahen.items():
-        if key in deleted_keys or line_numbers == empty_set:
+
+    additional_kws = deque()
+    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+    for keyword_obj in new_results:
+
+        for key in keys:
+
+            line_numbers = noun_sahen[key]
+            noun, sahen = key
+
+            inter = keyword_obj.line_numbers & line_numbers
+
+            if inter == empty_set:
+                continue
+
+            try:
+
+                subword_link_index = keyword_obj.subwords.index(noun)
+                noun_sahen[key] -= inter
+                if subword_link_index < len(keyword_obj.subwords) - 1:
+                    new_keword_obj = keyword_obj.clone()
+                    new_keword_obj.clear_subword()
+                    new_subword = keyword_obj.subwords[:subword_link_index + 1] + [
+                        sahen]
+                    new_keword_obj.add_subword(new_subword)
+                    additional_kws.append(new_keword_obj)
+                else:
+                    keyword_obj.add_subword(sahen)
+            except:
+                continue
+
+    new_results.extend(additional_kws)
+
+    for key in keys:
+        if noun_sahen[key] == empty_set:
             continue
         noun, sahen = key
         new_results.append(SpecificKeyword(headword=noun, subwords=[sahen]))
