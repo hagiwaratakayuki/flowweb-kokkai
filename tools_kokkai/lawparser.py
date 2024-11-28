@@ -1,7 +1,7 @@
 import csv
 import json
 import re
-
+import unicodedata
 from collections import defaultdict
 kuuhaku = re.compile(r'\s+[^\s]+$', re.U)
 
@@ -16,6 +16,12 @@ def create_dict(value, ngram_dict):
         ngram_dict[key].update(update)
 
 
+def custom(v):
+    if isinstance(v, set):
+        return list(v)
+    return v
+
+
 with open('../../laws/all_law_list.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
 
@@ -23,16 +29,11 @@ with open('../../laws/all_law_list.csv', 'r', encoding='utf-8') as f:
 
     ngram_dict = defaultdict(set)
     for row in reader:
-        row = kuuhaku.sub(row, '')
+        row = [unicodedata.normalize(
+            'NFKC', r.replace("抄", "").strip()) for r in row]
         value = row[2]
-        create_dict(value=value)
+        create_dict(value=value, ngram_dict=ngram_dict)
 
 
-def custom(v):
-    if isinstance(v, set):
-        return list(v)
-    return v
-
-
-with open("../processer/doc2vec/tokenaizer/japanese_language/kokkai_specificword/nameindex.json", 'w', encoding='utf-8') as f:
+with open("../processer/doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/nameindex.json", 'w', encoding='utf-8') as f:
     json.dump(ngram_dict, f, default=custom, ensure_ascii=False)

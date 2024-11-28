@@ -13,7 +13,7 @@ def custom(v):
     return v
 
 
-with open("./rows.txt", mode="r", encoding="utf-8") as fp:
+with open("./law.txt", mode="r", encoding="utf-8") as fp:
 
     正式名称 = ""
     略称と正式名称の対応表 = {
@@ -54,7 +54,7 @@ with open("./rows.txt", mode="r", encoding="utf-8") as fp:
 
             正式名称 = ""
 
-with open("./houreibunko.text", mode="r", encoding="utf-8") as fp:
+with open("./horeibunko.text", mode="r", encoding="utf-8") as fp:
     正式名称のある行か判定するフラグ = True
     全体 = unicodedata.normalize('NFKC', fp.read().replace("抄", "").strip())
     for 行 in 全体.splitlines():
