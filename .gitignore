@@ -6,20 +6,6 @@ __pycache__/
 *$py.class
 nasa_sti
 
-# C extensions
-*.so
-/devdatas/**
-!/devdatas/**/.gitkeep
 
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
 /tools/emurater_data/WEB-INF/appengine-generated/local_db.bin
 /processer/model

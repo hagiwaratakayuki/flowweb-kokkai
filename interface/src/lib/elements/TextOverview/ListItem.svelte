@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-
+  import { getUrl } from "$lib/url/text";
   const dispatcher = createEventDispatcher();
   export function select(isScroll = true) {
     isSelected = true;

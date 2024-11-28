@@ -8,11 +8,11 @@
   /** @type {import('./$types').PageData} */
   export let data;
   /** @type {import('./$types').PageData} */
-  console.log(data);
+
   /* let _data;
   $: {
     _data = getData($page.state, data);
-    console.log(_data);
+    
   }*/
 </script>
 
