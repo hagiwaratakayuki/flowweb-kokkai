@@ -5,6 +5,6 @@ import { get } from "../client"
  */
 export function data(id) {
     // @ts-ignore
-    return get('/speech/data', { id })
+    return get('speech/data', { id })
 
 }

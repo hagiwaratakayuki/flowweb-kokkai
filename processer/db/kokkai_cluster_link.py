@@ -3,6 +3,6 @@ from google.cloud.datastore.key import Key
 from typing import List
 
 
-class ClusterLink(Model):
+class KokkaiClusterLink(Model):
     from_cluster: str
     to_cluster: str

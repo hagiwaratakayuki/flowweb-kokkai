@@ -19,8 +19,8 @@ def check_class(target):
 
 
 for root, dirs, files in os.walk('./api_server/routing/return_models'):
-    modroot = root.replace('/', '.').replace(r'\\', '.').replace('..', '')
-    \
+    modroot = root.replace('/', '.').replace('\\', '.').replace('..', '')
+
     for file in files:
 
         if pt_pyext.search(file) is None:

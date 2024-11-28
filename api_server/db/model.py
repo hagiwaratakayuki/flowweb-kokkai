@@ -35,18 +35,22 @@ class Model(object):
     _entity = None
 
     def __init__(self, id=None, entity_options={}, path_args=[], kwargs={}) -> None:
+        global dirs
         self._path_args = path_args
         self._kwargs = kwargs
         self._entity_options = entity_options
         self._id = id
+
+    def get_id(self):
+        return self._id
 
     @classmethod
     def query(cls):
 
         return get_client().query(kind=cls.__name__)
 
-    def _filter(self, key):
-        if PT.search(key) is not None:
+    def _filter(self, key: str):
+        if key.startswith('_') == True:
             return False
         if callable(getattr(self, key)):
             return False
@@ -73,7 +77,7 @@ class Model(object):
                 path_args or self._path_args, kwargs or self._kwargs, id or self._id)
             entity = datastore.Entity(key=key, **options)
         data = {key: self._get_attr(key=key)
-                for key in filter(self._filter, dir(self))}
+                for key in dir(self) if self._filter(key) == True}
 
         entity.update(data)
         return entity
@@ -132,6 +136,7 @@ class Model(object):
 
 
 def put_multi(models: List[Model]):
+
     entities = [model.get_entity() for model in models]
     get_client().put_multi(entities)
     return entities

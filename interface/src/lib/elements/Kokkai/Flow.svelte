@@ -1,7 +1,9 @@
 <script>
+  import { setBaseurl } from "$lib/url/text";
   import FlowWithTextList from "../Flow/FlowWithTextList.svelte";
 
   import { onMount } from "svelte";
+  setBaseurl("/speech/");
   export let data;
   let _isMounted = false;
 

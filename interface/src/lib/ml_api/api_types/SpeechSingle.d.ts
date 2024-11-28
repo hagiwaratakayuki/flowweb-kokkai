@@ -5,13 +5,11 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type MeetingId = string;
-export type Meeting = string;
 export type Speaker = string;
 export type SpeakerId = string;
 export type ResponseTo = string | null;
 export type ResponseFrom = string | null;
-export type DiscussionId = string | null;
+export type DiscussionId = string;
 export type Url = string;
 export type Order = number;
 export type Session = number;
@@ -21,13 +19,11 @@ export type Body = string;
 
 export interface SpeechSingle {
   id: Id;
-  meeting_id: MeetingId;
-  meeting: Meeting;
   speaker: Speaker;
   speaker_id: SpeakerId;
-  response_to?: ResponseTo;
-  response_from?: ResponseFrom;
-  discussion_id?: DiscussionId;
+  response_to: ResponseTo;
+  response_from: ResponseFrom;
+  discussion_id: DiscussionId;
   url: Url;
   order: Order;
   session: Session;

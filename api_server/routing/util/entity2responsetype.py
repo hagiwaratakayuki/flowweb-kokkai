@@ -10,10 +10,10 @@ def entity2responsetype_list(responsetype, entities: Iterable[Entity], id_key='i
 def entity2responsetype(responsetype, e: Entity, id_key='id', properties=None):
     _properties = properties or propertypicker(responsetype)
     ret = {}
-    ret[id_key] = e.id
+    ret[id_key] = e.key.id_or_name
     ret.update({k: e.get(k) for k in _properties})
     return ret
 
 
-def propertypicker(responsetype):
-    return [k for k in get_type_hints(responsetype).keys() if k != 'id' and k.find('_') != 0]
+def propertypicker(responsetype, id_key='id'):
+    return [k for k in get_type_hints(responsetype).keys() if k != id_key and k.find('_') != 0]

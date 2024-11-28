@@ -21,5 +21,5 @@ class Speech(Model):
 
     def __init__(self, id=None) -> None:
         entity_options = {
-            "exclude_from_indexes": ("text", "url", "order", "meeting")}
+            "exclude_from_indexes": ("text", "url", "order",)}
         super().__init__(id, entity_options)

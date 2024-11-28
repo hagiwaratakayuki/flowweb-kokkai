@@ -14,11 +14,11 @@ class Meeting(Model):
     name: str
     url: str
     pdf: str
-    session: int
     header_text: str
-    moderators: str
+    moderators: dict
     moderator_ids: List[str]
     keywords: List[str]
+    house: str
 
     def __init__(self, id=None) -> None:
         entity_options = {

@@ -35,7 +35,9 @@ def get_targets(module, modpath: str):
             member_name,
             getattr(module, 'Base'),
             getattr(module, 'unpicks', []),
-            getattr(module, 'extend_map', {})
+            getattr(module, 'extend_map', {}),
+            getattr(module, 'picks', [])
+
         ]
     ]
 

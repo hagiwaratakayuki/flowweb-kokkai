@@ -14,7 +14,7 @@ WRITE_START_MAP = {}
 
 
 class ChunkedBatchSaver:
-    def __init__(self, size: int = 30):
+    def __init__(self, size: int = 50):
 
         self.size = size
 
@@ -32,6 +32,7 @@ class ChunkedBatchSaver:
             return self._put_chunk(is_return=is_return)
 
     def close(self, is_return=True):
+
         if self.chunk_count > 0:
             return self._put_chunk(is_force=True, is_return=is_return)
 
@@ -40,26 +41,32 @@ class ChunkedBatchSaver:
         now = time.time()
 
         chunk = self._clear_chunk()
+
+        return put_multi(chunk)
+        """"
         self._weightings.append(chunk)
         self._weightings_count += self.size
         write_limit = LIMIT_MAP.get(self._model.get_kind(), START_LIMIT)
         is_time_over = self._prev_call_time > 0.0 and now - self._prev_call_time > 1.0
-        if is_force == False and is_time_over == False and self._weightings_count + self.size < write_limit:
+        if is_force == False and (is_time_over == False or self._weightings_count + self.size < write_limit):
             return
         write_start = WRITE_START_MAP.get(self._model.get_kind(), 0)
         if write_start == 0:
             WRITE_START_MAP[self._model.get_kind()] = now
         else:
-            LIMIT_MAP[self._model.get_kind()] = START_LIMIT * \
-                LIMIT_INCREASE_STEP ** math.floor(
-                (now - write_start) / LIMIT_INCREASE_TIME)
+            LIMIT_MAP[self._model.get_kind()] = min(START_LIMIT *
+                                                    LIMIT_INCREASE_STEP ** math.floor(
+                                                        (now - write_start) / LIMIT_INCREASE_TIME), )
         weightings = self._clear_weigtings()
-        return asyncio.run(self._put_waitings(weightings=weightings, is_return=is_return))
+        
+        return asyncio.run(self._put_waitings(weightings=weightings, is_return=is_return))"""
 
     async def _put_waitings(self, weightings, is_return=True):
         now = time.time()
         from_prev_time = now - self._prev_call_time
+
         if from_prev_time < 1.0:
+
             await asyncio.sleep(from_prev_time)
             now = time.time()
         self._prev_call_time = now
@@ -89,4 +96,5 @@ class ChunkedBatchSaver:
     async def _put_multi(self, chunk):
 
         await asyncio.sleep(0)
+
         return put_multi(chunk)

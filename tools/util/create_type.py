@@ -1,3 +1,4 @@
+from ast import List
 from collections import deque
 from re import U
 from pydantic import BaseModel
@@ -23,7 +24,7 @@ def create_type(base, unpicks=[], extend_map: dict = {}, name_template='', exten
     return type(name, extends_from, value_map)
 
 
-def create_annotations(base, unpicks=[], extend_map: dict = {}):
+def create_annotations(base, unpicks=[], extend_map: dict = {}, picks: List = []):
 
     annotations = {}
     base_checked = {}
@@ -56,6 +57,9 @@ def create_annotations(base, unpicks=[], extend_map: dict = {}):
                 value_map[k] = getattr(_base, k)
 
     annotations = exec_unpick(target=annotations, unpicks=unpicks)
+
+    if len(picks) > 0:
+        annotations = {k: annotations[k] for k in picks}
 
     for k, v in extend_map.items():
         if not isinstance(v, dict):

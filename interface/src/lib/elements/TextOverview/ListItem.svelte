@@ -33,7 +33,7 @@
   bind:this={element}
   on:mouseenter={onMouseEnter}
 >
-  <a href="/text/{overview.id}" class:selected={isSelected}>
+  <a href={getUrl(overview.id)} class:selected={isSelected}>
     {overview.title.slice(0, 15)}...
   </a>
 </li>

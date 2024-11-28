@@ -29,10 +29,11 @@ async def data(id: Union[int, str]):
         ClusterOverview, cluster_entities), 'cursor': cursor}
     discussion = None
     if 'discussion_id' in speech:
-        discussion = await get_by_discussion_async(speech['discussion_id'])
-        discussion = entity2responsetype(SpeechOverview, speech)
+        discussion_enitties = await get_by_discussion_async.fech(speech['discussion_id'])
+        discussions = entity2responsetype_list(
+            SpeechOverview, discussion_enitties)
 
-    return dict(speech=speech, clusters=clusters, discussion=discussion)
+    return dict(speech=speech, clusters=clusters, discussion=discussions)
 
 
 routing_tuple = get_routing_tuple(__file__, router)

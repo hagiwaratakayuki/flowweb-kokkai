@@ -78,7 +78,7 @@ def generate(target_directry='./api_server/db',
              class_template: TemplateCls = default_class_template,
              module_template: TemplateCls = default_module_template,
              get_targets_func: Callable[[
-                 Any, str], Iterable[Tuple[str, type,  list[str], Dict]]] = get_targets,
+                 Any, str], Iterable[Tuple[str, type, list[str], Dict]]] = get_targets,
              import_contract=default_import_contract,
              alias_contract=default_alias_contract
              ):
@@ -109,10 +109,10 @@ def generate(target_directry='./api_server/db',
             imported_modules = defaultdict(dict)
             required_imports = []
             class_strs = []
-            for member_name, target, unpicks, extend_map in get_targets_func(mod, modpath):
+            for member_name, target, unpicks, extend_map, picks in get_targets_func(mod, modpath):
 
                 annotations, value_map = create_type.create_annotations(
-                    base=target, unpicks=unpicks, extend_map=extend_map)
+                    base=target, unpicks=unpicks, extend_map=extend_map, picks=picks)
                 properties = []
 
                 for name, type_cls in annotations.items():
