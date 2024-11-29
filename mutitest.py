@@ -12,7 +12,9 @@ import asyncio
 
 
 async def test():
-    await asyncio.sleep(1)
+    cor = asyncio.sleep(5)
+    await cor
+    print('ok')
 
 
 async def asyncrunner():
@@ -22,11 +24,13 @@ async def asyncrunner():
     for i in range(1, 10 ** 5):
         cors.append(test())
     print(time.time() - start)
+    start = time.time()
     await asyncio.gather(*cors)
+    print(time.time() - start)
 
 
 def main():
-    asyncio.run(asyncrunner())
+    asyncio.run(test())
 
 
 main()

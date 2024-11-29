@@ -61,11 +61,11 @@
         <dt>発言者</dt>
         <dd>{data.speech.speaker}</dd>
         <dt>委員会</dt>
-        <dd>{data.speech.house} {data.speech.meeting}</dd>
-        <dt>回次</dt>
-        <dd>第{data.speech.session}回国会</dd>
-        <dt>号数</dt>
-        <dd>{data.speech.issue}</dd>
+        <dd>
+          <span class="pr-2">第{data.meeting.session}回</span><span class="pr-2"
+            >{data.meeting}</span
+          ><span> {data.meeting.name}</span>
+        </dd>
       </dl>
       <p>
         <a href={data.speech.url} target="_blank">この発言を会議録で見る</a>

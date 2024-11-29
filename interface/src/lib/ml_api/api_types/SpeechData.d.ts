@@ -5,15 +5,15 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type Speaker = string;
-export type SpeakerId = string;
+export type MeetingId = string;
+export type Meeting = string;
 export type ResponseTo = string | null;
 export type ResponseFrom = string | null;
 export type DiscussionId = string;
 export type Url = string;
 export type Order = number;
 export type Session = number;
-export type Issue = string;
+export type Issue = number;
 export type House = string;
 export type Body = string;
 export type Title = string;
@@ -26,27 +26,23 @@ export type Clusters = ClusterOverview[];
 export type Cursor = string | null;
 export type Discussion = SpeechOverview[] | null;
 export type Title1 = string;
-export type MeetingId = string;
-export type Meeting = string;
-export type Speaker1 = string;
-export type SpeakerId1 = string;
-export type Session2 = number;
-export type Issue1 = number;
-export type Name = string;
+export type MeetingId1 = string;
+export type Meeting1 = string;
+export type Speaker = string;
+export type SpeakerId = string;
 export type Keywords1 = string[] | null;
 
 export interface SpeechData {
   speech: SpeechSingle;
   clusters: ClusterOverviews;
   discussion?: Discussion;
-  meeting: MeetingOveriew;
   keywords: Keywords1;
   [k: string]: unknown;
 }
 export interface SpeechSingle {
   id: Id;
-  speaker: Speaker;
-  speaker_id: SpeakerId;
+  meeting_id: MeetingId;
+  meeting: Meeting;
   response_to: ResponseTo;
   response_from: ResponseFrom;
   discussion_id: DiscussionId;
@@ -82,22 +78,12 @@ export interface Id1 {
 export interface SpeechOverview {
   id: Id2;
   title: Title1;
-  meeting_id: MeetingId;
-  meeting: Meeting;
-  speaker: Speaker1;
-  speaker_id: SpeakerId1;
+  meeting_id: MeetingId1;
+  meeting: Meeting1;
+  speaker: Speaker;
+  speaker_id: SpeakerId;
   [k: string]: unknown;
 }
 export interface Id2 {
-  [k: string]: unknown;
-}
-export interface MeetingOveriew {
-  id: Id3;
-  session: Session2;
-  issue: Issue1;
-  name: Name;
-  [k: string]: unknown;
-}
-export interface Id3 {
   [k: string]: unknown;
 }

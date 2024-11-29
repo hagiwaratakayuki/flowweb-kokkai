@@ -6,7 +6,9 @@ extend_map = {
 }
 unpicks = [
     'title',
-    'meeting',
-    'meeting_id'
+    'speaker',
+    'speaker_id',
+    'sortkey'
+
 
 ]

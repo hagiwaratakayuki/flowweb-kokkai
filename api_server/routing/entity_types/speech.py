@@ -2,7 +2,6 @@
 from .basetype import BaseType
 
 
-
 class Speech(BaseType):
     title: str
     meeting_id: str
@@ -17,5 +16,3 @@ class Speech(BaseType):
     session: int
     issue: str
     house: str
-
-

@@ -16,10 +16,11 @@ class Speech(Model):
     url: str
     order: int
     session: int
-    issue: str
+    issue: int
     house: str
+    sortkey: str
 
     def __init__(self, id=None) -> None:
         entity_options = {
-            "exclude_from_indexes": ("text", "url", "order",)}
+            "exclude_from_indexes": ("text", "url", "order", 'issue')}
         super().__init__(id, entity_options)

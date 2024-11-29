@@ -6,11 +6,13 @@ from pydantic import BaseModel
 
 
 
-class MeetingOveriew(BaseModel):
+class SpeakerSingle(BaseModel):
     id:Any
-    session: int
-    issue: int
     name: str
+    group: str
+    position: str
+    session: int
+    role: str
     house: str
 
 

@@ -5,7 +5,7 @@ import numpy as np
 from typing import Literal, Optional, Union
 
 
-from .query.node import get_all_summary, get_linked_node as linked_node, get_node_keyword
+from .query.node import get_all_summary, get_linked_node as linked_node
 
 from .query.cluster import get_clusters_by_node
 
@@ -107,7 +107,7 @@ def get_entity_all(id: int) -> NodeFull:  # type: ignore
                    for link_to_id in entity.get('link_to', [])]
     link_to = [NodeOverview(id=e.id or e.key.name, **e)
                for e in Node.get_multi(link_to_ids) or []]  # type: ignore
-    keywords = get_node_keyword.fetch(node_id=id)
+    keywords = entity['keywords']
     linked_from_entities, linked_from_next = linked_node.fetch(node_id=id)
     linked_from = [NodeOverview(id=e.id or e.key.name, **e)
                    for e in linked_from_entities or []]  # type: ignore

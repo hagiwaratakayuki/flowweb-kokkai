@@ -118,6 +118,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         role = speaker.get('role', '')
         speaker['session'] = session
         speaker['house'] = house
+
         _speaker_name_to_data[name] = {'id': hashlib.md5('_'.join(
             [str_session, house, name, group, position, role]).encode()).hexdigest(), 'speaker': speaker}
     meeting['moderators'] = {name: _speaker_name_to_data[name]
@@ -138,12 +139,14 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.published = meeting['start']
         dto.house = meeting['house']
         dto.meeting_id = meeting['id']
+
         yield dto
         speechData['speaker_id'] = dto.author_id
         speechData['meeting_id'] = meeting["id"]
         speechData['meeting'] = meeting['name']
         speechData['title'] = dto.title
         speechData['house'] = house
+        speechData['issue'] = issue
         speeches.append(speechData)
 
     for v in _speaker_name_to_data.values():

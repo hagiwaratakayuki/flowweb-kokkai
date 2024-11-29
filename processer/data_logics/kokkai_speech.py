@@ -21,6 +21,9 @@ class Saver:
             model.speaker_id = data['speaker_id']
             model.title = data['title']
             model.house = data['house']
+            model.issue = data['issue']
+            model.sortkey = '_'.join(
+                [str(k) for k in [session, data['issue'], data['order']]])
             if "response_to" in data:
 
                 model.response_to = data['response_to']

@@ -5,16 +5,20 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type Session = number;
-export type Issue = number;
 export type Name = string;
+export type Group = string;
+export type Position = string;
+export type Session = number;
+export type Role = string;
 export type House = string;
 
-export interface MeetingOveriew {
+export interface SpeakerSingle {
   id: Id;
-  session: Session;
-  issue: Issue;
   name: Name;
+  group: Group;
+  position: Position;
+  session: Session;
+  role: Role;
   house: House;
   [k: string]: unknown;
 }
