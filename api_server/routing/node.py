@@ -5,7 +5,7 @@ import numpy as np
 from typing import Literal, Optional, Union
 
 
-from .query.node import get_all_summary, get_linked_node as linked_node
+from .query.node import get_all_summary, get_link_from_node as linked_node
 
 from .query.cluster import get_clusters_by_node
 
@@ -135,7 +135,7 @@ def get_clusters(id: str, cursor: Optional[str] = None) -> ClusterOverviews:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
     clusters = [ClusterOverview(id=e.id, **e)
                 for e in cluster_entities]  # type: ignore
-    return ClusterOverviews(clusters=clusters, cursor=next_cursor)
+    return ClusterOverviews(overviews=clusters, cursor=next_cursor)
 
 
 @router.get('/get_linked_node', response_model=NodeOverviews, response_model_exclude_none=True)

@@ -3,6 +3,8 @@
 }
 body {
     background-color: #fbfaf5 !important;
+    font-family:"UD デジタル 教科書体 NK-R" system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
 }
 .section_header {
     border-left: solid 0.25em #00062a;
@@ -63,4 +65,8 @@ body {
     height: 0px;
     position: sticky;
     top: 0;
+}
+
+.h-80vh {
+    height:80vh
 }

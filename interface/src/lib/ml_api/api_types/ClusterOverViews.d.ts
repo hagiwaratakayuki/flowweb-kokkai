@@ -11,11 +11,11 @@ export type Keywords = string[];
 export type Weight = number;
 export type TotalWeight = number;
 export type Session = number;
-export type Clusters = ClusterOverview[];
+export type Overviews = ClusterOverview[];
 export type Cursor = string | null;
 
 export interface ClusterOverviews {
-  clusters: Clusters;
+  overviews: Overviews;
   cursor: Cursor;
   [k: string]: unknown;
 }

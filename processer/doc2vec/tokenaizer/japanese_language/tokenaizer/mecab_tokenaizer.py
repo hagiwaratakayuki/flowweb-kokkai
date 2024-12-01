@@ -17,7 +17,7 @@ class MeCabTokenazier(TokenazierTemplate):
     def _parse(self, text):
         filter = ["", "EOS"]
         results = deque()
-        print(text)
+
         for resultline in tagger.parse(text).splitlines():
             print(resultline)
             if resultline in filter:

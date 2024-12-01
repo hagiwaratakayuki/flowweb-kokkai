@@ -1,10 +1,12 @@
+import asyncio
 from db.proxy import Node
 from typing import Optional, Union
 from ..pattern import cursorfetch, flag_keys_only
 
 
-def fetch(node_id: Union[str, int], is_keys_only=False, cursor: Optional[str] = None, limit: int = 10):
+async def fetch(node_id: Union[str, int], is_keys_only=False, cursor: Optional[str] = None, limit: int = 10):
 
+    await asyncio.sleep(0)
     query = Node.query()
     query.add_filter('link_to', '=', node_id)
     query.order = ["linked_count"]

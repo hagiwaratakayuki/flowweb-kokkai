@@ -1,6 +1,10 @@
 
 
-from typing import Optional, List
+from typing import Literal, Optional, List, Union
+
+from ..node.overview import NodeOverview
+
+from ..node.overviews import NodeOverviews
 
 
 from .overview import SpeechOverview
@@ -17,3 +21,5 @@ class SpeechData(BaseModel):
     discussion: Optional[List[SpeechOverview]] = None
     keywords: Optional[List[str]]
     speaker: SpeakerSingle
+    link_from: NodeOverviews
+    link_to: List[NodeOverview]

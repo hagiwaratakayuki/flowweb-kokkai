@@ -22,7 +22,7 @@ export type Keywords = string[];
 export type Weight = number;
 export type TotalWeight = number;
 export type Session1 = number;
-export type Clusters = ClusterOverview[];
+export type Overviews = ClusterOverview[];
 export type Cursor = string | null;
 export type Discussion = SpeechOverview[] | null;
 export type Title1 = string;
@@ -31,12 +31,35 @@ export type Meeting1 = string;
 export type Speaker = string;
 export type SpeakerId = string;
 export type Keywords1 = string[] | null;
+export type Name = string;
+export type Group = string;
+export type Position = string;
+export type Session2 = number;
+export type Role = string;
+export type House1 = string;
+export type Cursor1 = string | false;
+export type Data = string;
+export type Author = string;
+export type AuthorId = string;
+export type LinkTo = string[] | null;
+export type Published = string;
+export type Title2 = string;
+export type PublishedList = string[];
+export type Keywords2 = string[];
+export type House2 = string;
+export type Session3 = number;
+export type Position1 = string | number;
+export type Nodes = NodeOverview[];
+export type LinkTo1 = NodeOverview[];
 
 export interface SpeechData {
   speech: SpeechSingle;
   clusters: ClusterOverviews;
   discussion?: Discussion;
   keywords: Keywords1;
+  speaker: SpeakerSingle;
+  link_from: NodeOverviews;
+  link_to: LinkTo1;
   [k: string]: unknown;
 }
 export interface SpeechSingle {
@@ -58,7 +81,7 @@ export interface Id {
   [k: string]: unknown;
 }
 export interface ClusterOverviews {
-  clusters: Clusters;
+  overviews: Overviews;
   cursor: Cursor;
   [k: string]: unknown;
 }
@@ -85,5 +108,41 @@ export interface SpeechOverview {
   [k: string]: unknown;
 }
 export interface Id2 {
+  [k: string]: unknown;
+}
+export interface SpeakerSingle {
+  id: Id3;
+  name: Name;
+  group: Group;
+  position: Position;
+  session: Session2;
+  role: Role;
+  house: House1;
+  [k: string]: unknown;
+}
+export interface Id3 {
+  [k: string]: unknown;
+}
+export interface NodeOverviews {
+  cursor: Cursor1;
+  nodes: Nodes;
+  [k: string]: unknown;
+}
+export interface NodeOverview {
+  id: Id4;
+  data: Data;
+  author: Author;
+  author_id: AuthorId;
+  link_to: LinkTo;
+  published: Published;
+  title: Title2;
+  published_list: PublishedList;
+  keywords: Keywords2;
+  house: House2;
+  session: Session3;
+  position: Position1;
+  [k: string]: unknown;
+}
+export interface Id4 {
   [k: string]: unknown;
 }

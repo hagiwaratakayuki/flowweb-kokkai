@@ -1,5 +1,5 @@
 <script>
-  import { setBaseurl } from "$lib/url/text";
+  import { setBaseurl } from "$lib/url/basic/text";
   import FlowWithTextList from "../Flow/FlowWithTextList.svelte";
 
   import { onMount } from "svelte";

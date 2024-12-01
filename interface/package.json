@@ -21,6 +21,7 @@
 		"@histoire/plugin-svelte": "^0.17.9",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.1.1",
+		"@sveltejs/adapter-node": "^5.2.9",
 		"@sveltejs/kit": "^2.0.0",
 		"eslint": "^8.28.0",
 		"eslint-plugin-svelte": "^2.30.0",

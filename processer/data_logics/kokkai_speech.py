@@ -9,28 +9,28 @@ class Saver:
 
     def save(self, session, speeches):
 
-        for data in speeches:
+        for speech in speeches:
 
-            model = Speech(id=data['id'])
+            model = Speech(id=speech['id'])
             model.session = session
-            model.meeting_id = data['meeting_id']
-            model.meeting = data['meeting']
-            model.url = data['url']
-            model.order = data['order']
-            model.speaker = data['speaker']
-            model.speaker_id = data['speaker_id']
-            model.title = data['title']
-            model.house = data['house']
-            model.issue = data['issue']
+            model.meeting_id = speech['meeting_id']
+            model.meeting = speech['meeting']
+            model.url = speech['url']
+            model.order = speech['order']
+            model.speaker = speech['speaker']
+            model.speaker_id = speech['speaker_id']
+            model.title = speech['title']
+            model.house = speech['house']
+            model.issue = speech['issue']
             model.sortkey = '_'.join(
-                [str(k) for k in [session, data['issue'], data['order']]])
-            if "response_to" in data:
+                [str(k) for k in [session, speech['issue'], speech['order']]])
+            if "response_to" in speech:
 
-                model.response_to = data['response_to']
-            if "response_from" in data:
-                model.response_from = data["response_from"]
-            if "discussion_id" in data:
-                model.discussion_id = data["discussion_id"]
+                model.response_to = speech['response_to']
+            if "response_from" in speech:
+                model.response_from = speech["response_from"]
+            if "discussion_id" in speech:
+                model.discussion_id = speech["discussion_id"]
             self.saver.put(model=model)
 
     def close(self):
