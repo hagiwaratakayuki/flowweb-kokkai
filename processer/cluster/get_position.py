@@ -21,7 +21,7 @@ def get_position(index2sentiments: dict[int, SentimentResult], cluster_members: 
         sumed_vecter += sentiment.vectors.neutral
         member_count += 1
     shape[0] = member_count
-    # type: ignore type length 4
+
     center_vecter = sumed_vecter / float(member_count)
     member_count = 0
     for member in cluster_members:
@@ -38,8 +38,8 @@ def get_position(index2sentiments: dict[int, SentimentResult], cluster_members: 
 
         member_count += 1
 
-    reguraized_center_vecter = sumed_vecter / \
-        (np.linalg.norm(sumed_vecter) or 1)  # type: ignore length 4
+    reguraized_center_vecter = center_vecter / \
+        (np.linalg.norm(center_vecter) or 1)
 
     vectors4direction = np.zeros(shape=shape)
 
@@ -50,12 +50,27 @@ def get_position(index2sentiments: dict[int, SentimentResult], cluster_members: 
         vectors4direction[index] = index2directionvector[index]
         vectors4position[index] = index2sentiments[index].vectors.neutral
 
-    directions = np.dot(vectors4direction, reguraized_center_vecter)
+    directions: np.ndarray = np.dot(
+        vectors4direction, reguraized_center_vecter)
+    plus_direction_index = directions >= 0
+    minus_direction_index = directions < -1
+    directions[plus_direction_index] = 1
+    directions[minus_direction_index] = -1
 
-    directions[directions >= 0] = 1
-    directions[directions < 0] = -1
     non_regued_distances = np.linalg.norm(
         vectors4position - center_vecter, axis=1)
-    max_distance = np.nanmax(non_regued_distances)
-    distances = (non_regued_distances / (max_distance or 1)) * directions
+
+    plus_max_norm = np.max(non_regued_distances[plus_direction_index]) or 1
+
+    minus_max_norm = np.max(non_regued_distances[minus_direction_index]) or 1
+
+    distances = non_regued_distances * directions
+    # 構成要素か一つしかない場合は強制的に0.5
+    if plus_direction_index.size[0] == 1:
+        plus_max_norm *= 2
+    if minus_direction_index.size[0] == 1:
+        minus_max_norm *= 2
+
+    distances[plus_direction_index] /= plus_max_norm
+    distances[minus_direction_index] /= minus_max_norm
     return distances

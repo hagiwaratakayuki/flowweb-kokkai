@@ -1,6 +1,7 @@
 
 from db.proxy import ClusterMember, Node
 from typing import Optional
+from ..pattern import cursorfetch
 
 
 def fetch(cluster_id: int, cursor: Optional[str] = None, limit: int = 100):
@@ -11,10 +12,8 @@ def fetch(cluster_id: int, cursor: Optional[str] = None, limit: int = 100):
     q.add_filter("cluster_id", "=", cluster_id)
     q.order = ['-linked_count']
     q.projection = ["node_id"]
-    itr = q.fetch(start_cursor=start_cursor, limit=limit)
-    next_page_token = None
-    if itr.next_page_token != None:
-        next_page_token = itr.next_page_token.decode("utf-8")
+    itr, next_page_token = cursorfetch.fetch(
+        query=q, cursor=cursor, limit=limit)
 
     return Node.get_multi([{"id": e["node_id"]} for e in itr]), next_page_token
 

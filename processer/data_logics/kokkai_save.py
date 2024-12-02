@@ -11,7 +11,7 @@ from .save import Logic
 from db.node_kokkai import NodeKokkai
 from db.kokkai_cluster import KokkaiCluster
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from db.kokkai_cluster_link import ClusterLink
+from db.kokkai_cluster_link import KokkaiClusterLink
 
 
 class KokkaiNodeLogic(NodeLogic):
@@ -71,13 +71,13 @@ class KokkaiLogic(Logic):
         super()._put_cluster_data(entities, members_chunk, cluster_keyword_chunk, index2id, linked_counts_map,
                                   member_model_chunk, index2published, taged, keyword_model_chunk, member_positions_chunk, weight_map)
         for entity, keywords in zip(entities, cluster_keyword_chunk):
-            eid = entity.id
+            eid = entity.key.id_or_name
             keywords_fset = frozenset(keywords)
             self._next_link[keywords_fset].append((self.session, eid,))
             if keywords_fset in self._link_map:
 
                 for session, cluster_id in self._link_map[keywords_fset]:
-                    link_model = ClusterLink()
+                    link_model = KokkaiClusterLink()
                     if session > self.session:
                         link_model.from_cluster = eid
                         link_model.to_cluster = cluster_id

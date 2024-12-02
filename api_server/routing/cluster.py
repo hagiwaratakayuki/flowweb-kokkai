@@ -10,6 +10,7 @@ from routing.return_models.types.node.overview import NodeOverview
 from routing.return_models.types.node.overviews import NodeOverviews
 from .util import entity2responsetype
 from .router import get_routing_tuple
+from .return_models.types.cluster.data import ClusterData
 from typing import Optional
 router = APIRouter()
 
@@ -21,12 +22,12 @@ class ClusterFull(BaseModel):
     member_count: int
 
 
-@router.get('/entity_all', response_model=ClusterFull, response_model_exclude_none=True)
-def get_entity_all(id: int) -> ClusterFull:
+@router.get('/data', response_model=ClusterFull, response_model_exclude_none=True)
+def get_entity_all(id: int) -> ClusterData:
     entity = Cluster.get(id=id)
     if entity == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
-    keywords = get_cluster_by_keyword.fetch(cluster_id=id)
+
     members_entities, members_list_next = get_cluster_member.fetch(
         cluster_id=id)
     members_list: Optional[list] = None

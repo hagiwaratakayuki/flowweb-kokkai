@@ -2,6 +2,7 @@
 from functools import reduce
 from hashlib import md5
 import numpy as np
+
 import logging
 from db import cluster, cluster_member
 from multiprocessing import Pool

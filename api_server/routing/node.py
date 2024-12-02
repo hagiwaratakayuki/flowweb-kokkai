@@ -1,8 +1,8 @@
 import logging
 from fastapi import APIRouter, status
-import json
-import numpy as np
 from typing import Literal, Optional, Union
+
+from routing.components.adjast_to_view import adjast_to_view
 
 
 from .query.node import get_all_summary, get_link_from_node as linked_node
@@ -19,7 +19,6 @@ from typing import List, Optional
 from db.proxy import Node
 from application.error_hundling.status_exception import StatusException
 from .router import get_routing_tuple
-from data_types.position_data import PositionData
 
 
 none_type = type(None)
@@ -37,64 +36,8 @@ class NodeFull(NodeOverview):
 
 @router.get('/all_summary')
 async def all_as_vertex() -> List[NodeOverview]:  # type: ignore
-    index = 0.0
-    total_center: Optional[np.ndarray] = None
-    entity_map = {}
-    shape = [0, 0]
-    is_first = True
-
     itr = await get_all_summary.fetch()
-
-    for e in itr:
-
-        data: PositionData = json.loads(e['data'])['sentiment']
-
-        position = np.array(data['position'])
-
-        direction = np.array(data['direction'])
-        if is_first == True:
-            is_first = False
-            shape[1] = direction.shape[0]
-
-        if type(total_center) == none_type:
-            total_center = position
-        else:
-            total_center += position
-        entity_map[index] = {'entity': e,
-                             'position': position, 'direction': direction}
-        index += 1.0
-
-    totaldifference = 0.0
-    intindex = int(index)
-    shape[0] = intindex
-
-    direction_vectors = np.zeros(shape=shape)
-    positions_vectors = np.zeros(shape=shape)
-
-    for i in range(0, intindex):
-
-        direction_vectors[i] = entity_map[i]['direction']
-        positions_vectors[i] = entity_map[i]['position']
-    directions = np.dot(a=direction_vectors, b=total_center)  # type: ignore
-
-    plus_direction_index = directions >= 0.0
-    minus_direction_index = directions < 0.0
-    directions[plus_direction_index] = 1.0
-    directions[minus_direction_index] = -1.0
-    positions = np.linalg.norm(positions_vectors, axis=1)
-
-    plus_max_norm = np.max(positions[plus_direction_index])
-    minus_max_norm = np.max(positions[minus_direction_index])
-    positions *= directions
-    positions[plus_direction_index] /= plus_max_norm
-    positions[minus_direction_index] /= minus_max_norm
-    ret = [NodeOverview(
-        id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name,
-        position=positions[i],
-        **entity_map[i]['entity']
-    )
-        for i in range(0, intindex)]
-    return ret
+    return adjast_to_view(itr)
 
 
 @router.get('/entity_all', response_model=NodeFull, response_model_exclude_none=True)
