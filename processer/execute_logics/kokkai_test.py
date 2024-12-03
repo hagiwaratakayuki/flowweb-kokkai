@@ -29,8 +29,11 @@ class MyTestCase(unittest.TestCase):
     @patch('storage.meeting.download')
     def test_basic(self, meeting_download_mock: MagicMock, storage_mock: MagicMock, db_client_mock: MagicMock, kv_mock=MockKeyedVector):
         sideeffects = []
+
         with open(os.path.abspath('../testdata/kokkai/1-end.json'), "rb") as fp:
-            sideeffects.append([fp.read()])
+            mockdata = [fp.read()]
+            sideeffects.append(mockdata)
+            sideeffects.append(mockdata)
         sideeffects.append([])
         meeting_download_mock.side_effect = sideeffects
         execute()

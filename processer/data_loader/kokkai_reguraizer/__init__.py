@@ -1,4 +1,4 @@
-from data_loader.kokkai_reguraizer import kansuuji_houritu, kyujitai, jikosyoukai, kugirisenn, unicodedata, hattaraku, kyuu_kana
+from data_loader.kokkai_reguraizer import kansuuji_houritu, kyujitai, jikosyoukai, kugirisenn, unicodedata, hattaraku, kyuu_kana, child
 
 
 reguraizers = [
@@ -8,7 +8,8 @@ reguraizers = [
     kansuuji_houritu.convert,
     kyujitai.convert,
     hattaraku.convert,
-    kyuu_kana.convert
+    kyuu_kana.convert,
+    child.convert
 
 
 ]

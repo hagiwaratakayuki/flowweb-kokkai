@@ -19,7 +19,7 @@ class MeCabTokenazier(TokenazierTemplate):
         results = deque()
 
         for resultline in tagger.parse(text).splitlines():
-            print(resultline)
+
             if resultline in filter:
                 continue
 

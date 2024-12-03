@@ -59,17 +59,27 @@ def get_position(index2sentiments: dict[int, SentimentResult], cluster_members: 
 
     non_regued_distances = np.linalg.norm(
         vectors4position - center_vecter, axis=1)
-
-    plus_max_norm = np.max(non_regued_distances[plus_direction_index]) or 1
-
-    minus_max_norm = np.max(non_regued_distances[minus_direction_index]) or 1
+    plus_direction_distances = non_regued_distances[plus_direction_index]
+    if isinstance(plus_direction_distances.size, int) == True and plus_direction_distances.size == 0:
+        plus_max_norm = 1
+    else:
+        plus_max_norm = np.max(plus_direction_distances) or 1
+    minus_direction_distances = non_regued_distances[minus_direction_index]
+    if isinstance(minus_direction_distances.size, int) == True and minus_direction_distances.size == 0:
+        minus_max_norm = 1
+    else:
+        minus_max_norm = np.max(minus_direction_distances) or 1
 
     distances = non_regued_distances * directions
-    # 構成要素か一つしかない場合は強制的に0.5
-    if plus_direction_index.size[0] == 1:
+    # 構成要素が一つしかない場合は強制的に0.5、それ以外は最大で0.8
+    if isinstance(plus_direction_distances.size, int) == True and plus_direction_distances.size == 1:
         plus_max_norm *= 2
-    if minus_direction_index.size[0] == 1:
+    else:
+        plus_max_norm *= 1.25
+    if isinstance(minus_direction_distances.size, int) == True and minus_direction_distances.size == 1:
         minus_max_norm *= 2
+    else:
+        minus_max_norm *= 1.25
 
     distances[plus_direction_index] /= plus_max_norm
     distances[minus_direction_index] /= minus_max_norm

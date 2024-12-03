@@ -25,22 +25,21 @@ class JapaneseLanguageIndexer(Indexer):
             # print(specific_keyword.headword)
             if specific_keyword.is_force is False:
                 continue
-            keywords_dict[(specific_keyword.headword,)] = True
+
             keywords_dict.update(
-                {specific_keyword.to_tuple(): True})
+                [(k, True, ) for k in specific_keyword.to_extender()])
 
         for word in cand_words:
 
             try:
                 specific_keyword = specific_keywords[specific_keywords.index(
                     word)]
-                keywords_dict[(specific_keyword.headword,)] = True
                 keywords_dict.update(
-                    {specific_keyword.to_tuple(): True})
+                    [(k, True, ) for k in specific_keyword.to_extender()])
             except:
 
                 keywords_dict[(word,)] = True
 
         ret = remove_stopwords(['/'.join(kw) for kw in keywords_dict.keys()])
-        # print(ret)
+
         return ret

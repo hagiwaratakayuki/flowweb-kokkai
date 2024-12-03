@@ -5,32 +5,40 @@ import re
 
 
 class StringExtractor:
-    def __init__(self, word: str, is_force=True) -> None:
-        self.word = word
+    def __init__(self, words: Union[str, List[str]], is_force=True, result_words: Union[None, str, List[str]] = None) -> None:
+        if isinstance(words, str):
+            words = [words]
+
+        self.words = words
+        if isinstance(result_words, str):
+            result_words = [result_words]
+        self.result_words = result_words
         self.is_force = is_force
 
     def __call__(self, results: List[SpecificKeyword], parse_results: List, data) -> Any:
         line_number = 0
         line_numbers = deque()
         is_found = False
-
+        target_words = set()
         for line, tokens in parse_results:
-            if self.word in line:
-                is_found = True
-                line_numbers.append(line_number)
+            for word in self.words:
+                if word in line:
+                    is_found = True
+                    line_numbers.append(line_number)
+                    target_words.add(word)
 
             line_number += 1
         if is_found == True:
-
-            results.append(SpecificKeyword(headword=self.word,
-                           is_force=self.is_force, line_numbers=line_numbers))
+            for result_word in self.result_words:
+                results.append(SpecificKeyword(headword=result_word,
+                                               is_force=self.is_force, line_numbers=line_numbers, target_words=target_words))
         return results
 
 
 class RegexExtractor:
-    def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, list] = None, is_force=True) -> None:
+    def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, List[str]] = None, is_force=True) -> None:
         self.word_pt = word_pt
-        if isinstance(result_words, list) == False:
+        if isinstance(result_words, str) == True:
             result_words = [result_words]
 
         self.result_words = result_words
