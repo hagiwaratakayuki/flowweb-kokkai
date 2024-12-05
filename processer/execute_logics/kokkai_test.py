@@ -34,6 +34,12 @@ class MyTestCase(unittest.TestCase):
             mockdata = [fp.read()]
             sideeffects.append(mockdata)
             sideeffects.append(mockdata)
+        chunk = []
+        with open(os.path.abspath('../testdata/kokkai/212-end.json'), 'rb') as fp:
+            chunk.append(fp.read())
+        with open(os.path.abspath('../testdata/kokkai/212-plane.json'), 'rb') as fp:
+            chunk.append(fp.read())
+        sideeffects.append(chunk)
         sideeffects.append([])
         meeting_download_mock.side_effect = sideeffects
         execute()

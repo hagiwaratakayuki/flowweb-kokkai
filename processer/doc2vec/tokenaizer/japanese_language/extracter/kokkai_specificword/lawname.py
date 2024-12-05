@@ -175,7 +175,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 continue
             target_low.append((face, rank, ))
 
-        if len(line_lows) > 0 & (tail_rank is not None):
+        if len(line_lows) > 0 & (tail_rank is not None) & len(target_low) != 0:
             k = tuple(r[0] for r in target_low)
             low_index[k].add(line_number)
             low_index[k].update(waiting_line_numbers)
