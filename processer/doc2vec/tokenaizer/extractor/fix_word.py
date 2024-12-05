@@ -29,7 +29,7 @@ class StringExtractor:
 
             line_number += 1
         if is_found == True:
-            for result_word in self.result_words:
+            for result_word in (self.result_words or self.words):
                 results.append(SpecificKeyword(headword=result_word,
                                                is_force=self.is_force, line_numbers=line_numbers, target_words=target_words))
         return results

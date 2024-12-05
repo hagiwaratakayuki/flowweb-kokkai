@@ -191,7 +191,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         target_words = reverse_dict.get(headword, {})
 
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words)
+            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
         kws.append(kw)
 
     # pending

@@ -82,9 +82,18 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True:
                 context.set_noun(face, index)
                 continue
-            if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None:
-                k = (context.noun, face,)
-                noun_sahen[k].add(line_number)
+            if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None and face != "専用":
+                is_pass = False
+
+                # 「○○用」「○○専用」といった目的修飾的な用法を判定
+                parpus_taileds = [face + '用', face + '専用']
+
+                for parpuas_tailed in parpus_taileds:
+                    is_pass |= line.count(parpuas_tailed) == line.count(face)
+                if is_pass == False:
+
+                    k = (context.noun, face,)
+                    noun_sahen[k].add(line_number)
 
     # 複合語チェック(サ変接続)
     # 複合語チェック(名詞)
@@ -97,6 +106,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
     new_results: Deque[SpecificKeyword] = deque()
 
+    additional_results = deque()
     for keyword_obj in results:
 
         for key in keys:
@@ -112,10 +122,19 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
             if keyword_obj == noun:
                 if keyword_obj != sahen:
-                    keyword_obj.add_subword(sahen)
+                    if keyword_obj.is_allow_add_multiple_subword == False and len(keyword_obj.subwords) > 0:
+                        new_keyword_obj = keyword_obj.clone()
+                        new_keyword_obj.clear_subword()
+                        new_keyword_obj.add_subword(sahen)
+                        additional_results.append(new_keyword_obj)
+
+                    else:
+                        keyword_obj.add_subword(sahen)
                 noun_sahen[key] -= inter
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
 
+    results.extend(additional_results)
+    additional_results = deque()
     for keyword_obj in results:
 
         for key in keys:
@@ -137,7 +156,9 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     if position == 0:
                         keyword_obj.line_numbers -= inter
                         noun_sahen[(noun, keyword_obj.headword,)] = inter
+
         if keyword_obj.line_numbers != empty_set:
+
             new_results.append(keyword_obj)
 
     additional_kws = deque()
@@ -153,22 +174,22 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
             if inter == empty_set:
                 continue
+            if keyword_obj.is_allow_add_multiple_subword == True:
+                try:
 
-            try:
-
-                subword_link_index = keyword_obj.subwords.index(noun)
-                noun_sahen[key] -= inter
-                if subword_link_index < len(keyword_obj.subwords) - 1:
-                    new_keword_obj = keyword_obj.clone()
-                    new_keword_obj.clear_subword()
-                    new_subword = keyword_obj.subwords[:subword_link_index + 1] + [
-                        sahen]
-                    new_keword_obj.add_subword(new_subword)
-                    additional_kws.append(new_keword_obj)
-                else:
-                    keyword_obj.add_subword(sahen)
-            except:
-                continue
+                    subword_link_index = keyword_obj.subwords.index(noun)
+                    noun_sahen[key] -= inter
+                    if subword_link_index < len(keyword_obj.subwords) - 1:
+                        new_keword_obj = keyword_obj.clone()
+                        new_keword_obj.clear_subword()
+                        new_subword = keyword_obj.subwords[:subword_link_index + 1] + [
+                            sahen]
+                        new_keword_obj.add_subword(new_subword)
+                        additional_kws.append(new_keword_obj)
+                    else:
+                        keyword_obj.add_subword(sahen)
+                except:
+                    continue
 
     new_results.extend(additional_kws)
 

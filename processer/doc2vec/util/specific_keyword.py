@@ -17,15 +17,17 @@ class SpecificKeyword:
     headword: str
     subwords: List[str]
     is_fixed_headword: bool
+    is_allow_add_multiple_subword: bool
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
     line_numbers: set[int]
 
-    def __init__(self, headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False) -> None:
+    def __init__(self, headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.line_numbers = set(line_numbers)
+        self.is_allow_add_multiple_subword = is_allow_add_multiple_subword
 
         self._tuple = None
 
@@ -47,6 +49,7 @@ class SpecificKeyword:
 
         ret._target_words = self._target_words
 
+        ret.line_numbers = self.line_numbers.copy()
         return ret
 
     def __eq__(self, __value: object) -> bool:

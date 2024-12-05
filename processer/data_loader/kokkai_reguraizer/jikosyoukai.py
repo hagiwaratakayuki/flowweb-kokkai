@@ -2,7 +2,7 @@ def convert(text: str, speechData):
 
     splited = text.split('。')
     firstline = splited[0]
-    speaker = speechData['speaker']
+    speaker = speechData.get('speaker', '')
     is_jikosyoukai = False
     l = len(speaker)
     for i in range(0, l):
