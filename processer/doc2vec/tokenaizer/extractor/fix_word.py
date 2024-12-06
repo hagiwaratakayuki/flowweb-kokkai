@@ -1,6 +1,6 @@
 from collections import defaultdict, deque
 from typing import List, Any, Optional, Union
-from ...util.specific_keyword import SpecificKeyword
+from ...util.specific_keyword import BindSpecificKeyword, SpecificKeyword
 import re
 
 
@@ -53,17 +53,20 @@ class RegexExtractor:
             if checked is not None:
                 if self.result_words is not None:
                     headwords = self.result_words
-                    target_word = checked.group(0)
+                    headword = checked.group(0)
+
                 else:
-                    headwords = [checked.group(0)]
-                    target_word = None
-                for headword in headwords:
+                    headwords = None
+                    headword = checked.group(0)
 
-                    headword_to_line_numbers[(
-                        headword, target_word)].append(line_number)
+                headword_to_line_numbers[(
+                    headwords, headword)].append(line_number)
         for key, line_numbers in headword_to_line_numbers.items():
-            headword, target_word = key
-            results.append(SpecificKeyword(
-                headword=headword, is_force=self.is_force, target_words=target_word, line_numbers=line_numbers))
-
+            headwords, headword = key
+            if headwords is None:
+                results.append(SpecificKeyword(
+                    headword=headword, is_force=self.is_force, line_numbers=line_numbers))
+            else:
+                results.append(BindSpecificKeyword(
+                    headwords=headwords, headword=headword, is_force=self.is_force, line_numbers=line_numbers, is_fixed_headword=True))
         return results

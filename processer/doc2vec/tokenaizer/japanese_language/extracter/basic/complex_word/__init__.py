@@ -13,7 +13,7 @@ from doc2vec.tokenaizer.japanese_language.extracter.components.rule import symbo
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.usual_and_sahen import check_ususal_and_sahen
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.valid_noun_jp import check_valid_noun
 from doc2vec.tokenaizer.japanese_language.extracter.components.regex_patterns import kanji_only
-from doc2vec.tokenaizer.japanese_language.extracter.components.regex_patterns import hiragana_only
+from doc2vec.tokenaizer.japanese_language.extracter.components.regex_patterns import hiragana_include
 
 from ...components.regex_patterns.hiragana_2or1 import hiragana_2or1_pt
 
@@ -60,7 +60,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
             complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)
         line_number += 1
         for face, data in tokens:
-            if hiragana_only.pattern.search(face):
+            if hiragana_include.pattern.search(face):
 
                 _add_to_complexword_set(
                     complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)

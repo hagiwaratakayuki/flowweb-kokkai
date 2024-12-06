@@ -1,5 +1,7 @@
 from typing import Iterator, List, Union, Tuple, Set
 
+from httpx import head
+
 
 class EqIn:
     def __init__(self, value, ) -> None:
@@ -99,3 +101,19 @@ class SpecificKeyword:
 
     def clear_subword(self):
         self.subwords = []
+
+
+class BindSpecificKeyword(SpecificKeyword):
+    def __init__(self, headwords: List[str], headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+        self._headwords = tuple(headwords)
+
+        super().__init__(headword, subwords, is_force, target_words,
+                         line_numbers, is_fixed_headword, is_allow_add_multiple_subword)
+
+    def to_extender(self):
+
+        ret = [(headword, ) for headword in self._headwords]
+        if len(self.subwords) != 0:
+            subwords = self._flatten(self.subwords, [])
+            ret += [headtuple + subwords for headtuple in subwords]
+        return ret

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from data_types.position_data import PositionData
-from routing.node import none_type
+
 from routing.return_models.types.node.overview import NodeOverview
 
 
@@ -28,7 +28,7 @@ def adjast_to_view(itr) -> List[NodeOverview]:
             is_first = False
             shape[1] = direction.shape[0]
 
-        if type(total_center) == none_type:
+        if total_center is None:
             total_center = position
         else:
             total_center += position
@@ -36,7 +36,6 @@ def adjast_to_view(itr) -> List[NodeOverview]:
                              'position': position, 'direction': direction}
         index += 1.0
 
-    totaldifference = 0.0
     intindex = int(index)
     shape[0] = intindex
 

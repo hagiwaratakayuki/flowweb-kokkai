@@ -8,13 +8,14 @@ import regex as re
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.valid_noun_jp import check_valid_noun
 from doc2vec.tokenaizer.japanese_language.extracter.components.rule.usual_and_sahen import check_ususal_and_sahen
-from ..components.regex_patterns.hiragana_2or1 import hiragana_2or1_pt
+from ..components.regex_patterns import hiragana_include
 
 eiji = re.compile(r'^\w+$', re.A)
 kigou = re.compile(r'^\W+$')
 meishi_blockpattern = re.compile(r'[所々様]$')
 sahen_blockpattern = re.compile('^お')
 一般と固有名詞 = {'一般', '固有名詞'}
+目的修飾接尾語 = {'専用'}
 
 
 class Context:
@@ -51,8 +52,10 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     for line, tokens in parse_results:
         context.clear()
         line_number += 1
-        index = -1
 
+        tokens_list = list(tokens)
+        lentokens = len(tokens)
+        index = -1
         for face, data in tokens:
 
             index += 1
@@ -79,21 +82,24 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 context.set_noun(face, index)
                 continue
-            if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True:
+            if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True and hiragana_include.pattern.search(face) == None:
                 context.set_noun(face, index)
                 continue
             if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None and face != "専用":
                 is_pass = False
 
-                # 「○○用」「○○専用」といった目的修飾的な用法を判定
-                parpus_taileds = [face + '用', face + '専用']
+                # 「○○用」「○○○専用」といった目的修飾的な用法を判定
+                # サ変 + 接尾と「○○○専用」を排除
+                next_index = index + 1
+                if next_index < lentokens:
+                    next_face, next_data = tokens_list[next_index]
+                    if next_data[1] == "接尾":
+                        continue
+                    if next_face in 目的修飾接尾語:
+                        continue
 
-                for parpuas_tailed in parpus_taileds:
-                    is_pass |= line.count(parpuas_tailed) == line.count(face)
-                if is_pass == False:
-
-                    k = (context.noun, face,)
-                    noun_sahen[k].add(line_number)
+                k = (context.noun, face,)
+                noun_sahen[k].add(line_number)
 
     # 複合語チェック(サ変接続)
     # 複合語チェック(名詞)

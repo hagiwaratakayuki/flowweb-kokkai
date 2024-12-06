@@ -1,7 +1,7 @@
 from db.proxy import Node as Base
 from typing import Union, Optional
 extend_map = {
-    'position': Union[str, int]
+    'position': Union[str, float]
 
 }
 unpicks = [
