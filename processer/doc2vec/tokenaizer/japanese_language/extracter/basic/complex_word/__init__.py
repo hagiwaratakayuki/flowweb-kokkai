@@ -9,11 +9,12 @@ from typing import DefaultDict, Deque, Dict, List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule import symbol_not_bracket
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.usual_and_sahen import check_ususal_and_sahen
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.valid_noun_jp import check_valid_noun
-from doc2vec.tokenaizer.japanese_language.extracter.components.regex_patterns import kanji_only
-from doc2vec.tokenaizer.japanese_language.extracter.components.regex_patterns import hiragana_include
+
+from doc2vec.components.japanese_language.rule import symbol_not_bracket
+from doc2vec.components.japanese_language.rule.usual_and_sahen import check_ususal_and_sahen
+from doc2vec.components.japanese_language.rule.valid_noun_jp import check_valid_noun
+from doc2vec.components.japanese_language.regex_patterns import kanji_only
+from doc2vec.components.japanese_language.regex_patterns import hiragana_include
 
 from ...components.regex_patterns.hiragana_2or1 import hiragana_2or1_pt
 

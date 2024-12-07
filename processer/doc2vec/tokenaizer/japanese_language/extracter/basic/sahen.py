@@ -5,10 +5,11 @@ from typing import Deque, Dict, List
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.valid_noun_jp import check_valid_noun
-from doc2vec.tokenaizer.japanese_language.extracter.components.rule.usual_and_sahen import check_ususal_and_sahen
-from ..components.regex_patterns import hiragana_include
+
+from doc2vec.components.japnese_language.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
+from doc2vec.components.japnese_language.rule.valid_noun_jp import check_valid_noun
+from doc2vec.components.japnese_language.rule.usual_and_sahen import check_ususal_and_sahen
+from doc2vec.components.japnese_language.regex_patterns import hiragana_include
 
 eiji = re.compile(r'^\w+$', re.A)
 kigou = re.compile(r'^\W+$')
