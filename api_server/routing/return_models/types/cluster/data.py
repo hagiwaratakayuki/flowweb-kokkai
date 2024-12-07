@@ -1,8 +1,19 @@
-from typing import Any
+
+
+from typing import Any, Optional, List
 from pydantic import BaseModel
-from typing import List as typing_List
+
 
 from routing.return_models.types.node.overviews import NodeOverviews
+
+
+class ClusterLink(BaseModel):
+    id: Any
+    keywords: Optional[List[str]]
+
+
+class ClusterLinks(BaseModel):
+    clusters: Optional[List[ClusterLink]]
 
 
 class ClusterData(BaseModel):
@@ -10,3 +21,4 @@ class ClusterData(BaseModel):
     keywords: list[str]
     members: NodeOverviews
     member_count: int
+    links: List[ClusterLink]

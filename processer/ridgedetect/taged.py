@@ -40,7 +40,7 @@ class Taged(RidgeDitect):
         else:
             maped = (self._mapper(cluster_members=cluster_members)
                      for cluster_members in clusters.values())
-        for _tag_index, _cluster_link,  _new_clusters in maped:
+        for _tag_index, _cluster_link, _new_clusters in maped:
             tag_index.update(_tag_index)
             cluster_link.update(_cluster_link)
             new_clusters.update(_new_clusters)
@@ -76,11 +76,16 @@ class Taged(RidgeDitect):
             subcluster_id = uuid.uuid4().hex
             new_clusters[subcluster_id] = members
             tag_index[subcluster_id] = tags
-            for tag in tag2subclsuter:
+            for tag in tags:
 
                 tag2subclsuter[tag].append(subcluster_id)
-        links_set = set([frozenset(paire) for paire in [combinations(
-            canditates, 2) for canditates in tag2subclsuter.values() if len(canditates) > 1]])
+        links_set = set()
+        for canditates in tag2subclsuter.values():
+            if len(canditates) <= 1:
+                continue
+            for paire in combinations(canditates, 2):
+                links_set.add(frozenset(paire))
+
         for start, target in links_set:
             start_members = new_clusters[start]
             target_members = new_clusters[target]
@@ -88,7 +93,9 @@ class Taged(RidgeDitect):
             cross_set = start_members & target_members
 
             cross_count = len(cross_set)
+            if cross_count == 0:
+                continue
             cluster_link[start][target] = cross_count
             cluster_link[target][start] = cross_count
 
-        return tag_index, cluster_link,  new_clusters
+        return tag_index, cluster_link, new_clusters

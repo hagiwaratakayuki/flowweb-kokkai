@@ -90,3 +90,24 @@ class TestMecabTokenizer(unittest.TestCase):
         for spk in res[1]:
             print(spk.headword)
             print(spk.subwords)
+
+    def test_kenpou(self):
+
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+
+        text = """
+        第一に、これは勞働行政の根本になるものでありますから、憲法の第二十七條の必有勞働權に對する政府の見解をお聽きいたしたいと思うのであります。憲法第二十七條の「すべての國民は、勤勞の權利を有し、義務を負ふ。」という解釋でありますが、この解釋につきましては、私の知る範圍において二様の解釋をとられているようであります。すなわち勞働の機會を享受し得るところの權利、いわゆる働こうと思つても働き口のない者は、當然國家から働き口を世話せられるというこの權利として解釋すべきか、あるいはまた單なる勤勞の自由すなわち一種の自由權の一つとして解釋すべきか。政府はこのいずれの解釋によつて、これから強力なる勞働行政を行わんとするのであるか。まずその點を明らかにしたいと思います。"""
+        text = list_runner.run(reguraizers, text=text, data={})
+
+        res = toknaizer.exec(
+            text, data)
+
+        specific_keyword: SpecificKeyword = res[1][0]
+
+        print(specific_keyword.headword)
+        print(specific_keyword.subwords)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)

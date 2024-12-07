@@ -104,8 +104,6 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             canditates_counter.update(name_index.get(gram, []))
 
             ryakusyou_canditates_counter.update(ryakusyou_tench.get(gram, []))
-        if "憲法" in line:
-            lowword_set.add("憲法")
 
         _ryakusyous = [
             canditate for canditate in ryakusyou_canditates_counter if canditate in line]
@@ -121,6 +119,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         for ryakusyou in ryakusyous:
             if ryakusyou == アイヌ新法:
                 continue
+
             reverse_dict[ryakusyou_dict[ryakusyou]].add(ryakusyou)
 
         lowword_set.update(not_ryakusyous)
@@ -163,6 +162,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
             if rank <= tail_rank:
 
+                if (tail_rank != None) and (len(target_low) != 0):
+                    k = tuple(r[0] for r in target_low)
+                    low_index[k].add(line_number)
+                    low_index[k].update(waiting_line_numbers)
                 target_low = [
                     (r, target_rank, ) for r, target_rank in target_low if target_rank < rank]
                 target_low.append((face, rank, ))
@@ -175,13 +178,16 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 continue
             target_low.append((face, rank, ))
 
-        if len(line_lows) > 0 & (tail_rank is not None) & len(target_low) != 0:
+        if (tail_rank != None) and (len(target_low) != 0):
+
             k = tuple(r[0] for r in target_low)
             low_index[k].add(line_number)
             low_index[k].update(waiting_line_numbers)
 
     kws = []
+
     empty_set = set()
+
     for low_tupple, line_numbers in low_index.items():
 
         headword = low_tupple[0]

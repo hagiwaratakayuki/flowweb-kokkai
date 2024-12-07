@@ -185,6 +185,7 @@ class Logic:
                 member_positions_chunk=member_positions_chunk,
                 weight_map=index2weight
             )
+
         cluster_link_saver = cluster_link.Saver()
         cluster_link_saver.put(
             taged.cluster_link, innerid2clusterid=innerid2clusterid)

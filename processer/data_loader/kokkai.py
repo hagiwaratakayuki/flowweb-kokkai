@@ -127,11 +127,12 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
     meeting_keywords = defaultdict(float)
     for speechData in meeting['speeches']:
 
+        striped = speechData['speech'].strip()
         speechText = list_runner.run(
-            reguraizers, speechData['speech'], speechData)
+            reguraizers, striped, speechData)
 
         dto = DTO()
-        dto.title = speechData['speech'][0:20]
+        dto.title = striped[0:20]
         dto.body = speechText
         dto.id = speechData['id']
         dto.author = speechData['speaker']

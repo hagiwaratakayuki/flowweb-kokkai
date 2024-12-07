@@ -82,7 +82,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 context.set_noun(face, index)
                 continue
-            if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True and hiragana_include.pattern.search(face) == None:
+            if len(face) > 1 and data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True and hiragana_include.pattern.search(face) == None:
                 context.set_noun(face, index)
                 continue
             if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None and face != "専用":

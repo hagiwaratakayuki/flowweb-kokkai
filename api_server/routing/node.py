@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, status
 from typing import Literal, Optional, Union
 
-from routing.components.adjast_to_view import adjast_to_view
+from routing.components.node.adjast_to_view import adjast_to_view
 
 
 from .query.node import get_all_summary, get_link_from_node as linked_node

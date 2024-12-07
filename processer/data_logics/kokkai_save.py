@@ -77,6 +77,7 @@ class KokkaiLogic(Logic):
             if keywords_fset in self._link_map:
 
                 for session, cluster_id in self._link_map[keywords_fset]:
+
                     link_model = KokkaiClusterLink()
                     if session > self.session:
                         link_model.from_cluster = eid

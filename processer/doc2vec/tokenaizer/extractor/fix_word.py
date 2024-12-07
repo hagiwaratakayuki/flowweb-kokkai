@@ -52,7 +52,7 @@ class RegexExtractor:
             checked = self.word_pt.search(line)
             if checked is not None:
                 if self.result_words is not None:
-                    headwords = self.result_words
+                    headwords = tuple(self.result_words)
                     headword = checked.group(0)
 
                 else:

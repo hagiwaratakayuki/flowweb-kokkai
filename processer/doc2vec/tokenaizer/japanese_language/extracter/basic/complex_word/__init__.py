@@ -83,7 +83,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
                 _add_to_complexword_set(
                     complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)
                 continue
-            if data[1] == "代名詞" or data[1] == "副詞可能":
+            if data[1] == "代名詞" or data[1] == "副詞可能" or data[0] == "副詞":
                 _add_to_complexword_set(
                     complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)
                 continue

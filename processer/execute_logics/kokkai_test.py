@@ -26,20 +26,23 @@ class MyTestCase(unittest.TestCase):
     @patch('doc2vec.vectaizer.gensim_fasttext.kv', MockKeyedVector())
     @patch('db.model.client')
     @patch('storage.basic.storage')
+    @patch('storage.basic.storage')
     @patch('storage.meeting.download')
-    def test_basic(self, meeting_download_mock: MagicMock, storage_mock: MagicMock, db_client_mock: MagicMock, kv_mock=MockKeyedVector):
-        sideeffects = []
+    def test_basic(self, meeting_download_mock: MagicMock, storage_mock: MagicMock, db_client_mock: MagicMock, kv_mock: MockKeyedVector):
 
-        with open(os.path.abspath('../testdata/kokkai/1-end.json'), "rb") as fp:
-            mockdata = [fp.read()]
-            sideeffects.append(mockdata)
-            sideeffects.append(mockdata)
-        chunk = []
-        with open(os.path.abspath('../testdata/kokkai/212-end.json'), 'rb') as fp:
-            chunk.append(fp.read())
-        with open(os.path.abspath('../testdata/kokkai/212-plane.json'), 'rb') as fp:
-            chunk.append(fp.read())
-        sideeffects.append(chunk)
-        sideeffects.append([])
-        meeting_download_mock.side_effect = sideeffects
-        execute()
+        with patch('db.kokkai_cluster_link.KokkaiClusterLink') as kokkai_cluster_link_mock:
+            sideeffects = []
+
+            with open(os.path.abspath('../testdata/kokkai/1-end.json'), "rb") as fp:
+                mockdata = [fp.read()]
+                sideeffects.append(mockdata)
+                sideeffects.append(mockdata)
+            chunk = []
+            with open(os.path.abspath('../testdata/kokkai/212-end.json'), 'rb') as fp:
+                chunk.append(fp.read())
+            with open(os.path.abspath('../testdata/kokkai/212-plane.json'), 'rb') as fp:
+                chunk.append(fp.read())
+            sideeffects.append(chunk)
+            sideeffects.append([])
+            meeting_download_mock.side_effect = sideeffects
+            execute()

@@ -104,7 +104,7 @@ class SpecificKeyword:
 
 
 class BindSpecificKeyword(SpecificKeyword):
-    def __init__(self, headwords: List[str], headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headwords: List[str], headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self._headwords = tuple(headwords)
 
         super().__init__(headword, subwords, is_force, target_words,
@@ -114,6 +114,11 @@ class BindSpecificKeyword(SpecificKeyword):
 
         ret = [(headword, ) for headword in self._headwords]
         if len(self.subwords) != 0:
-            subwords = self._flatten(self.subwords, [])
-            ret += [headtuple + subwords for headtuple in subwords]
+            subwords = tuple(self._flatten(self.subwords, []))
+            ret += [headtuple + subwords for headtuple in ret]
+        return ret
+
+    def clone(self):
+        ret = super().clone()
+        ret._headwords = self._headwords
         return ret

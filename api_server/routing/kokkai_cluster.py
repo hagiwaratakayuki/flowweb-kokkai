@@ -27,9 +27,10 @@ class ClusterFull(BaseModel):
 
 @router.get('/data', response_model=ClusterFull, response_model_exclude_none=True)
 async def get_entity_all(id: int) -> ClusterData:
-
-    cluster, [members_entities, members_list_next] = await asyncio.gather(Cluster.get_async(id=id), get_cluster_member.fetch(
-        cluster_id=id))
+    cluster_cor = Cluster.get_async(id=id)
+    member_cor = get_cluster_member.fetch(cluster_id=id)
+    before_cor
+    cluster, [members_entities, members_list_next] = await asyncio.gather(, )
     if cluster == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
 

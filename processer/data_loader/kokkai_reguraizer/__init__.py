@@ -5,11 +5,11 @@ reguraizers = [
     kugirisenn.convert,
     jikosyoukai.convert,
     unicodedata.convert,
-    kansuuji_houritu.convert,
+
     kyujitai.convert,
     hattaraku.convert,
     kyuu_kana.convert,
-    child.convert
-
+    child.convert,
+    kansuuji_houritu.convert,
 
 ]
