@@ -1,5 +1,6 @@
 from .list_remover import list_remover
 from .rule.preg import preg_remover
+from .rule.function_remover import fu
 from typing import List
 
 removers = [

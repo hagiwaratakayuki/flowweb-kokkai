@@ -10,10 +10,11 @@ from doc2vec.components.japanese_language.rule.symbol_not_bracket import check_i
 from doc2vec.components.japanese_language.rule.valid_noun_jp import check_valid_noun
 from doc2vec.components.japanese_language.rule.usual_and_sahen import check_ususal_and_sahen
 from doc2vec.components.japanese_language.regex_patterns import hiragana_include
+from doc2vec.components.japanese_language.regex_patterns import noun_blockpattern
 
 eiji = re.compile(r'^\w+$', re.A)
 kigou = re.compile(r'^\W+$')
-meishi_blockpattern = re.compile(r'[所々様]$')
+
 sahen_blockpattern = re.compile('^お')
 一般と固有名詞 = {'一般', '固有名詞'}
 目的修飾接尾語 = {'専用'}
