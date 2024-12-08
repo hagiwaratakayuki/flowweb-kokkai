@@ -6,10 +6,10 @@ from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
 
 
-from doc2vec.components.japnese_language.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
-from doc2vec.components.japnese_language.rule.valid_noun_jp import check_valid_noun
-from doc2vec.components.japnese_language.rule.usual_and_sahen import check_ususal_and_sahen
-from doc2vec.components.japnese_language.regex_patterns import hiragana_include
+from doc2vec.components.japanese_language.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
+from doc2vec.components.japanese_language.rule.valid_noun_jp import check_valid_noun
+from doc2vec.components.japanese_language.rule.usual_and_sahen import check_ususal_and_sahen
+from doc2vec.components.japanese_language.regex_patterns import hiragana_include
 
 eiji = re.compile(r'^\w+$', re.A)
 kigou = re.compile(r'^\W+$')
@@ -128,6 +128,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                 continue
 
             if keyword_obj == noun:
+
                 if keyword_obj != sahen:
                     if keyword_obj.is_allow_add_multiple_subword == False and len(keyword_obj.subwords) > 0:
                         new_keyword_obj = keyword_obj.clone()

@@ -38,10 +38,6 @@ with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
 low_standard_phrases = ['法の下の平等', '法の支配']
 
 
-class Low(SpecificKeyword):
-    pass
-
-
 class EqInShorter:
     def __init__(self, value) -> None:
         self.value = value
@@ -194,7 +190,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
         subwords = list(low_tupple[1:])
 
-        target_words = reverse_dict.get(headword, {})
+        target_words = reverse_dict.get(headword, [])
 
         kw = SpecificKeyword(
             headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
