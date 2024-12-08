@@ -1,11 +1,12 @@
 from .list_remover import list_remover
 from .rule.preg import preg_remover
-from .rule.function_remover import fu
+from .rule.function_remover import function_remover
 from typing import List
 
 removers = [
     list_remover,
-    preg_remover
+    preg_remover,
+    function_remover
 
 ]
 

@@ -1,2 +1,2 @@
-def remover(word):
+def count_one(word):
     return len(word) == 1

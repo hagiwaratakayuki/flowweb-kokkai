@@ -88,20 +88,29 @@ class Indexer:
         word_length = len(filtered_map)
         if word_length == 0:
             return []
-        norms = np.linalg.norm(
-            np.array([filtered_map[word_index[i]]["vector"] for i in range(word_length)]) - vector, axis=1)
-        avg = np.average(norms)
-        std = np.std(norms)
-        sorted_array = np.argsort(norms)
-        limit = avg - std
+        try:
+            word_vector_array = np.array(
+                [filtered_map[word_index[i]]["vector"] for i in range(word_length)])
 
-        scored_keywords: list[str] = [word_index[i]
-                                      for i in sorted_array if norms[i] <= limit]
+            norms_word_vecter = np.linalg.norm(word_vector_array, axis=1)
+            avg_word_vecter = np.average(norms_word_vecter)
+            weighted_norms_from_center = np.linalg.norm(
+                word_vector_array - vector, axis=1) / (norms_word_vecter / avg_word_vecter)
 
-        if len(scored_keywords) == 0:
-            scored_keywords = [word_index[sorted_array[0]]]
+            avg_from_center = np.average(weighted_norms_from_center)
+            std_from_center = np.std(weighted_norms_from_center)
+            sorted_array = np.argsort(weighted_norms_from_center)
+            limit = avg_from_center - std_from_center
 
-        return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
+            scored_keywords: list[str] = [word_index[i]
+                                          for i in sorted_array if weighted_norms_from_center[i] <= limit]
+
+            if len(scored_keywords) == 0:
+                scored_keywords = [word_index[sorted_array[0]]]
+
+            return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
+        except:
+            return []
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
         sentimentVectors = SentimentVector()
