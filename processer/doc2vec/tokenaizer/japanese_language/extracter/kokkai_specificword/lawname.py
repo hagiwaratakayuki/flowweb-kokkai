@@ -24,6 +24,8 @@ section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 アイヌ新法 = "アイヌ新法"
 改正前のアイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
 
+
+活火山法 = "活火山法"
 活火山法の略称候補 = re.compile("活動?火山法")
 
 改正前の活火山法の正式名称 = "活動火山周辺地域における避難施設等の整備等に関する法律"
@@ -70,6 +72,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         return results
     standard_phrase_count = 0
     detected_phrases = set()
+    additional_law_words = set()
     for phrase in law_standard_phrases:
         detected_phrase_count = all_text.count(phrase)
 
@@ -105,6 +108,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         活火山法の検索結果 = 活火山法の略称候補.search(line)
         活火山法が含まれるか = 活火山法の検索結果 is not None
         if 活火山法が含まれるか is True:
+            additional_law_words.add(活火山法)
             活火山法の略称 = 活火山法の検索結果.group(0)
             if data.published >= "1973-7-13":
                 活火山法の正式名称 = 改正後の活火山法の正式名称
@@ -113,7 +117,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             lawword_set.add(活火山法の略称)
             reverse_dict[活火山法の正式名称].add(活火山法の略称)
             line_laws.append((活火山法の正式名称, line.find(活火山法の略称), 0,))
-
+        if 改正前の活火山法の正式名称 in line or 改正後の活火山法の正式名称 in line:
+            additional_law_words.add(活火山法)
         for i in range(len(line) - 1):
             gram = line[i:i + 2]
             canditates_counter.update(name_index.get(gram, []))
@@ -213,6 +218,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
         kw = SpecificKeyword(
             headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allaw_add_multiple_subword=True)
+        kws.append(kw)
+    for headword in additional_law_words:
+        kw = SpecificKeyword(
+            headword=headword, is_force=True, line_numbers={-1})
         kws.append(kw)
 
     # pending
