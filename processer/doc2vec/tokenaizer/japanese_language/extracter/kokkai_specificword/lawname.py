@@ -101,9 +101,6 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             lawword_set.add(アイヌ新法)
             reverse_dict[アイヌ新法の正式名称].add(アイヌ新法)
             line_laws.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
-        elif data.published < "2019-01-28" and 改正前のアイヌ新法の正式名称 in line:
-            lawword_set.add(改正前のアイヌ新法の正式名称)
-            line_laws.append((改正前のアイヌ新法の正式名称, line.find(アイヌ新法), 0,))
 
         活火山法の検索結果 = 活火山法の略称候補.search(line)
         活火山法が含まれるか = 活火山法の検索結果 is not None
@@ -116,17 +113,6 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
             lawword_set.add(活火山法の略称)
             reverse_dict[活火山法の正式名称].add(活火山法の略称)
             line_laws.append((活火山法の正式名称, line.find(活火山法の略称), 0,))
-        else:
-            if data.published >= "1973-7-13":
-                活火山法の正式名称 = 改正後の活火山法の正式名称
-            else:
-                活火山法の正式名称 = 改正前の活火山法の正式名称
-
-            pos = line.find(活火山法の正式名称)
-            if pos != -1:
-                lawword_set.add(活火山法の略称)
-                reverse_dict[活火山法の正式名称].add(活火山法の略称)
-                line_laws.append((活火山法の正式名称, line.find(活火山法の略称), 0,))
 
         for i in range(len(line) - 1):
             gram = line[i:i + 2]

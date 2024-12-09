@@ -5,12 +5,24 @@ import unicodedata
 略称が含まれる行を表す正規表現 = re.compile(r"^(明治|大正|昭和|平成|令和)[^（]+\s", re.U)
 空白を表す正規表現 = re.compile(r"\s+", re.U)
 間違っている略称のリスト = ["保安四法", "中央省庁等改革関連法", "組織犯罪対策三法"]
+活火山法の略称 = re.compile('活動?火山法')
+特措法 = "特措法"
+特法 = "特法"
 
 
 def custom(v):
     if isinstance(v, set):
         return list(v)
     return v
+
+
+def reguraize(name: str):
+    ret = [name]
+    if 特法 in name:
+        ret.append(name.replace(特法, 特措法))
+    if 特措法 in name:
+        ret.append(name.replace(特措法, 特法))
+    return ret
 
 
 with open("./law.txt", mode="r", encoding="utf-8") as fp:
@@ -49,8 +61,11 @@ with open("./law.txt", mode="r", encoding="utf-8") as fp:
                 if 略称 in 間違っている略称のリスト and len(略称リスト) == 1:
 
                     略称 = 正式名称
-
-                略称と正式名称の対応表[略称] = 正式名称
+                if 略称 == "アイヌ新法" or 活火山法の略称.search(略称) is not None:
+                    continue
+                正規化された略称のリスト = reguraize(略称)
+                for 正規化された略称 in 正規化された略称のリスト:
+                    略称と正式名称の対応表[正規化された略称] = 正式名称
 
             正式名称 = ""
 
@@ -61,9 +76,11 @@ with open("./horeibunko.text", mode="r", encoding="utf-8") as fp:
         if "索引" in 行 and '「' in 行:
 
             continue
-        if 正式名称のある行か判定するフラグ and 略称 != "アイヌ新法":
+        if 正式名称のある行か判定するフラグ and 略称 != "アイヌ新法" and 活火山法の略称.search(略称) is None:
             正式名称 = '　'.join(空白を表す正規表現.split(行)[:-1])
-            略称と正式名称の対応表[正式名称] = 略称
+            正規化された略称のリスト = reguraize(略称)
+            for 正規化された略称 in 正規化された略称のリスト:
+                略称と正式名称の対応表[正規化された略称] = 正式名称
         else:
 
             略称 = 行.strip()
@@ -74,10 +91,12 @@ with open("./horeibunko.text", mode="r", encoding="utf-8") as fp:
 
 
 for 略称 in 略称と正式名称の対応表.keys():
-    リスト化した略称 = [略称]
+
     for 開始地点 in range(len(略称) - 1):
-        キー = 略称[開始地点:開始地点 + 2]
-        略称の転置インデックス[キー].update(リスト化した略称)
+        トークン = 略称[開始地点:開始地点 + 2]
+        if トークン in 特措法 or トークン in 特法:
+            continue
+        略称の転置インデックス[トークン].add(略称)
 with open("../processer/doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou_tenchi.json", mode="w", encoding="utf-8") as fp:
     json.dump(obj=略称の転置インデックス, fp=fp, ensure_ascii=False, default=custom)
 with open("../processer/doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou.json", mode="w", encoding="utf-8") as fp:
