@@ -133,6 +133,8 @@ def _check_context(context: Context):
     is_number_only = True
     index = -1
     limit = context.chunklen - 1
+    latest_number_token = None
+    letest_number_index = -1
     while index < limit:
         index += 1
         face, data = context.chunk[index]
@@ -143,8 +145,21 @@ def _check_context(context: Context):
             is_keep_number |= "".join(
                 [r[0] for r in context.chunk[index - 1: index + 1]]) == "令和"
         is_number_only &= is_keep_number
+        if is_number_only == True:
+            latest_number_token = (face, data,)
+            latest_number_index = index
 
     if is_number_only == True:
+        return False
+    if latest_number_token is not None:
+
+        face, data = latest_number_token
+        if data[2] == "助数詞" and face not in 式と型:
+            context.chunk = context.chunk[latest_number_index + 1:]
+            if len(context.chunk) <= 1:
+                return False
+    face, data = context.chunk[-1]
+    if data[2] == "助数詞" and face not in 式と型:
         return False
     return True
 

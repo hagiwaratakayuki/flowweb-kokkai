@@ -1,10 +1,8 @@
-from functools import reduce
-from re import X
-from typing import Deque, Iterator, List, Tuple
-from unittest import result
 
-from numpy import append
-from crowler.lib.webapi.twitter import K
+
+from typing import Deque, Iterator, List, Tuple
+
+
 from doc2vec.util.specific_keyword import SpecificKeyword, EqIn
 import regex as re
 
@@ -17,7 +15,7 @@ from data_loader.dto import DTO
 sortkey = itemgetter(1)
 
 section_text = r"編章条項節款目"
-section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + r'])')
+section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + r'])(?!委員会)')
 section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
@@ -217,7 +215,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         target_words = reverse_dict.get(headword, [])
 
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allaw_add_multiple_subword=True)
+            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
         kws.append(kw)
     for headword in additional_law_words:
         kw = SpecificKeyword(

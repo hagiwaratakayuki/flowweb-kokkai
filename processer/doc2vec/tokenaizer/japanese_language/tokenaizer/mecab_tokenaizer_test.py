@@ -111,3 +111,23 @@ class TestMecabTokenizer(unittest.TestCase):
         for spk in res[1]:
             print(spk.headword)
             print(spk.subwords)
+
+    def test_unionchurch(self):
+
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+
+        text = """
+        旧統一協会について質問します
+        """
+        text = list_runner.run(reguraizers, text=text, data={})
+
+        res = toknaizer.exec(
+            text, data)
+
+        # specific_keyword: SpecificKeyword = res[1][0]
+        # specific_keyword.to_extender()
+
+        for spk in res[1]:
+            print(spk.to_extender())
