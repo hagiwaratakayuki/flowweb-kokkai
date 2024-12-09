@@ -4,6 +4,9 @@ import re
 import unicodedata
 from collections import defaultdict
 kuuhaku = re.compile(r'\s+[^\s]+$', re.U)
+追加の法律のリスト = [
+    "同和対策事業特別措置法"
+]
 
 
 def create_dict(value, ngram_dict):

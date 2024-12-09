@@ -4,6 +4,7 @@ from typing import Deque, Iterator, List, Tuple
 from unittest import result
 
 from numpy import append
+from crowler.lib.webapi.twitter import K
 from doc2vec.util.specific_keyword import SpecificKeyword, EqIn
 import regex as re
 
@@ -21,7 +22,12 @@ section_rank = {}
 section_rank.update({section: i + 1 for i, section in enumerate(section_text)})
 
 アイヌ新法 = "アイヌ新法"
+改正前のアイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
 
+活火山法の略称候補 = re.compile("活動?火山法")
+
+改正前の活火山法の正式名称 = "活動火山周辺地域における避難施設等の整備等に関する法律"
+改正後の活火山法の正式名称 = "活動火山対策特別措置法"
 name_index_path = os.path.realpath(
     'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/nameindex.json')
 ryakusyou_tenchi_path = os.path.realpath(
@@ -35,7 +41,7 @@ with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
 
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
-low_standard_phrases = ['法の下の平等', '法の支配']
+law_standard_phrases = ['法の下の平等', '法の支配']
 
 
 class EqInShorter:
@@ -48,23 +54,23 @@ class EqInShorter:
 
 def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
-    target_low = []
+    target_law = []
     waiting_sections = []
     waiting_line_numbers = set()
 
     tail_rank = None
-    low_index = defaultdict(set)
+    law_index = defaultdict(set)
 
-    lowword_set = set()
+    lawword_set = set()
     reverse_dict = defaultdict(set)
     line_number = -1
     all_text = ''.join([parse_result[0] for parse_result in parse_results])
-    low_count = all_text.count('法')
-    if low_count == 0:
+    law_count = all_text.count('法')
+    if law_count == 0:
         return results
     standard_phrase_count = 0
     detected_phrases = set()
-    for phrase in low_standard_phrases:
+    for phrase in law_standard_phrases:
         detected_phrase_count = all_text.count(phrase)
 
         standard_phrase_count += detected_phrase_count
@@ -75,7 +81,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
         results.append(SpecificKeyword(
             headword=detected_phrase, is_force=True))
 
-    if low_count == standard_phrase_count:
+    if law_count == standard_phrase_count:
         return results
 
     for line, tokens in parse_results:
@@ -84,17 +90,44 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
         canditates_counter = Counter()
         ryakusyou_canditates_counter = Counter()
-        line_lows = []
+        line_laws = []
         アイヌ新法が含まれるか = アイヌ新法 in line
 
         if アイヌ新法が含まれるか is True:
             if data.published >= "2019-01-28":
                 アイヌ新法の正式名称 = "アイヌの人々の誇りが尊重される社会を実現するための施策の推進に関する法律"
             else:
-                アイヌ新法の正式名称 = "アイヌ文化の振興並びにアイヌの伝統等に関する知識の普及及び啓発に関する法律"
-            lowword_set.add(アイヌ新法)
+                アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
+            lawword_set.add(アイヌ新法)
             reverse_dict[アイヌ新法の正式名称].add(アイヌ新法)
-            line_lows.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
+            line_laws.append((アイヌ新法の正式名称, line.find(アイヌ新法), 0,))
+        elif data.published < "2019-01-28" and 改正前のアイヌ新法の正式名称 in line:
+            lawword_set.add(改正前のアイヌ新法の正式名称)
+            line_laws.append((改正前のアイヌ新法の正式名称, line.find(アイヌ新法), 0,))
+
+        活火山法の検索結果 = 活火山法の略称候補.search(line)
+        活火山法が含まれるか = 活火山法の検索結果 is not None
+        if 活火山法が含まれるか is True:
+            活火山法の略称 = 活火山法の検索結果.group(0)
+            if data.published >= "1973-7-13":
+                活火山法の正式名称 = 改正後の活火山法の正式名称
+            else:
+                活火山法の正式名称 = 改正前の活火山法の正式名称
+            lawword_set.add(活火山法の略称)
+            reverse_dict[活火山法の正式名称].add(活火山法の略称)
+            line_laws.append((活火山法の正式名称, line.find(活火山法の略称), 0,))
+        else:
+            if data.published >= "1973-7-13":
+                活火山法の正式名称 = 改正後の活火山法の正式名称
+            else:
+                活火山法の正式名称 = 改正前の活火山法の正式名称
+
+            pos = line.find(活火山法の正式名称)
+            if pos != -1:
+                lawword_set.add(活火山法の略称)
+                reverse_dict[活火山法の正式名称].add(活火山法の略称)
+                line_laws.append((活火山法の正式名称, line.find(活火山法の略称), 0,))
+
         for i in range(len(line) - 1):
             gram = line[i:i + 2]
             canditates_counter.update(name_index.get(gram, []))
@@ -118,26 +151,26 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
             reverse_dict[ryakusyou_dict[ryakusyou]].add(ryakusyou)
 
-        lowword_set.update(not_ryakusyous)
+        lawword_set.update(not_ryakusyous)
 
-        lowword_set.update(ryakusyous)
+        lawword_set.update(ryakusyous)
 
-        line_lows.extend([(canditate, line.find(canditate), 0,)
+        line_laws.extend([(canditate, line.find(canditate), 0,)
                           for canditate in not_ryakusyous])
 
-        line_lows.extend([(ryakusyou_dict[ryakusyou], line.find(
+        line_laws.extend([(ryakusyou_dict[ryakusyou], line.find(
             ryakusyou), 0, ) for ryakusyou in ryakusyous])
 
         section_words = [(m.group(0), m.start(), section_rank[m.group(1)], )
                          for m in section_pt.finditer(line)]
 
-        line_lows.extend(section_words)
+        line_laws.extend(section_words)
 
-        lowword_set.update([r[0] for r in section_words])
+        lawword_set.update([r[0] for r in section_words])
 
-        line_lows.sort(key=sortkey)
+        line_laws.sort(key=sortkey)
 
-        for face, position, rank in line_lows:
+        for face, position, rank in line_laws:
 
             if tail_rank is None:
                 waiting_line_numbers.add(line_number)
@@ -148,23 +181,23 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
                 tail_rank = 0
 
-                target_low.append((face, 0,))
+                target_law.append((face, 0,))
                 waiting_length = len(waiting_sections)
                 if waiting_length > 0:
                     waiting_sections.sort(key=sortkey)
-                    target_low.extend(waiting_sections)
+                    target_law.extend(waiting_sections)
                     tail_rank = waiting_sections[waiting_length - 1][1]
                 continue
 
             if rank <= tail_rank:
 
-                if (tail_rank != None) and (len(target_low) != 0):
-                    k = tuple(r[0] for r in target_low)
-                    low_index[k].add(line_number)
-                    low_index[k].update(waiting_line_numbers)
-                target_low = [
-                    (r, target_rank, ) for r, target_rank in target_low if target_rank < rank]
-                target_low.append((face, rank, ))
+                if (tail_rank != None) and (len(target_law) != 0):
+                    k = tuple(r[0] for r in target_law)
+                    law_index[k].add(line_number)
+                    law_index[k].update(waiting_line_numbers)
+                target_law = [
+                    (r, target_rank, ) for r, target_rank in target_law if target_rank < rank]
+                target_law.append((face, rank, ))
 
                 tail_rank = rank
 
@@ -172,34 +205,34 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                     waiting_sections = []
                     waiting_line_numbers = set()
                 continue
-            target_low.append((face, rank, ))
+            target_law.append((face, rank, ))
 
-        if (tail_rank != None) and (len(target_low) != 0):
+        if (tail_rank != None) and (len(target_law) != 0):
 
-            k = tuple(r[0] for r in target_low)
-            low_index[k].add(line_number)
-            low_index[k].update(waiting_line_numbers)
+            k = tuple(r[0] for r in target_law)
+            law_index[k].add(line_number)
+            law_index[k].update(waiting_line_numbers)
 
     kws = []
 
     empty_set = set()
 
-    for low_tupple, line_numbers in low_index.items():
+    for law_tupple, line_numbers in law_index.items():
 
-        headword = low_tupple[0]
+        headword = law_tupple[0]
 
-        subwords = list(low_tupple[1:])
+        subwords = list(law_tupple[1:])
 
         target_words = reverse_dict.get(headword, [])
 
         kw = SpecificKeyword(
-            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
+            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allaw_add_multiple_subword=True)
         kws.append(kw)
 
     # pending
-    # lowword_list = [EqIn(lowword) for lowword in lowword_set]
+    # lawword_list = [EqIn(lawword) for lawword in lawword_set]
 
-    # results = [spk for spk in results if spk.headword not in lowword_list]
+    # results = [spk for spk in results if spk.headword not in lawword_list]
     results.extend(kws)
 
     return results

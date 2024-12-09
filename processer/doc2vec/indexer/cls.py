@@ -1,10 +1,52 @@
 from collections import defaultdict, deque
 import keyword
 import math
+from typing import Dict
 import numpy as np
 
 from .dto import SentimentWeights, SentimentVector, SentimentResult
 from data_loader.dto import DTO
+WORD_2_NORM = {}
+
+
+def get_norm_weight(filtered_map: Dict[str, Dict]):
+    global WORD_2_NORM
+    word_2_norm_map = {k: WORD_2_NORM[k]
+                       for k in filtered_map.keys() if k in WORD_2_NORM}
+    index = 0
+    index2word = {}
+    norms = []
+    for word, value in filtered_map.items():
+        if word in WORD_2_NORM:
+            continue
+        norms.append(value['vector'])
+        index2word[index] = word
+    if index != 0:
+
+        vectors_array = np.array(norms)
+        vectors_norm = np.linalg.norm(vectors_array, axis=1)
+        index = 0
+        for norm in vectors_norm:
+            word = index2word[index]
+            word_2_norm_map[word] = norm
+            index += 1
+            WORD_2_NORM[word] = norm
+    index = 0
+    index2word = {}
+    norms = []
+    for word, norm in word_2_norm_map.items():
+        norms.append(norm)
+        index2word[index] = word
+    norms_array = np.array(norms)
+    norm_avg = np.average(norms_array)
+    weight_array = norms_array / norm_avg
+    ret = {}
+    index = 0
+    for weight in weight_array:
+        word = index2word[index]
+        ret[word] = weight
+
+    return ret
 
 
 def WeightMap():
@@ -70,8 +112,8 @@ class Indexer:
 
         filtered_map = {k: {'vector': vector_map[k], 'weight': w} for k, w in reguraised.items(
         ) if vector_map.get(k, False) is not False}
-
-        vector = np.sum([v['vector'] * v['weight']
+        word_to_norm_weight = get_norm_weight(filtered_map)
+        vector = np.sum([v['vector'] * v['weight'] * word_to_norm_weight[k]
                         for k, v in filtered_map.items()], 0)
 
         sentimentResults = self._process_senti_total(
@@ -92,11 +134,8 @@ class Indexer:
             word_vector_array = np.array(
                 [filtered_map[word_index[i]]["vector"] for i in range(word_length)])
 
-            norms_word_vecter = np.linalg.norm(word_vector_array, axis=1)
-            avg_word_vecter = np.average(norms_word_vecter)
             weighted_norms_from_center = np.linalg.norm(
-                word_vector_array - vector, axis=1) / (norms_word_vecter / avg_word_vecter)
-
+                word_vector_array - vector, axis=1)
             avg_from_center = np.average(weighted_norms_from_center)
             std_from_center = np.std(weighted_norms_from_center)
             sorted_array = np.argsort(weighted_norms_from_center)
