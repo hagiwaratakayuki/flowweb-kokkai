@@ -134,15 +134,15 @@ class Indexer:
             word_vector_array = np.array(
                 [filtered_map[word_index[i]]["vector"] for i in range(word_length)])
 
-            weighted_norms_from_center = np.linalg.norm(
+            norms_from_center = np.linalg.norm(
                 word_vector_array - vector, axis=1)
-            avg_from_center = np.average(weighted_norms_from_center)
-            std_from_center = np.std(weighted_norms_from_center)
-            sorted_array = np.argsort(weighted_norms_from_center)
+            avg_from_center = np.average(norms_from_center)
+            std_from_center = np.std(norms_from_center)
+            sorted_array = np.argsort(norms_from_center)
             limit = avg_from_center - std_from_center
 
             scored_keywords: list[str] = [word_index[i]
-                                          for i in sorted_array if weighted_norms_from_center[i] <= limit]
+                                          for i in sorted_array if norms_from_center[i] <= limit]
 
             if len(scored_keywords) == 0:
                 scored_keywords = [word_index[sorted_array[0]]]
