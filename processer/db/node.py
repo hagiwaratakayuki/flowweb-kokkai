@@ -1,5 +1,5 @@
 from .model import Model
-from typing import Union, List
+from typing import Optional, Union, List
 from datetime import datetime
 
 
@@ -12,7 +12,7 @@ class Node(Model):
     published: datetime
     weight: float
     title: str
-    published_list: List[str]
+    published_list: Optional[List[str]]
     keywords: List[str]
     hash: str
 

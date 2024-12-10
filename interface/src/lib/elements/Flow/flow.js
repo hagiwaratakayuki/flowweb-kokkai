@@ -852,7 +852,7 @@ export class FlowController {
             const x = this._getXFromYearMonthDate(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date);
 
             const y = (1 - node.y) * this.app.screen.height / 2;
-            console.log(x, y)
+            //console.log(x, y)
 
 
 

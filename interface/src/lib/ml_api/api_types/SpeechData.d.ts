@@ -21,6 +21,7 @@ export type MemberCount = number;
 export type Keywords = string[];
 export type Weight = number;
 export type TotalWeight = number;
+export type Center = unknown[];
 export type Session1 = number;
 export type Overviews = ClusterOverview[];
 export type Cursor = string | null;
@@ -44,7 +45,7 @@ export type AuthorId = string;
 export type LinkTo = string[] | null;
 export type Published = string;
 export type Title2 = string;
-export type PublishedList = string[];
+export type PublishedList = string[] | null;
 export type Keywords2 = string[];
 export type House2 = string;
 export type Session3 = number;
@@ -92,6 +93,7 @@ export interface ClusterOverview {
   keywords: Keywords;
   weight: Weight;
   total_weight: TotalWeight;
+  center: Center;
   session: Session1;
   [k: string]: unknown;
 }

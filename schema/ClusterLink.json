@@ -1,0 +1,1 @@
+{"properties": {"id": {"title": "Id"}, "keywords": {"anyOf": [{"items": {"type": "string"}, "type": "array"}, {"type": "null"}], "title": "Keywords"}}, "required": ["id", "keywords"], "title": "ClusterLink", "type": "object"}

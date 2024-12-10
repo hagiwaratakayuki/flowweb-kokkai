@@ -1,0 +1,1 @@
+{"properties": {"id": {"title": "Id"}, "issue": {"title": "Issue"}, "keywords": {"items": {"type": "string"}, "title": "Keywords", "type": "array"}}, "required": ["id", "issue", "keywords"], "title": "KokkaiClusterLink", "type": "object"}

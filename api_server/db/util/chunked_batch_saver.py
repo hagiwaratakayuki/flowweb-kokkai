@@ -11,6 +11,7 @@ LIMIT_INCREASE_TIME = 5.0 * 60.0
 LIMIT_MAP = {}
 PREV_CALL_TIMES = {}
 WRITE_START_MAP = {}
+MAX_LIMIT = 5000
 
 
 class ChunkedBatchSaver:
@@ -42,8 +43,8 @@ class ChunkedBatchSaver:
 
         chunk = self._clear_chunk()
 
-        return put_multi(chunk)
-        """"
+        # return put_multi(chunk)
+
         self._weightings.append(chunk)
         self._weightings_count += self.size
         write_limit = LIMIT_MAP.get(self._model.get_kind(), START_LIMIT)
@@ -56,10 +57,10 @@ class ChunkedBatchSaver:
         else:
             LIMIT_MAP[self._model.get_kind()] = min(START_LIMIT *
                                                     LIMIT_INCREASE_STEP ** math.floor(
-                                                        (now - write_start) / LIMIT_INCREASE_TIME), )
+                                                        (now - write_start) / LIMIT_INCREASE_TIME), MAX_LIMIT)
         weightings = self._clear_weigtings()
-        
-        return asyncio.run(self._put_waitings(weightings=weightings, is_return=is_return))"""
+
+        return asyncio.run(self._put_waitings(weightings=weightings, is_return=is_return))
 
     async def _put_waitings(self, weightings, is_return=True):
         now = time.time()

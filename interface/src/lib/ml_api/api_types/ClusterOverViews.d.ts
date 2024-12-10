@@ -10,6 +10,7 @@ export type MemberCount = number;
 export type Keywords = string[];
 export type Weight = number;
 export type TotalWeight = number;
+export type Center = unknown[];
 export type Session = number;
 export type Overviews = ClusterOverview[];
 export type Cursor = string | null;
@@ -26,6 +27,7 @@ export interface ClusterOverview {
   keywords: Keywords;
   weight: Weight;
   total_weight: TotalWeight;
+  center: Center;
   session: Session;
   [k: string]: unknown;
 }

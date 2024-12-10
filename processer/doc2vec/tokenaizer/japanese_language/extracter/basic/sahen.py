@@ -131,6 +131,11 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             if keyword_obj == noun:
 
                 if keyword_obj != sahen:
+                    new_keyword_obj = keyword_obj.clone()
+                    new_keyword_obj.clear_subword()
+                    new_keyword_obj.add_subword(sahen)
+                    additional_results.append(new_keyword_obj)
+                    """
                     if keyword_obj.is_allow_add_multiple_subword == False and len(keyword_obj.subwords) > 0:
                         new_keyword_obj = keyword_obj.clone()
                         new_keyword_obj.clear_subword()
@@ -139,6 +144,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                     else:
                         keyword_obj.add_subword(sahen)
+                    """
                 noun_sahen[key] -= inter
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
 

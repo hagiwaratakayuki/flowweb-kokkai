@@ -5,25 +5,17 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type Title = string;
-export type MemberCount = number;
 export type Keywords = string[];
-export type Weight = number;
-export type TotalWeight = number;
-export type Center = unknown[];
-export type Session = number;
 
-export interface ClusterOverview {
+export interface KokkaiClusterLink {
   id: Id;
-  title: Title;
-  member_count: MemberCount;
+  issue: Issue;
   keywords: Keywords;
-  weight: Weight;
-  total_weight: TotalWeight;
-  center: Center;
-  session: Session;
   [k: string]: unknown;
 }
 export interface Id {
+  [k: string]: unknown;
+}
+export interface Issue {
   [k: string]: unknown;
 }

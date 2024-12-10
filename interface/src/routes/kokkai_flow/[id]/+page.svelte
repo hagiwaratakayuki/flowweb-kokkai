@@ -1,4 +1,8 @@
 <script>
-  /** @type {{ data: import('./$types').PageData }} */
-  let { data } = $props();
+  /** @type {import('./$types').PageData} */
+  export let data;
+  console.log(data);
 </script>
+
+
+<FlowWithTextList data={data.summary} /
