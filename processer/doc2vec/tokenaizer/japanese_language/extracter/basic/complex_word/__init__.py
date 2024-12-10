@@ -121,6 +121,8 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
 datetime_kanji_pattern = re.compile(r'[年月日時分秒]$')
 
+# todo 助数詞が入る場合のみカットするように
+
 
 def _check_context(context: Context):
     if context.chunklen <= 1:

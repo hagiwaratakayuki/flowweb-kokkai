@@ -21,6 +21,7 @@ def get_norm_weight(filtered_map: Dict[str, Dict]):
             continue
         norms.append(value['vector'])
         index2word[index] = word
+        index += 1
     if index != 0:
 
         vectors_array = np.array(norms)
@@ -37,6 +38,7 @@ def get_norm_weight(filtered_map: Dict[str, Dict]):
     for word, norm in word_2_norm_map.items():
         norms.append(norm)
         index2word[index] = word
+        index += 1
     norms_array = np.array(norms)
     norm_avg = np.average(norms_array)
     weight_array = norms_array / norm_avg
@@ -45,6 +47,7 @@ def get_norm_weight(filtered_map: Dict[str, Dict]):
     for weight in weight_array:
         word = index2word[index]
         ret[word] = weight
+        index += 1
 
     return ret
 
