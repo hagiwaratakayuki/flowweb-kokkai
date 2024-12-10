@@ -131,3 +131,25 @@ class TestMecabTokenizer(unittest.TestCase):
 
         for spk in res[1]:
             print(spk.to_extender())
+
+    def test_complexword_with_count(self):
+
+        toknaizer = MeCabTokenazier()
+        data = DTO()
+        data.published = "1999-07-01"
+
+        text = """
+        散弾空気銃二千丁輸入の件について
+        """
+        text = list_runner.run(reguraizers, text=text, data={})
+
+        res = toknaizer.exec(
+            text, data)
+
+        specific_keyword: SpecificKeyword = res[1][0]
+
+        print(specific_keyword.headword)
+        print(specific_keyword.subwords)
+        for spk in res[1]:
+            print(spk.headword)
+            print(spk.subwords)

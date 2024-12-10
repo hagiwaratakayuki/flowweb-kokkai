@@ -5,8 +5,6 @@ from collections import defaultdict, deque
 
 from typing import DefaultDict, Deque, Dict, List
 
-from sklearn import base
-
 
 from doc2vec.util.specific_keyword import SpecificKeyword
 import regex as re
@@ -124,7 +122,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 datetime_kanji_pattern = re.compile(r'[年月日時分秒]$')
 
 
-def _check_and_split_context(context: Context):
+def _check_context(context: Context):
     if context.chunklen <= 1:
 
         return False
@@ -135,81 +133,44 @@ def _check_and_split_context(context: Context):
     is_keep_number = False
     index = -1
     limit = context.chunklen - 1
-    number_index_list = []
-    number_start_index = None
-
+    latest_number_token = None
+    latest_number_index = -1
+    is_number_only = True
     while index < limit:
         index += 1
         face, data = context.chunk[index]
 
-        is_number_exist = data[1] == "数" or data[2] == "助数詞" or (
+        is_keep_number = data[1] == "数" or data[2] == "助数詞" or (
             data[1] != '固有名詞' and datetime_kanji_pattern.search(face) != None and face not in 辞書に収録されている元号)
         if index > 0:
-            is_number_exist |= "".join(
+            is_keep_number |= "".join(
                 [r[0] for r in context.chunk[index - 1: index + 1]]) == "令和"
-        if is_keep_number == False and is_number_exist == True:
-            number_start_index = index
-        if is_keep_number == True and is_number_exist == False:
-            number_index_list.append((number_start_index, index))
-            number_start_index = None
-        is_keep_number = is_number_exist
-    if is_keep_number == True:
-        number_index_list.append((number_start_index, index))
-    if len(number_index_list) == 0:
-        return [context.chunk]
-    split_index_list = []
+        is_number_only &= is_keep_number
+        if is_number_only == True:
+            latest_number_token = (face, data,)
+            latest_number_index = index
 
-    for start, end in number_index_list:
-        if start == 0 and (end == context.chunklen - 1 or (end == context.chunklen - 2 and context.chunk[-1][0] in 式と型)):
-            return False
+    if is_number_only == True:
+        return False
+    if latest_number_token is not None:
 
-        is_after_chunk_exist = end < context.chunklen - 1
-        if is_after_chunk_exist == False or context.chunk[end + 1][0] not in 式と型:
-            split_index_list.append((start, end,))
-    split_cursor = 0
-    split_index_list_len = len(split_index_list)
-    if split_index_list_len > 0:
-
-        start, end = split_index_list[split_cursor]
-        split_cursor += 1
-    else:
-        start = end = context.chunklen
-
-    subchunks = []
-    subchunk = []
-    while index < limit:
-        index += 1
-        if index >= start:
-            if index <= end:
-                continue
-            if len(subchunk) > 0:
-                subchunks.append(subchunk)
-            subchunk = []
-
-            split_cursor += 1
-            if split_cursor < split_index_list_len:
-                start, end = split_index_list[split_cursor]
-            else:
-                start = end = context.chunklen
-        face, data = context.chunk[index]
-        subchunk.append((face, data, ))
-    if len(subchunk) > 0:
-        subchunks.append(subchunk)
-
-    return subchunks
+        face, data = latest_number_token
+        if data[2] == "助数詞" and face not in 式と型:
+            context.chunk = context.chunk[latest_number_index + 1:]
+            if len(context.chunk) <= 1:
+                return False
+    face, data = context.chunk[-1]
+    if data[2] == "助数詞" and face not in 式と型:
+        return False
+    return True
 
 
 def _add_to_complexword_set(complexword_set: set, context: Context, word_to_linenumber: DefaultDict[str, set], line_number, force_headword_map: Dict):
-    check_result = _check_and_split_context(context=context)
-
-    if check_result == False:
+    if _check_context(context=context) == False:
         context.clear()
         return
-    for subchunk in check_result:
-        if len(subchunk) == 1:
-            continue
-        word = ''.join([token[0] for token in subchunk])
-        word_to_linenumber[word].append(line_number)
-        complexword_set.add(word)
-        force_headword_map[word] = subchunk[0][1][1] != "サ変接続"
+    word = ''.join([token[0] for token in context.chunk])
+    word_to_linenumber[word].append(line_number)
+    complexword_set.add(word)
+    force_headword_map[word] = context.chunk[0][1][1] != "サ変接続"
     context.clear()
