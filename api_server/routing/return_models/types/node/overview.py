@@ -9,10 +9,10 @@ from datetime import datetime as datetime_datetime
 
 class NodeOverview(BaseModel):
     id:Any
-    data: str
     author: str
     author_id: str
     link_to: typing_Optional[typing_List[str]]
+    linked_count: int
     published: datetime_datetime
     title: str
     published_list: typing_Optional[typing_List[str]]

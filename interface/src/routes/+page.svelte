@@ -7,6 +7,7 @@
   import { getData } from "$lib/shallowrouting/funcs";
   /** @type {import('./$types').PageData} */
   export let data;
+
   /** @type {import('./$types').PageData} */
 
   /* let _data;

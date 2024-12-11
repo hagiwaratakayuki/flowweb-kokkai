@@ -4,8 +4,10 @@ extend_map = {
     'position': Union[str, float]
 
 }
+# link_count をフロントでweightとして使用
 unpicks = [
-    'weight',
+    'data',
     'hash',
-    'linked_count'
+    'weight',
+
 ]

@@ -149,6 +149,7 @@ export class FlowController {
 
 
         this.app.ticker.add(this.onTick.bind(this))
+        this.app.ticker.start()
 
 
 
@@ -799,8 +800,10 @@ export class FlowController {
 
         for (const node of nodes) {
             this._index[node.id] = node;
+
             total += node.weight;
             weights.push(node.weight)
+
 
 
             const [year, month, date] = Array.from(node.published.matchAll(pt)).map(Number);
@@ -826,6 +829,8 @@ export class FlowController {
             return prev + Math.pow(cur - avg, 2)
 
         }, 0) / nodes.length)
+
+
         /**
          * @type {[Node, {year:number,month:number, date:number}, number][]}
          */
@@ -846,6 +851,8 @@ export class FlowController {
 
         for (const [node, yearMonthDate, weight] of nodeDatas) {
             const size = (5 + 15 * weight) / 2;
+
+
 
 
             //当たり判定と重複処理

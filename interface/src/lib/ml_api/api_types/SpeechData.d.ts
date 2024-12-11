@@ -39,10 +39,10 @@ export type Session2 = number;
 export type Role = string;
 export type House1 = string;
 export type Cursor1 = string | false;
-export type Data = string;
 export type Author = string;
 export type AuthorId = string;
 export type LinkTo = string[] | null;
+export type LinkedCount = number;
 export type Published = string;
 export type Title2 = string;
 export type PublishedList = string[] | null;
@@ -132,10 +132,10 @@ export interface NodeOverviews {
 }
 export interface NodeOverview {
   id: Id4;
-  data: Data;
   author: Author;
   author_id: AuthorId;
   link_to: LinkTo;
+  linked_count: LinkedCount;
   published: Published;
   title: Title2;
   published_list: PublishedList;

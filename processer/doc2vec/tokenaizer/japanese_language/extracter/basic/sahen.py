@@ -135,6 +135,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     new_keyword_obj.clear_subword()
                     new_keyword_obj.add_subword(sahen)
                     additional_results.append(new_keyword_obj)
+                    # @TODO 同じ行に含まれるもののみ追加していく
                     """
                     if keyword_obj.is_allow_add_multiple_subword == False and len(keyword_obj.subwords) > 0:
                         new_keyword_obj = keyword_obj.clone()

@@ -7,10 +7,10 @@
 
 export type Keywords = string[];
 export type Cursor = string | false;
-export type Data = string;
 export type Author = string;
 export type AuthorId = string;
 export type LinkTo = string[] | null;
+export type LinkedCount = number;
 export type Published = string;
 export type Title = string;
 export type PublishedList = string[] | null;
@@ -44,10 +44,10 @@ export interface NodeOverviews {
 }
 export interface NodeOverview {
   id: Id1;
-  data: Data;
   author: Author;
   author_id: AuthorId;
   link_to: LinkTo;
+  linked_count: LinkedCount;
   published: Published;
   title: Title;
   published_list: PublishedList;
