@@ -33,23 +33,7 @@ body {
 
 }
 
-.vertical-scroll {
-    height: 100%;
-    scrollbar-width: none;
-    overflow-y: scroll;
-}
 
-.vertical-scroll:hover {
-    scrollbar-width: thin;
-    scroll-behavior: smooth;
-    overscroll-behavior-y: none;
-}
-
-.horizontal-scroll {
-    height: 100%;
-    scrollbar-width: none;
-    overflow-x: scroll;
-}
 
 .arrow {
     cursor: default;
@@ -61,12 +45,34 @@ body {
     overscroll-behavior-y: none;
 }
 
-.sticky {
-    height: 0px;
-    position: sticky;
-    top: 0;
-}
 
-.h-80vh {
-    height:80vh
+@media (min-width: 768px) {
+    .h-80vh {
+        height:80vh
+    }
+    .h-40vh {
+        height:40vh
+    }
+    .sticky {
+        height: 0px;
+        position: sticky;
+        top: 0;
+    }
+    .vertical-scroll {
+        height: 100%;
+        scrollbar-width: none;
+        overflow-y: scroll;
+    }
+
+    .vertical-scroll:hover {
+        scrollbar-width: thin;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: none;
+    }
+
+   
+}
+.void {
+    margin:0;
+    padding:0;
 }

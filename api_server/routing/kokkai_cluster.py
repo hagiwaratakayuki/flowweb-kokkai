@@ -2,11 +2,10 @@ import asyncio
 from fastapi import APIRouter, status
 
 
-from db.proxy import Node
 from typing import Any, List
 from .query.cluster import get_cluster, get_cluster_member, get_cluster_member_by_publishedrange
 from .query.kokkaiclusterlink import get_after_link, get_before_link
-
+from .query.clusterlink import get_link
 from application.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
 from routing.return_models.types.node.overview import NodeOverview
@@ -14,6 +13,7 @@ from routing.return_models.types.node.overviews import NodeOverviews
 from .util.entity2responsetype import entity2responsetype, entity2responsetype_list
 from .router import get_routing_tuple
 from .return_models.types.kokkai_cluster.cluster_data import KokkaiClusterData, KokkaiClusterLink
+from .return_models.types.cluster.data import ClusterLink
 from typing import Optional
 router = APIRouter()
 
@@ -27,12 +27,15 @@ class ClusterFull(BaseModel):
 
 
 @router.get('/data', response_model_exclude_none=True)
-async def get_entity_all(id: Any) -> KokkaiClusterData:
-    cluster_cor = get_cluster(id)
+async def get_entity_all(id: Any):
+    cluster_cor = get_cluster.fetch(id)
+
     member_cor = get_cluster_member.fetch(cluster_id=id)
     before_cor = get_before_link.fetch(id=id)
     after_cor = get_after_link.fetch(id=id)
-    cluster, [members_entities, members_list_next], befor_cluster_enities, after_cluster_entities = await asyncio.gather(cluster_cor, member_cor, before_cor, after_cor)
+    links_cor = get_link.fetch(cluster_id=id)
+    cluster, [members_entities, members_list_next], befor_cluster_enities, after_cluster_entities, [link_enities, entity_to_link_count] = await asyncio.gather(cluster_cor, member_cor, before_cor, after_cor, links_cor)
+
     if cluster == None:
         raise StatusException(status=status.HTTP_400_BAD_REQUEST)
 
@@ -40,12 +43,19 @@ async def get_entity_all(id: Any) -> KokkaiClusterData:
     if members_entities != None:
         members_list = entity2responsetype_list(
             NodeOverview, entities=members_entities)
+
     return dict(
         id=cluster.key.id_or_name,
         keywords=cluster.get("keywords", []),
-        member_count=cluster["memebr_count"],
-        members_list=members_list,
-        members_list_next=members_list_next)
+        member_count=cluster["member_count"],
+        members={'nodes': members_list, 'cursor': members_list_next},
+        links=entity2responsetype_list(ClusterLink, link_enities),
+        session=cluster['session'],
+        before_cluster=entity2responsetype(
+            KokkaiClusterLink, befor_cluster_enities),
+        after_cluster=entity2responsetype(
+            KokkaiClusterLink, after_cluster_entities)
+    )
 
 
 @router.get('/members', response_model=NodeOverviews, response_model_exclude_none=True)

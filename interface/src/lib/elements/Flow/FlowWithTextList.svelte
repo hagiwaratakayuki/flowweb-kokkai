@@ -50,12 +50,12 @@
 </script>
 
 <Row class="flow">
-  <Col class="h100" sm="2">
+  <Col class="h100" md="2" sm="12">
     <div class="sidebar vertical-scroll me-4">
       <TextList bind:this={textList} on:mouseover={onListItemMouseOver} />
     </div>
   </Col>
-  <Col class="h-100 p-2 border border-primary-subtle rounded-1" sm="10">
+  <Col class="h-100 p-2 border border-primary-subtle rounded-1" md="10" sm="12">
     <Flow bind:this={flowComponent} flow={_flow} on:NodeOver={onNodeOver} />
   </Col>
 </Row>

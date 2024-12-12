@@ -1,12 +1,13 @@
 
 from fastapi import FastAPI, APIRouter
-from routing import node, cluster, speech
+from routing import node, cluster, speech, kokkai_cluster
 
 
 routings: list[tuple[str, APIRouter]] = [
     cluster.routing_tuple,
     node.routing_tuple,
     speech.routing_tuple,
+    kokkai_cluster.routing_tuple
 ]
 
 

@@ -1,15 +1,17 @@
 
 
 import { error } from '@sveltejs/kit';
-import { all_summary } from "$lib/ml_api/api/node/all_summary";
+import { kokkai_flow_data } from "$lib/ml_api/api/kokkai_flow/data";
 /** @type {import('./$types').PageLoad} */
-export async function load({params}) {
-
+export async function load({ params }) {
+    if (params.id == 'installHook.js.map') {
+        error(400, "bad request");
+    }
     try {
 
         // @ts-ignore
-        const summary = await all_summary();
-        return { summary }
+        const flow = await kokkai_flow_data(params.id);
+        return { flow }
     } catch (e) {
         error(400, "bad request");
     }

@@ -6,10 +6,12 @@
     ListGroup,
     ListGroupItem,
   } from "@sveltestrap/sveltestrap";
-  import FlatHolder from "$lib/elements/TextOverview/FlatHolder.svelte";
+
   import Panel from "$lib/elements/GuiComponent/Panel.svelte";
   import Section from "$lib/elements/GuiComponent/Section.svelte";
   import SpeechLink from "$lib/url/kokkai/SpeechLink.svelte";
+  import { keywordPretter } from "$lib/util/keyword_pretter";
+  import KokkaiFlowLink from "$lib/url/kokkai/KokkaiFlowLink.svelte";
 
   /** @type {import('./$types').PageData} */
   export let data;
@@ -22,10 +24,7 @@
    * @type {HTMLElement}
    */
   let linkedFrom;
-  /**
-   * @type {FlatHolder}
-   */
-  let linkedFromComponent;
+
   function scrollLinkTo() {
     linkTo.scrollIntoView({ behavior: "smooth" });
   }
@@ -58,38 +57,7 @@
       window.scroll(0, 0);
     }
   }
-  /**
-   *
-   * @param {string[]}keywords
-   */
-  function keywordPretter(keywords) {
-    /**
-     * @type {string[]}
-     */
-    const ret = [];
-    for (const keyword of keywords) {
-      let index = 0;
-      let isPush = true;
-      while (index < ret.length) {
-        const target = ret[index];
-        if (keyword.indexOf(target) !== -1) {
-          isPush = false;
-          ret[index] = keyword;
-          break;
-        }
-        if (target.indexOf(keyword) !== -1) {
-          isPush = false;
 
-          break;
-        }
-        index++;
-      }
-      if (isPush == true) {
-        ret.push(keyword);
-      }
-    }
-    return ret;
-  }
   function getAdditionalData() {
     return [
       data.speaker.group,
@@ -102,7 +70,7 @@
 </script>
 
 <Row class="justify-content-md-center">
-  <Col sm="2" class="sticky">
+  <Col md="2" sm="12" class="sticky">
     <h2 class="section_header">質疑</h2>
     <div class="h-80vh">
       <div class="vertical-scroll">
@@ -125,7 +93,7 @@
       </div>
     </div>
   </Col>
-  <Col sm="8">
+  <Col md="10" sm="12">
     <Section>
       <h2 class="section_header">キーワード</h2>
       <Panel>
@@ -173,7 +141,7 @@
         <ListGroup flush={true}>
           {#each data.clusters.overviews as cluster}
             <ListGroupItem>
-              {keywordPretter(cluster.keywords).join(" ")}
+              <KokkaiFlowLink id={cluster.id} keywords={cluster.keywords} />
             </ListGroupItem>
           {/each}
         </ListGroup>

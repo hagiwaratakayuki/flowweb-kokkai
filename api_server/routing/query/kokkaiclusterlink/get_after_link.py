@@ -11,5 +11,6 @@ async def fetch(id):
     q.add_filter(filter=PropertyFilter("from_cluster", '=', id))
     ids = [{'id': r['to_cluster']} for r in q.fetch()]
     if len(ids) == 0:
-        return []
-    return await KokkaiCluster.get_multi_async(ids)
+        return None
+    ret = await KokkaiCluster.get_multi_async(ids)
+    return ret[0]

@@ -17,10 +17,14 @@ async def fetch(cluster_id: int, cursor: Optional[str] = None, limit: int = 100)
     itr, next_page_token = cursorfetch.fetch(
         query=q, cursor=cursor, limit=limit)
     member_enities = deque(itr)
+
     node_map = {node_entity.key.id_or_name: node_entity for node_entity in Node.get_multi(
         [{"id": e["node_id"]} for e in member_enities])}
-    node_members = [node_map[member_entity['node_id']]
-                    for member_entity in member_enities]
+    node_members = deque()
+    for member_entity in member_enities:
+        node_entity = node_map[member_entity['node_id']]
+        node_entity.update({'position': member_entity['position']})
+        node_members.append(node_entity)
     return node_members, next_page_token
 
 
