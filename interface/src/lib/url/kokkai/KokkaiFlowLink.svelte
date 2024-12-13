@@ -3,12 +3,13 @@
   import { getKokkaiFlowUrl } from "./flow";
 
   export let id;
-  export let keywords;
-  export let newWindow = true;
+  export let keywords = [];
+  export let isNewWindow = true;
+
   let props;
 
   $: {
-    if (newWindow == true) {
+    if (isNewWindow == true) {
       props = { target: "_brank" };
     }
   }

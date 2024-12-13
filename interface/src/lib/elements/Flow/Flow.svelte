@@ -122,8 +122,8 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="container root" bind:this={containerRoot}>
-  <div class="container" bind:this={container} />
+<div class="flow_container root" bind:this={containerRoot}>
+  <div class="flow_container" bind:this={container} />
 
   <NodeModal bind:this={nodeModal} />
 </div>
@@ -135,7 +135,7 @@
     top: 0%;
     left: 0%;
   }
-  .container {
+  .flow_container {
     margin: 0;
     padding: 0;
     width: 100%;

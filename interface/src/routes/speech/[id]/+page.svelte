@@ -57,7 +57,7 @@
       window.scroll(0, 0);
     }
   }
-
+  // @todo 区切り線判定(前に要素があるか)追加。groupにはリンクつける
   function getAdditionalData() {
     return [
       data.speaker.group,

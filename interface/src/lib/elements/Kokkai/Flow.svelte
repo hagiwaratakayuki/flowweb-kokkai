@@ -20,9 +20,7 @@
   }
 </script>
 
-{#if $$slots.controll}
-  <div class="division">
-    <slot name="controll"></slot>
-  </div>
-{/if}
-<FlowWithTextList bind:this={flowWithTextList}></FlowWithTextList>
+<FlowWithTextList bind:this={flowWithTextList}>
+  <div slot="sidebar"><slot name="sidebar" /></div>
+  <div slot="main"><slot name="main" /></div>
+</FlowWithTextList>

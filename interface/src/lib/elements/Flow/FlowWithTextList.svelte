@@ -3,6 +3,7 @@
   import TextList from "$lib/elements/TextOverview/List.svelte";
   import { Row, Col } from "@sveltestrap/sveltestrap";
   import { overviews_to_flow } from "./overviews_to_flow";
+  import Section from "../GuiComponent/Section.svelte";
   /**
    * @type {TextList}
    * */
@@ -51,11 +52,18 @@
 
 <Row class="flow">
   <Col class="h100" md="2" sm="12">
-    <div class="sidebar vertical-scroll me-4">
-      <TextList bind:this={textList} on:mouseover={onListItemMouseOver} />
-    </div>
+    <slot name="sidebar" />
+    <Section>
+      <slot name="textlist_header"><h2 class="section_header">発言</h2></slot>
+      <div class="sidebar vertical-scroll me-4">
+        <TextList bind:this={textList} on:mouseover={onListItemMouseOver} />
+      </div>
+    </Section>
   </Col>
-  <Col class="h-100 p-2 border border-primary-subtle rounded-1" md="10" sm="12">
-    <Flow bind:this={flowComponent} flow={_flow} on:NodeOver={onNodeOver} />
+  <Col class="h-100" md="10" sm="12">
+    <slot name="main" />
+    <div class="h-100 border border-primary-subtle rounded-1">
+      <Flow bind:this={flowComponent} flow={_flow} on:NodeOver={onNodeOver} />
+    </div>
   </Col>
 </Row>

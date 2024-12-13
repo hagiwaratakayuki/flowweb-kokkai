@@ -9,13 +9,13 @@ export type Keywords = string[];
 
 export interface KokkaiClusterLink {
   id: Id;
-  issue: Issue;
+  session: Session;
   keywords: Keywords;
   [k: string]: unknown;
 }
 export interface Id {
   [k: string]: unknown;
 }
-export interface Issue {
+export interface Session {
   [k: string]: unknown;
 }

@@ -30,7 +30,7 @@ export interface KokkaiClusterData {
   members: NodeOverviews;
   member_count: MemberCount;
   links: Links;
-  issue: Issue;
+  session: Session1;
   before_cluster: KokkaiClusterLink | null;
   after_cluster: KokkaiClusterLink | null;
   [k: string]: unknown;
@@ -69,18 +69,18 @@ export interface ClusterLink {
 export interface Id2 {
   [k: string]: unknown;
 }
-export interface Issue {
+export interface Session1 {
   [k: string]: unknown;
 }
 export interface KokkaiClusterLink {
   id: Id3;
-  issue: Issue1;
+  session: Session2;
   keywords: Keywords3;
   [k: string]: unknown;
 }
 export interface Id3 {
   [k: string]: unknown;
 }
-export interface Issue1 {
+export interface Session2 {
   [k: string]: unknown;
 }
