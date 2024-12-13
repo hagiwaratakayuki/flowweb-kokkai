@@ -41,7 +41,7 @@ def get_norm_weight(filtered_map: Dict[str, Dict]):
         index += 1
     norms_array = np.array(norms)
     norm_avg = np.average(norms_array)
-    weight_array = norms_array / norm_avg
+    weight_array = np.power(norms_array / norm_avg, 1.5)
     ret = {}
     index = 0
     for weight in weight_array:
