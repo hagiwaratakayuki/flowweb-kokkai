@@ -5,4 +5,4 @@ from doc2vec.components.japanese_language.regex_patterns import noun_blockpatter
 
 
 def check_valid_noun(face: str):
-    return face == "子ども" or (hiragana_include.compiled.search(face) is None and noun_blockpattern.compiled.search(face) is None)
+    return face == "子ども" or (hiragana_include.pattern.search(face) is None and noun_blockpattern.compiled.search(face) is None)

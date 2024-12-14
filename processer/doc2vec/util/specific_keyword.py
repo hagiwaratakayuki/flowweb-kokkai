@@ -43,8 +43,7 @@ class SpecificKeyword:
             self._target_words = [EqIn(tw) for tw in target_words]
 
     def clone(self):
-        ret = self.__class__(
-            self.headword)
+        ret = self._clone_class()
         ret.add_subword(self.subwords)
         ret.is_fixed_headword = self.is_fixed_headword
         ret.is_force = self.is_force
@@ -53,6 +52,10 @@ class SpecificKeyword:
 
         ret.line_numbers = self.line_numbers.copy()
         return ret
+
+    def _clone_class(self):
+        return self.__class__(
+            headword=self.headword)
 
     def __eq__(self, __value: object) -> bool:
         ret = False
@@ -104,11 +107,15 @@ class SpecificKeyword:
 
 
 class BindSpecificKeyword(SpecificKeyword):
-    def __init__(self, headwords: List[str], headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headwords: List[str] = [], headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self._headwords = tuple(headwords)
 
         super().__init__(headword, subwords, is_force, target_words,
                          line_numbers, is_fixed_headword, is_allow_add_multiple_subword)
+
+    def _clone_class(self):
+        return self.__class__(
+            headwords=self._headwords, headword=self.headword)
 
     def to_extender(self):
 

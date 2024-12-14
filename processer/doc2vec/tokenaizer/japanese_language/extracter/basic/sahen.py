@@ -84,7 +84,9 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 context.set_noun(face, index)
                 continue
-            if len(face) > 1 and data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True and hiragana_include.pattern.search(face) == None:
+
+            if data[0] == '名詞' and data[1] in 一般と固有名詞 and check_valid_noun(face=face) == True and hiragana_include.pattern.search(face) == None:
+
                 context.set_noun(face, index)
                 continue
             if context.noun is not None and data[1] == 'サ変接続' and sahen_blockpattern.search(face) is None and face != "専用":
@@ -96,11 +98,13 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                 if next_index < lentokens:
                     next_face, next_data = tokens_list[next_index]
                     if next_data[1] == "接尾":
+
                         continue
                     if next_face in 目的修飾接尾語:
                         continue
 
                 k = (context.noun, face,)
+
                 noun_sahen[k].add(line_number)
 
     # 複合語チェック(サ変接続)
@@ -115,42 +119,35 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     new_results: Deque[SpecificKeyword] = deque()
 
     additional_results = deque()
-    for keyword_obj in results:
 
-        for key in keys:
+    for key in keys:
 
-            line_numbers = noun_sahen[key]
-            noun, sahen = key
+        line_numbers = noun_sahen[key]
+        noun, sahen = key
 
-            inter = keyword_obj.line_numbers & line_numbers
-
-            if inter == empty_set:
-
-                continue
+        for keyword_obj in results:
 
             if keyword_obj == noun:
 
-                if keyword_obj != sahen:
+                inter = keyword_obj.line_numbers & line_numbers
+
+                if inter == empty_set:
+
+                    continue
+                if keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0:
+
                     new_keyword_obj = keyword_obj.clone()
                     new_keyword_obj.clear_subword()
                     new_keyword_obj.add_subword(sahen)
-                    additional_results.append(new_keyword_obj)
-                    # @TODO 同じ行に含まれるもののみ追加していく
-                    """
-                    if keyword_obj.is_allow_add_multiple_subword == False and len(keyword_obj.subwords) > 0:
-                        new_keyword_obj = keyword_obj.clone()
-                        new_keyword_obj.clear_subword()
-                        new_keyword_obj.add_subword(sahen)
-                        additional_results.append(new_keyword_obj)
+                    new_keyword_obj.line_numbers = inter
 
-                    else:
-                        keyword_obj.add_subword(sahen)
-                    """
-                noun_sahen[key] -= inter
+                    additional_results.append(new_keyword_obj)
+                    keyword_obj.line_numbers -= inter
+                    noun_sahen[key] -= inter
+        results.extend(additional_results)
+        additional_results = deque()
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
 
-    results.extend(additional_results)
-    additional_results = deque()
     for keyword_obj in results:
 
         for key in keys:
@@ -179,6 +176,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
     additional_kws = deque()
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+
     for keyword_obj in new_results:
 
         for key in keys:
@@ -208,11 +206,13 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     continue
 
     new_results.extend(additional_kws)
-
+    new_results = [r for r in new_results if r.line_numbers != empty_set]
+    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
     for key in keys:
         if noun_sahen[key] == empty_set:
             continue
         noun, sahen = key
+
         new_results.append(SpecificKeyword(headword=noun, subwords=[sahen]))
 
     return new_results
