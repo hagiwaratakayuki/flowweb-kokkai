@@ -110,7 +110,12 @@ export class FlowController {
          */
         this._interactiveGrid = {};
 
+        this._maxYear = -1;
+        this._maxMonth = -1;
 
+        this._minYear = Infinity;
+        this._minMonth = Infinity
+        this._ymdAdjast = 0
 
 
 
@@ -442,7 +447,16 @@ export class FlowController {
      * @param {number} date
      */
     _getXFromYearMonthDate(year, month, date) {
-        return ((year - this._minYear) * 12 * 31 + (month - 1) * 31 + date) * 20;
+        //  最小の年と同じ→最小の年の月の分のみ
+        //  ↑でない→年の差分
+        //  追加時→同じ式で補正分を算出
+        let yearStep = year - this._minYear
+
+
+
+
+        return (yearStep * 12 * 31 + (month - this._minMonth) * 31 + date) * this.dayStep + this._ymdAdjast;
+        //return ((year - this._minYear) * 12 * 31 + (month - 1) * 31 + date) * 20;
     }
     destroy() {
         this.app.destroy()
@@ -581,19 +595,17 @@ export class FlowController {
      */
     setData(nodes, edges) {
 
-        const { yearDiff, minYear } = this.addNode(nodes, edges)
+        const { yearDiff, minYear, } = this.addNode(nodes, edges)
 
-        this._createForegroundScale(yearDiff);
+        this._createForegroundScale();
         this._createSubscale(minYear, yearDiff)
 
 
     }
-    /**
-     * @param {number} yearDiff
-     */
-    _createForegroundScale(yearDiff) {
 
-        let lineHeight = null;
+    _createForegroundScale() {
+
+
 
         this._monthScaleContainer = new PIXI.Container();
         this._yearScaleContainer = new PIXI.Container()
@@ -605,47 +617,7 @@ export class FlowController {
 
 
 
-        for (let year = 0; year < yearDiff; year++) {
-            for (let month = 0; month < 12; month++) {
-                /**
-                * @type {PIXI.Container}
-                */
-                let scaleContainer;
 
-
-                const x = this._calicurateX(year, month, 0, 1)
-                let scaleType;
-                if (month === 0) {
-                    scaleType = 'year';
-
-                    scaleContainer = this._yearScaleContainer;
-
-                    lineHeight = 10;
-
-
-
-                }
-                else {
-                    scaleType = 'month';
-                    scaleContainer = this._monthScaleContainer
-                    lineHeight = 8;
-
-                }
-                const scale = this._createScale(x, lineHeight, scaleType)
-
-
-
-
-                scaleContainer.addChild(scale)
-                this._yearMonthScales.push({ scale, year, month });
-
-
-            }
-
-
-
-
-        }
         this._scaleContainer.addChild(this._yearScaleContainer, this._monthScaleContainer)
         /*const centerScale = new PIXI.Graphics()
         centerScale.setStrokeStyle({ width: 4, color: "#994233" });
@@ -733,11 +705,14 @@ export class FlowController {
             fontSize: 14,
             fill: '#000000',
         });
-        for (let yearStep = 0; yearStep < yearDiff; yearStep++) {
+        for (let yearStep = 0; yearStep < yearDiff + 1; yearStep++) {
             const year = minYear + yearStep;
-            for (let month = 0; month < 12; month++) {
+            let month = yearStep == 0 ? this._minMonth : 0
+            while (month < 12) {
 
                 const x = this._calicurateX(yearStep, month, 0, 1)
+
+
                 let scaleType;
                 if (month === 0) {
                     scaleType = 'year';
@@ -766,6 +741,7 @@ export class FlowController {
                 wrapContainer.position.set(x, this.app.screen.height - 15 - lineHeight);
                 scaleContainer.addChild(wrapContainer)
                 this._yearMonthScales.push({ scale: wrapContainer, year: yearStep, month });
+                month++;
             }
 
         }
@@ -778,7 +754,7 @@ export class FlowController {
      * @param {number} scaleRatio
      */
     _calicurateX(yearDiff, month, date = 0, scaleRatio = 1) {
-        return (yearDiff * 365 + month * 31 + date) * this.dayStep * scaleRatio + this.padding
+        return (yearDiff * 365 + (month - this._minMonth) * 31 + date) * this.dayStep * scaleRatio + this.padding
     }
     /**
      
@@ -791,7 +767,9 @@ export class FlowController {
         const weights = [];
 
         let maxYear = this._maxYear || 0;
-        let minYear = Infinity;
+
+        let minYear = this._minYear;
+        let minMonth = this._minMonth;
         /**
          * @type {{year:number, month:number, date:number}[]}
          *  */
@@ -810,16 +788,25 @@ export class FlowController {
             if (year > maxYear) {
                 maxYear = year;
             }
-            if (year < minYear) {
+
+            if (year <= minYear) {
                 minYear = year;
+                if (minMonth > month) {
+                    minMonth = month;
+                }
+
             }
             yearMonthDates.push({ year, month, date })
 
         }
-        if (!this._minYear || this._minYear > minYear) {
+        if (this._minYear >= minYear) {
             this._minYear = minYear
+            if (this._minMonth > minMonth) {
+                this._minMonth = minMonth
+            }
         }
-        if (!this._maxYear || maxYear > this._maxYear) {
+
+        if (maxYear > this._maxYear) {
             this._maxYear = maxYear;
         }
 
@@ -1012,7 +999,7 @@ export class FlowController {
         }
         this._edgeLineContainer.addChild(...edgeLines)
         this._edgeArrowContainer.addChild(...edgeArrows)
-        return { nodeGraphics, yearDiff, minYear };
+        return { nodeGraphics, yearDiff, minYear, minMonth };
 
 
 
