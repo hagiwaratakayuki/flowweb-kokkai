@@ -26,6 +26,7 @@ class DTO(Base):
     meeting_id: str
     house: str
     keywords: list
+    comittie: str
     weight: float
 
 
@@ -92,13 +93,13 @@ scoregetter = itemgetter(1)
 def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque, comittie_to_speaker: Dict):
     global MEETING_MAP
     MEETING_MAP[meeting['id']] = meeting
-    house = meeting['house']
+    issue = meeting['house']
     comittie_name = meeting['name']
 
     issue = int(number_pt.search(unicodedata.normalize(
         'NFKC', meeting['issue'])).group(0))
     meeting['issue'] = issue
-    session_comittie_data = session_comittie_data_map[comittie_name][house]
+    session_comittie_data = session_comittie_data_map[comittie_name][issue]
     if issue > session_comittie_data['max_issue']:
         session_comittie_data['max_issue'] = issue
     session_comittie_data['meetings'].append((issue, meeting['id'],))
@@ -117,10 +118,10 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         position = speaker.get('position', '')
         role = speaker.get('role', '')
         speaker['session'] = session
-        speaker['house'] = house
+        speaker['house'] = issue
 
         _speaker_name_to_data[name] = {'id': hashlib.md5('_'.join(
-            [str_session, house, name, group, position, role]).encode()).hexdigest(), 'speaker': speaker}
+            [str_session, issue, name, group, position, role]).encode()).hexdigest(), 'speaker': speaker}
     meeting['moderators'] = {name: _speaker_name_to_data[name]
                              for name in meeting['moderators']}
     meetings.append(meeting)
@@ -140,13 +141,14 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.published = meeting['start']
         dto.house = meeting['house']
         dto.meeting_id = meeting['id']
+        dto.comittie = meeting['name']
 
         yield dto
         speechData['speaker_id'] = dto.author_id
         speechData['meeting_id'] = meeting["id"]
         speechData['meeting'] = meeting['name']
         speechData['title'] = dto.title
-        speechData['house'] = house
+        speechData['house'] = issue
         speechData['issue'] = issue
         speeches.append(speechData)
 

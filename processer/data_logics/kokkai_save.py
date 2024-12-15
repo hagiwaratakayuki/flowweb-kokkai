@@ -29,12 +29,13 @@ class KokkaiNodeLogic(NodeLogic):
     def set_vectors(self, sentiment_result: SentimentResult):
         return super().set_vectors(sentiment_result)
 
-    def setEntityProperty(self, entity, dto: DTO, nodeEntity, vector, link_to, linked_count, sentiment, keywords):
+    def setEntityProperty(self, entity, dto: DTO, nodeEntity: NodeKokkai, vector, link_to, linked_count, sentiment, keywords):
         ret = super().setEntityProperty(entity, dto, nodeEntity,
                                         vector, link_to, linked_count, sentiment, keywords)
 
         nodeEntity.session = self.session
         nodeEntity.house = dto.house
+        nodeEntity.comittie = dto.comittie
         self.meeting_keywords[dto.meeting_id].append(
             (nodeEntity.weight, nodeEntity.keywords,))
 
