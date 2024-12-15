@@ -369,7 +369,7 @@ export class FlowController {
 
 
         const grid = this._getGridFromAxis(x, y);
-        console.log(grid);
+        console.log(grid, x, y);
 
         if (grid in this._interactiveGrid) {
 
@@ -862,7 +862,7 @@ export class FlowController {
              */
             const grids = {};
             while (_y < end) {
-                const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 5));
+                const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, _y);
 
                 _y += 5;
                 grids[grid] = true
@@ -887,7 +887,7 @@ export class FlowController {
             //@todo 中心を基準に並び順を変更
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
-
+            console.log(x, y)
             graphic.circle(x, y, size);
 
             graphic.fill("#0683c9ff")
@@ -1017,13 +1017,14 @@ export class FlowController {
      * @param {number} y
      */
     _getGridFromAxis(x, y) {
-        const baseX = x / 20;
+        const baseX = (x - this.padding) / this.dayStep;
         const yearDiff = 12 * 31;
         const monthDiff = 31;
         let year = Math.floor(baseX / yearDiff) + this._minYear;
         let month = Math.ceil(Math.abs(baseX % yearDiff) / 31) + this._minMonth - 1;
-        year_adjast = Math.floor(month / 12)
-        year += 
+        year += Math.floor(month / 12)
+        month = month % 12
+
         const date = Math.floor(Math.abs(baseX % yearDiff) % monthDiff);
         console.log(year, month, date)
 
