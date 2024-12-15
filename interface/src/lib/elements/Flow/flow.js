@@ -362,12 +362,14 @@ export class FlowController {
      * @param {MouseEvent} mouseEvent
      */
     _emitNodeMouseInteraction(eventName, mouseEvent) {
-
-        const x = (mouseEvent.clientX - this._offset.x - this._transforms.x) / this._transforms.scaleX
+        const target_rect = this._domContainer.getBoundingClientRect();
+        const x = (mouseEvent.clientX - target_rect.left - this._transforms.x) / this._transforms.scaleX
         const yCenter = this.app.screen.height / 2;
-        const y = yCenter + (mouseEvent.clientY - this._offset.y - this._transforms.y - yCenter) / this._transforms.scaleY;
+        const y = yCenter + (mouseEvent.clientY - target_rect.top - this._transforms.y - yCenter) / this._transforms.scaleY;
+
 
         const grid = this._getGridFromAxis(x, y);
+        console.log(grid);
 
         if (grid in this._interactiveGrid) {
 
@@ -487,7 +489,7 @@ export class FlowController {
         const scales = this._yearMonthScales
         if (this._transforms.scaleX !== 1) {
             for (const { scale, year, month } of scales) {
-                const newX = this._calicurateX(year, month, 0, this._transforms.scaleX)
+                const newX = this._computeX(year, month, 0, this._transforms.scaleX)
                 scale.position.set(newX, scale.position.y)
 
                 if (newX + this._transforms.x < this.padding) {
@@ -710,7 +712,7 @@ export class FlowController {
             let month = yearStep == 0 ? this._minMonth : 0
             while (month < 12) {
 
-                const x = this._calicurateX(yearStep, month, 0, 1)
+                const x = this._computeX(yearStep, month, 0, 1)
 
 
                 let scaleType;
@@ -753,8 +755,8 @@ export class FlowController {
      * @param {number?} date
      * @param {number} scaleRatio
      */
-    _calicurateX(yearDiff, month, date = 0, scaleRatio = 1) {
-        return (yearDiff * 365 + (month - this._minMonth) * 31 + date) * this.dayStep * scaleRatio + this.padding
+    _computeX(yearDiff, month, date = 0, scaleRatio = 1) {
+        return (yearDiff * 31 * 12 + (month - this._minMonth) * 31 + date) * this.dayStep * scaleRatio + this.padding
     }
     /**
      
@@ -822,9 +824,9 @@ export class FlowController {
          * @type {[Node, {year:number,month:number, date:number}, number][]}
          */
         const nodeDatas = weights.map(function (weight, index) {
-            const x = sigma === 0 ? 1 : (weight - avg) / sigma;
+            const reguraizedWeight = sigma === 0 ? 1 : (weight - avg) / sigma;
 
-            return [nodes[index], yearMonthDates[index], (Math.tanh(x / 2) + 1) / 2]
+            return [nodes[index], yearMonthDates[index], (Math.tanh(reguraizedWeight / 2) + 1) / 2]
 
         });
         /**
@@ -843,10 +845,10 @@ export class FlowController {
 
 
             //当たり判定と重複処理
-            const x = this._getXFromYearMonthDate(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date);
+            const x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
 
             const y = (1 - node.y) * this.app.screen.height / 2;
-            //console.log(x, y)
+
 
 
 
@@ -860,7 +862,7 @@ export class FlowController {
              */
             const grids = {};
             while (_y < end) {
-                const grid = [yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 5)].join('_');
+                const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, Math.floor(_y / 5));
 
                 _y += 5;
                 grids[grid] = true
@@ -905,6 +907,8 @@ export class FlowController {
             this._vertexContainer.addChild(...Array.from(Object.values(nodeGraphics)))
 
         }
+        console.log(this._interactiveGrid);
+
 
 
 
@@ -1016,10 +1020,12 @@ export class FlowController {
         const baseX = x / 20;
         const yearDiff = 12 * 31;
         const monthDiff = 31;
-        const year = Math.floor(baseX / yearDiff) + this._minYear;
-        const month = Math.ceil(Math.abs(baseX % yearDiff) / 31);
+        let year = Math.floor(baseX / yearDiff) + this._minYear;
+        let month = Math.ceil(Math.abs(baseX % yearDiff) / 31) + this._minMonth - 1;
+        year_adjast = Math.floor(month / 12)
+        year += 
         const date = Math.floor(Math.abs(baseX % yearDiff) % monthDiff);
-
+        console.log(year, month, date)
 
         return this._getGrid(year, month, date, y);
 
