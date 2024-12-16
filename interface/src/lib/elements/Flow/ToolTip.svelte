@@ -16,9 +16,6 @@
     isVisible = true;
 
     setTimeout(function () {
-      style = `top:${top}px; left:${left}px`;
-
-      return;
       for (const [direction, func] of Object.entries(arrowDirections)) {
         if (func() === true) {
           arrowDirection = direction;

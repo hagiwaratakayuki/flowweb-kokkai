@@ -379,7 +379,7 @@ export class FlowController {
             const interactiveData = this._interactiveGrid[grid]
             const rect = this._domContainer.getBoundingClientRect()
             const x = (interactiveData.x + this._transforms.x) / this._transforms.scaleX + rect.x + window.scrollX
-            const y = (interactiveData.x + this._transforms.y) / this._transforms.scaleY + rect.y + window.scrollY
+            const y = (interactiveData.y + this._transforms.y) / this._transforms.scaleY + rect.y + window.scrollY
             this._emit(eventName, x, y, interactiveData, mouseEvent)
             return true
         }

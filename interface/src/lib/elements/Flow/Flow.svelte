@@ -127,7 +127,6 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="flow_container root" bind:this={containerRoot}>
   <div class="flow_container" bind:this={container} />
-
   <NodeModal bind:this={nodeModal} />
 </div>
 <Tooltip bind:this={toolTip} flowElement={containerRoot} />
