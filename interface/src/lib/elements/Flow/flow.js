@@ -10,7 +10,10 @@ import { Application } from 'pixi.js';
    @typedef  {{        
         nodes:Node[],
         isOverwraped: boolean
-   }} GridInfo
+        x:number,
+        y:number,
+        maxWeight: number
+   }} IntaractiveData
    @typedef {"node.click" | "node.over" | "node.over.out"} MouseEventName
    @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
 
@@ -106,9 +109,10 @@ export class FlowController {
         this.app.stage.sortableChildren = true;
         this._gridMap = {};
         /**
-         * @type {Object.<string, GridInfo>}
+         * @type {Object.<string, IntaractiveData>}
          */
         this._interactiveGrid = {};
+        this._gridStep = 5
 
         this._maxYear = -1;
         this._maxMonth = -1;
@@ -369,11 +373,14 @@ export class FlowController {
 
 
         const grid = this._getGridFromAxis(x, y);
-        console.log(grid, x, y);
+
 
         if (grid in this._interactiveGrid) {
-
-            this._emit(eventName, this._interactiveGrid[grid], mouseEvent)
+            const interactiveData = this._interactiveGrid[grid]
+            const rect = this._domContainer.getBoundingClientRect()
+            const x = (interactiveData.x + this._transforms.x) / this._transforms.scaleX + rect.x + window.scrollX
+            const y = (interactiveData.x + this._transforms.y) / this._transforms.scaleY + rect.y + window.scrollY
+            this._emit(eventName, x, y, interactiveData, mouseEvent)
             return true
         }
         return false
@@ -845,9 +852,9 @@ export class FlowController {
 
 
             //当たり判定と重複処理
-            const x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
+            let x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
 
-            const y = (1 - node.y) * this.app.screen.height / 2;
+            let y = (1 - node.y) * this.app.screen.height / 2;
 
 
 
@@ -864,13 +871,17 @@ export class FlowController {
             while (_y < end) {
                 const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, _y);
 
-                _y += 5;
+                _y += this._gridStep;
                 grids[grid] = true
 
 
                 const interactiveData = this._interactiveGrid[grid] || {
                     nodes: [],
-                    isOverwraped: false
+                    isOverwraped: false,
+                    x: x,
+                    y: 0,
+                    maxWeight: -1
+
 
 
                 }
@@ -878,16 +889,22 @@ export class FlowController {
                 if (interactiveData.isOverwraped === false) {
                     interactiveData.isOverwraped = grid in this._interactiveGrid;
                 }
+                if (interactiveData.maxWeight < weight) {
+                    interactiveData.y = y
+                    interactiveData.maxWeight = node.weight
+
+                }
                 this._interactiveGrid[grid] = interactiveData
 
             }
-
+            x += size * 0.5
+            y += size * 0.5
             this._index[node.id] = Object.assign(node, { x, y, size, grids })
 
             //@todo 中心を基準に並び順を変更
             //@task ズームした時の大きさを変わらないように(保留。年モード→月モード→日モード(チャットのみ?))
             const graphic = new PIXI.Graphics()
-            console.log(x, y)
+
             graphic.circle(x, y, size);
 
             graphic.fill("#0683c9ff")
@@ -907,7 +924,7 @@ export class FlowController {
             this._vertexContainer.addChild(...Array.from(Object.values(nodeGraphics)))
 
         }
-        console.log(this._interactiveGrid);
+
 
 
 
@@ -1026,7 +1043,7 @@ export class FlowController {
         month = month % 12
 
         const date = Math.floor(Math.abs(baseX % yearDiff) % monthDiff);
-        console.log(year, month, date)
+        //console.log(year, month, date)
 
         return this._getGrid(year, month, date, y);
 

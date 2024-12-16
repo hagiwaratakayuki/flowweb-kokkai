@@ -1,7 +1,7 @@
-import { GridInfo } from './flow';
+import { IntaractiveData } from './flow';
 
 export type NodeEventMessage = {
-    gridInfo: GridInfo,
+    gridInfo: IntaractiveData,
     mouseEvent: MouseEvent
 
 }

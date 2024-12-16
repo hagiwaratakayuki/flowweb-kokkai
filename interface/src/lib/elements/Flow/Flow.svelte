@@ -76,17 +76,20 @@
    * @param {import("./flow").GridInfo} gridInfo
    * @param {MouseEvent} mouseEvent
    */
-  function onNodeOver(gridInfo, mouseEvent) {
+  function onNodeOver(x, y, gridInfo, mouseEvent) {
     /**
      * @type {EventMessage}
      *
      * */
     const message = { gridInfo, mouseEvent };
+
+    console.log(x, y, gridInfo);
     tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}…`;
     if (gridInfo.isOverwraped) {
       tooltipMessage += ` + ${gridInfo.nodes.length - 1} articles`;
     }
-    toolTip.show(mouseEvent.clientY, mouseEvent.screenX, tooltipMessage);
+
+    toolTip.show(x, y, tooltipMessage);
 
     dispatcher("NodeOver", message);
   }

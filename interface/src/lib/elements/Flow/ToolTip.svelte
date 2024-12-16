@@ -8,13 +8,17 @@
   let isVisible = false;
   let style = "";
 
-  export function show(_top, _left, _message) {
+  export function show(_left, _top, _message) {
     message = _message;
     top = _top;
 
     left = _left;
     isVisible = true;
+
     setTimeout(function () {
+      style = `top:${top}px; left:${left}px`;
+
+      return;
       for (const [direction, func] of Object.entries(arrowDirections)) {
         if (func() === true) {
           arrowDirection = direction;
@@ -49,7 +53,7 @@
    * @type {HTMLElement}
    */
   let arrowElement;
-  const maxRadius = 10;
+  const maxRadius = 15;
   const padding = 10;
 
   /**
@@ -61,8 +65,7 @@
         left - frameElement.getBoundingClientRect().width / 2 <
         flowElement.offsetLeft
       ) {
-        _framePosition.top =
-          top - frameElement.getBoundingClientRect().height / 2;
+        _framePosition.top = top;
 
         _framePosition.left = left + maxRadius + padding;
         return true;
@@ -115,14 +118,14 @@
   };
 
   onMount(function () {
-    tick(function () {
-      Array.from(document.getElementsByTagName("body"))[0].appendChild(tip);
-    });
+    const body = Array.from(document.getElementsByTagName("body"))[0];
+
+    body.appendChild(frameElement);
   });
 </script>
 
 <div
-  class:hiden={isVisible === false}
+  class:hidden={isVisible === false}
   class:visible={isVisible === true}
   class="tooltip-frame"
   bind:this={frameElement}
@@ -145,16 +148,17 @@
   .visible {
     position: absolute;
     text-align: center;
-    visibility: visible;
+    display: block;
   }
-  .hiden {
+  .hidden {
     visibility: hidden;
-    position: relative;
   }
   .tooltip-frame {
     position: absolute;
     width: fit-content;
+    display: block;
   }
+
   .arrow {
     position: absolute;
     width: 0.8em;
