@@ -6,7 +6,7 @@
    * @typef {import("./flow").GridInfo} GridInfo
    * @type {GridInfo}
    */
-  let _gridInfo = { nodes: [], isOverwraped: false };
+  let _interactiveData = { nodes: [], isOverwraped: false };
 
   let isVisible = false;
 
@@ -21,11 +21,11 @@
   export function close() {
     isVisible = false;
   }
-  export function open(gridInfo) {
+  export function open(interactiveData) {
     isVisible = true;
     lock = true;
     isScroll = false;
-    _gridInfo = gridInfo;
+    _interactiveData = interactiveData;
   }
   function bodyClick() {
     setTimeout(function () {
@@ -54,7 +54,7 @@
         />
       </div>
       <ListGroup class="bg-white rounded-2">
-        {#each _gridInfo.nodes as node}
+        {#each _interactiveData.nodes as node}
           <ListGroupItem>
             <a href="/text/{node.id}">{node.title}</a>
           </ListGroupItem>

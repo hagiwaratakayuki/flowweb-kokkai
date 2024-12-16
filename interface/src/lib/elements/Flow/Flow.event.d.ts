@@ -1,10 +1,20 @@
-import { IntaractiveData } from './flow';
+import { FlowEntry } from "$lib/relay_types/flow"
 
-export type NodeEventMessage = {
-    gridInfo: IntaractiveData,
+export type IntaractiveData = {
+    nodes: FlowEntry[],
+    isOverwraped: boolean
+    x: number,
+    y: number,
+    maxWeight: number
+}
+
+export type FlowNodeEventMessage = {
+    interactiveData: IntaractiveData,
     mouseEvent: MouseEvent
+    x: number
+    y: number
 
 }
 
 
-export type NodeEvent = CustomEvent<NodeEventMessage>
+export type FlowNodeEvent = CustomEvent<FlowNodeEventMessage>

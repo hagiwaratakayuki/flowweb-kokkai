@@ -5,17 +5,11 @@ import { Application } from 'pixi.js';
  * @typedef {import("$lib/relay_types/flow").Flow} Nodes
 *  @typedef {import("$lib/relay_types/flow").Edges} Edges
 *  @typedef {import("$lib/relay_types/flow").FlowEntry} Node
-   @typedef {Object.<string, Node>} NodeMap 
-   @typedef {{nodes:NodeMap}} Colisions
-   @typedef  {{        
-        nodes:Node[],
-        isOverwraped: boolean
-        x:number,
-        y:number,
-        maxWeight: number
-   }} IntaractiveData
-   @typedef {"node.click" | "node.over" | "node.over.out"} MouseEventName
-   @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
+*  @typedef {Object.<string, Node>} NodeMap 
+   
+   
+*   @typedef {"node.click" | "node.over" | "node.over.out"} MouseEventName
+*   @typedef {Node & {x?:number,y?:number, size?:number, grids?:Object.<string, true>}} nodePosition
 
          
  **/
@@ -109,7 +103,7 @@ export class FlowController {
         this.app.stage.sortableChildren = true;
         this._gridMap = {};
         /**
-         * @type {Object.<string, IntaractiveData>}
+         * @type {Object.<string, import("./Flow.event").IntaractiveData>}
          */
         this._interactiveGrid = {};
         this._gridStep = 5
@@ -380,7 +374,13 @@ export class FlowController {
             const rect = this._domContainer.getBoundingClientRect()
             const x = (interactiveData.x + this._transforms.x) / this._transforms.scaleX + rect.x + window.scrollX
             const y = (interactiveData.y + this._transforms.y) / this._transforms.scaleY + rect.y + window.scrollY
-            this._emit(eventName, x, y, interactiveData, mouseEvent)
+            /**
+             * @type {import("./Flow.event").FlowNodeEventMessage}
+             */
+            const eventMessage = { x, y, interactiveData, mouseEvent }
+            this._emit(eventName, eventMessage)
+
+
             return true
         }
         return false

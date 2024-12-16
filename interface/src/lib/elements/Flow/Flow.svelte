@@ -1,13 +1,10 @@
 <script>
   import { onMount, createEventDispatcher } from "svelte";
-  import { FlowController, FlowControllerBuilder } from "./flow";
+  import { FlowController, FlowControllerBuilder } from "./flow_controller";
   import { browser } from "$app/environment";
   import Tooltip from "./ToolTip.svelte";
   import NodeModal from "./NodeModal.svelte";
   import ToolTip from "./ToolTip.svelte";
-  /**
-   * @typedef {import("./Flow.event").NodeEventMessage} EventMessage
-   */
 
   const dispatcher = createEventDispatcher();
   /**
@@ -73,38 +70,31 @@
    */
   let toolTip;
   /**
-   * @param {import("./flow").GridInfo} gridInfo
-   * @param {MouseEvent} mouseEvent
+   * @typedef {import("./Flow.event").FlowNodeEventMessage} FlowNodeEventMessage
    */
-  function onNodeOver(x, y, gridInfo, mouseEvent) {
-    /**
-     * @type {EventMessage}
-     *
-     * */
-    const message = { gridInfo, mouseEvent };
 
-    console.log(x, y, gridInfo);
-    tooltipMessage = `${gridInfo.nodes[0].title.slice(0, 10)}…`;
-    if (gridInfo.isOverwraped) {
-      tooltipMessage += ` + ${gridInfo.nodes.length - 1} articles`;
+  let isSelected = false;
+  /**
+   * @param {FlowNodeEventMessage} message
+   */
+  function onNodeOver(message) {
+    isSelected = true;
+    tooltipMessage = `${message.interactiveData.nodes[0].title.slice(0, 10)}…`;
+    if (message.interactiveData.isOverwraped) {
+      tooltipMessage += ` + ${message.interactiveData.nodes.length - 1} articles`;
     }
 
-    toolTip.show(x, y, tooltipMessage);
+    toolTip.show(message.x, message.y, tooltipMessage);
 
     dispatcher("NodeOver", message);
   }
   /**
-   *
-   * @param {import("./flow").GridInfo} gridInfo
-   * @param {MouseEvent} mouseEvent
+   *@param {FlowNodeEventMessage}
    */
-  function onNodeOverOut(gridInfo, mouseEvent) {
+  function onNodeOverOut(message) {
     toolTip.hide();
-    /**
-     * @type {EventMessage}
-     *
-     * */
-    const message = { gridInfo, mouseEvent };
+    isSelected = false;
+
     dispatcher("NodeOverOut", message);
   }
   /**
@@ -112,12 +102,12 @@
    */
   let nodeModal;
   /**
-   * @param {import("./flow").GridInfo} gridInfo
-   * @param {MouseEvent} mouseEvent
+   * @param {FlowNodeEventMessage} message
    */
-  function onNodeClick(gridInfo, mouseEvent) {
-    nodeModal.open(gridInfo);
+  function onNodeClick(message) {
+    nodeModal.open(message.interactiveData);
     toolTip.hide();
+    dispatcher("NodeClick", message);
   }
   // gurd function for prpagation to body
   function voidFunc() {}
@@ -125,13 +115,20 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="flow_container root" bind:this={containerRoot}>
+<div
+  class="flow_container root"
+  bind:this={containerRoot}
+  class:node_selected={isSelected}
+>
   <div class="flow_container" bind:this={container} />
   <NodeModal bind:this={nodeModal} />
 </div>
 <Tooltip bind:this={toolTip} flowElement={containerRoot} />
 
 <style>
+  .node_selected {
+    cursor: pointer;
+  }
   .root {
     position: relative;
     top: 0%;
