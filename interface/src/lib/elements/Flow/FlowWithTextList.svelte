@@ -35,11 +35,11 @@
     textList.addOverviews(overViews, isNextExist);
   }
   /**
-   * @@param {import("./Flow.event").NodeEvent} event
+   * @@param {import("./Flow.event").FlowNodeEvent} event
    */
   function onNodeOver(event) {
-    const { gridInfo } = event.detail;
-    textList.selectItem(gridInfo.nodes[0].id);
+    const { interactiveData } = event.detail;
+    textList.selectItem(interactiveData.nodes[0].id);
   }
   /**
    *

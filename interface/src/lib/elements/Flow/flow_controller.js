@@ -197,7 +197,16 @@ export class FlowController {
 
         //this.setTransform({ scaleX: 1 / 30, scaleY: 1 / 30 })
 
-
+        this._dragLimit = {
+            x: {
+                max: 0,
+                min: 0
+            },
+            y: {
+                max: 0,
+                min: 0
+            }
+        }
 
 
 
@@ -286,21 +295,18 @@ export class FlowController {
 
     }
     /**
-     * @param {{x?:number, y?:number, scaleX?:number, scaleY?:number, moveX?:number}} arg 
+     * @param {{x?:number, y?:number, scaleX?:number, scaleY?:number, moveX?:number, moveY?:number}} arg 
      */
     setTransform(arg) {
 
-
-        this._transforms.x += arg.x || 0;
-        this._transforms.y += arg.y || 0;
+        this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, arg.x || this._transforms.x || 0 + arg.moveX || 0))
+        this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, arg.y || this._transforms.y || 0 + arg.moveY || 0))
         this._transforms.deltaX = arg.x || 0;
 
 
-        const scaleX = this._transforms.scaleX + arg.scaleX || 0
+        /*const scaleX = this._transforms.scaleX + arg.scaleX || 0
         const scaleY = this._transforms.scaleY + arg.scaleY || 0
-        if ('moveX' in arg) {
-            this._transforms.x = arg.moveX;
-        }
+        
 
 
 
@@ -309,7 +315,7 @@ export class FlowController {
             this._transforms.scaleY = scaleY
             this._isTransformed = true;
         }
-
+        */
 
 
         this._isTransformed = true;
@@ -318,6 +324,7 @@ export class FlowController {
 
 
     }
+
     /**
      * 
      * @param {WheelEvent} event 
@@ -411,8 +418,8 @@ export class FlowController {
         }
 
         this.setTransform({
-            x: event.clientX - this._mousePosition.x,
-            y: event.clientY - this._mousePosition.y
+            moveX: event.clientX - this._mousePosition.x,
+            moveY: event.clientY - this._mousePosition.y
         });
         this._mousePosition = { x: event.clientX, y: event.clientY }
 
@@ -426,25 +433,20 @@ export class FlowController {
      * @param {number} date
      * @param {boolean} [isCenter=false] 
      */
-    moveToDate(year, month, date, isCenter = false) {
+    moveToDate(year, month, date, isCenter = true) {
 
-        let moveX = -1 * this._getXFromYearMonthDate(year, month, date)
+        let x = -1 * this._computeXFromDate(year, month, date)
 
 
         if (isCenter === true) {
-            moveX += this._domContainer.clientWidth / 2
-
-            if (year === this._maxYear) {
-                const limitMove = - 1 * this._getXFromYearMonthDate(this._maxYear, 1, 1)
-                moveX = Math.max(moveX, limitMove);
+            x += this._domContainer.clientWidth / 2
 
 
-            }
 
 
 
         }
-        this.setTransform({ moveX })
+        this.setTransform({ x })
 
 
 
@@ -757,6 +759,16 @@ export class FlowController {
 
     }
     /**
+     * @param {number} year
+     * @param {number} month
+     * @param {number?} date
+     * @param {number} scaleRatio
+     */
+    _computeXFromDate(year, month, date = 0, scaleRatio = 1) {
+        return this._computeXFromDate(year - this._minYear, month, date, scaleRatio)
+    }
+
+    /**
      * @param {number} yearDiff
      * @param {number} month
      * @param {number?} date
@@ -793,7 +805,8 @@ export class FlowController {
 
 
 
-            const [year, month, date] = Array.from(node.published.matchAll(pt)).map(Number);
+            let [year, month, date] = Array.from(node.published.matchAll(pt)).map(Number);
+            month -= 1
             if (year > maxYear) {
                 maxYear = year;
             }
@@ -868,7 +881,7 @@ export class FlowController {
              * @type {Object.<string, true>}
              */
             const grids = {};
-            while (_y < end) {
+            while (_y <= end) {
                 const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, _y);
 
                 _y += this._gridStep;
@@ -885,14 +898,17 @@ export class FlowController {
 
 
                 }
-                interactiveData.nodes.push(node)
+
                 if (interactiveData.isOverwraped === false) {
                     interactiveData.isOverwraped = grid in this._interactiveGrid;
                 }
                 if (interactiveData.maxWeight < weight) {
                     interactiveData.y = y
                     interactiveData.maxWeight = node.weight
-
+                    interactiveData.nodes.unshift(node)
+                }
+                else {
+                    interactiveData.nodes.push(node)
                 }
                 this._interactiveGrid[grid] = interactiveData
 
@@ -910,6 +926,7 @@ export class FlowController {
             graphic.fill("#0683c9ff")
 
 
+
             nodeGraphics[node.id] = graphic
 
 
@@ -917,6 +934,7 @@ export class FlowController {
 
 
         }
+        console.log(this._interactiveGrid)
 
         const nodeGraphicsArr = Array.from(Object.values(nodeGraphics))
 
@@ -1020,6 +1038,9 @@ export class FlowController {
         }
         this._edgeLineContainer.addChild(...edgeLines)
         this._edgeArrowContainer.addChild(...edgeArrows)
+        const domContanerRect = this._domContainer.getBoundingClientRect()
+        this._dragLimit.x.min = Math.min(0, domContanerRect.width - this._computeX(this._maxYear - this._minYear, this._maxMonth + 1))
+        this.isDraggable = this._dragLimit.x.min < 0 || this._dragLimit.x.max > 0
         return { nodeGraphics, yearDiff, minYear, minMonth };
 
 

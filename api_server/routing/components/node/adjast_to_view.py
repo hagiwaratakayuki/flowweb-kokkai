@@ -9,6 +9,8 @@ import numpy as np
 
 import json
 
+# todo ＋－それぞれに中心からの距離の平均を0.5とし　(値　- 平均) /　標準偏差 をゲイン 0.5のシグモイド曲線に代入して最終的な距離を代入
+
 
 def adjast_to_view(itr) -> List[NodeOverview]:
     index = 0.0
