@@ -42,6 +42,7 @@ with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
 law_standard_phrases = ['法の下の平等', '法の支配']
+商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}+商法')
 
 
 class EqInShorter:
@@ -52,7 +53,7 @@ class EqInShorter:
         return __value in self.value
 
 
-def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
+def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[Tuple[str, List]]]], data: DTO):
 
     target_law = []
     waiting_sections = []
@@ -84,7 +85,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
     if law_count == standard_phrase_count:
         return results
-
+    商売の方法または金商法の略称の一部としての商法である = False
     for line, tokens in parse_results:
 
         line_number += 1
@@ -139,6 +140,10 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
                 continue
 
             reverse_dict[ryakusyou_dict[ryakusyou]].add(ryakusyou)
+        if "商法" in not_ryakusyous:
+
+            商売の方法または金商法の略称の一部としての商法である |= 商売の方法または金商法の略称の一部としての商法を表すパターン.search(
+                line) is not None
 
         lawword_set.update(not_ryakusyous)
 
@@ -204,10 +209,9 @@ def extract(results: List[SpecificKeyword], parse_results: List, data: DTO):
 
     kws = []
 
-    empty_set = set()
-
     for law_tupple, line_numbers in law_index.items():
-
+        if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
+            continue
         headword = law_tupple[0]
 
         subwords = list(law_tupple[1:])
