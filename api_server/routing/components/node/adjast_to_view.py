@@ -55,31 +55,33 @@ def adjast_to_view(itr) -> List[NodeOverview]:
     directions[plus_direction_index] = 1.0
     directions[minus_direction_index] = -1.0
     positions = np.linalg.norm(positions_vectors, axis=1)
+    if isinstance(plus_direction_index.size, int) == True and plus_direction_index.size != 0:
 
-    plus_direction_distances = positions[plus_direction_index]
-    if isinstance(plus_direction_distances.size, int) == True and plus_direction_distances.size == 0:
-        plus_max_norm = 1
-    else:
-        plus_max_norm = np.max(plus_direction_distances) or 1
-    minus_direction_distances = positions[minus_direction_index]
-    if isinstance(minus_direction_distances.size, int) == True and minus_direction_distances.size == 0:
-        minus_max_norm = 1
-    else:
-        minus_max_norm = np.max(minus_direction_distances) or 1
+        plus_direction_distances = positions[plus_direction_index]
+        plus_direction_distances_std = np.std(plus_direction_distances, axis=0)
+        plus_direction_distances_avg = np.average(
+            plus_direction_distances, axis=0)
+        plus_direction_to_x = (
+            plus_direction_distances - plus_direction_distances_avg) / plus_direction_distances_std
+        plus_direction_distances = (
+            np.tanh((plus_direction_to_x * 2 / 2)) + 1) / 2
+        plus_direction_distances[plus_direction_distances > 0.8] = 0.8
+    positions[plus_direction_index] = plus_direction_distances
+    if isinstance(minus_direction_index.size, int) == True and minus_direction_index.size != 0:
 
+        minus_direction_distances = positions[minus_direction_index]
+        minus_direction_distances_std = np.std(
+            minus_direction_distances, axis=0)
+        minus_direction_distances_avg = np.average(
+            minus_direction_distances, axis=0)
+        minus_direction_to_x = (
+            minus_direction_distances - minus_direction_distances_avg) / minus_direction_distances_std
+        minus_direction_distances = (
+            np.tanh((minus_direction_to_x * 2 / 2)) + 1) / 2
+        minus_direction_distances[minus_direction_distances > 0.8] = 0.8
+    positions[minus_direction_index] = minus_direction_distances
     positions *= directions
-    # 構成要素が一つしかない場合は強制的に0.5、それ以外は最大で0.8
-    if isinstance(plus_direction_distances.size, int) == True and plus_direction_distances.size == 1:
-        plus_max_norm *= 2
-    else:
-        plus_max_norm *= 1.25
-    if isinstance(minus_direction_distances.size, int) == True and minus_direction_distances.size == 1:
-        minus_max_norm *= 2
-    else:
-        minus_max_norm *= 1.25
 
-    positions[plus_direction_index] /= plus_max_norm
-    positions[minus_direction_index] /= minus_max_norm
     ret = [NodeOverview(
         id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name,
         position=positions[i],
