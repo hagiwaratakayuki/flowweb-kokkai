@@ -1022,7 +1022,7 @@ export class FlowController {
 
                 line.moveTo(fromX, fromY)
                 line.lineTo(toX, toY);
-                line.stroke({ width: this.options.edge.width || 2, color: this.options.edge.color || "#dad7d7" });
+                line.stroke({ width: this.options.edge.width || 2, color: this.options.edge.color || "#1ac379ff" });
                 edgeLines.push(line);
 
 
