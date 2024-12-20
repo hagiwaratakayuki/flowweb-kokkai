@@ -22,8 +22,9 @@ class Saver:
             model.title = speech['title']
             model.house = speech['house']
             model.issue = speech['issue']
+
             model.sortkey = '_'.join(
-                [str(k) for k in [session, speech['issue'], speech['order']]])
+                [str(k).zfill(3) for k in [session, speech['issue'], speech['order']]])
             if "response_to" in speech:
 
                 model.response_to = speech['response_to']

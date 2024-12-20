@@ -16,6 +16,7 @@ export type PublishedList = string[] | null;
 export type Keywords = string[];
 export type House = string;
 export type Session = number;
+export type Comittie = string;
 export type Position = string | number;
 export type Nodes = NodeOverview[];
 
@@ -36,6 +37,7 @@ export interface NodeOverview {
   keywords: Keywords;
   house: House;
   session: Session;
+  comittie: Comittie;
   position: Position;
   [k: string]: unknown;
 }

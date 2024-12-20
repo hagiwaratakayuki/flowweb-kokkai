@@ -12,7 +12,6 @@
   import SpeechLink from "$lib/url/kokkai/SpeechLink.svelte";
   import { keywordPretter } from "$lib/util/keyword_pretter";
   import KokkaiFlowLink from "$lib/url/kokkai/KokkaiFlowLink.svelte";
-  import MeetingLink from "$lib/url/kokkai/MeetingLink.svelte";
 
   /** @type {import('./$types').PageData} */
   export let data;
@@ -118,20 +117,16 @@
             {#if checkAdditionalData()}
               (
               {#each getAdditionalData() as additionalData}
-                <span class="pe-2">{additionalData}</span>
+                <span class="pr-2">{additionalData}</span>
               {/each}
               )
             {/if}
           </dd>
           <dt>委員会</dt>
           <dd>
-            <span class="pe-2">第{data.speech.session}回</span>
-            <span class="pe-2">{data.speech.house}</span>
-            <span class="pe-2">
-              <MeetingLink id={data.speech.meeting_id}>
-                {data.speech.meeting}
-              </MeetingLink>
-            </span>
+            <span class="pr-2">第{data.speech.session}回</span>
+            <span class="pr-2">{data.speech.house}</span>
+            <span class="pr-2">{data.speech.meeting}</span>
             <span>第{data.speech.issue}号</span>
           </dd>
         </dl>

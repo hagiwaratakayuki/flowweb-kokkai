@@ -36,6 +36,8 @@ class KokkaiNodeLogic(NodeLogic):
         nodeEntity.session = self.session
         nodeEntity.house = dto.house
         nodeEntity.comittie = dto.comittie
+        if dto.group != None:
+            nodeEntity.group = dto.group
         self.meeting_keywords[dto.meeting_id].append(
             (nodeEntity.weight, nodeEntity.keywords,))
 

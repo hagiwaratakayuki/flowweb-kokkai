@@ -19,6 +19,7 @@ class NodeOverview(BaseModel):
     keywords: typing_List[str]
     house: str
     session: int
+    comittie: str
     position: typing_Union[str, float]
 
 

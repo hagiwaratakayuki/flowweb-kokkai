@@ -19,6 +19,8 @@ class Meeting(Model):
     moderator_ids: List[str]
     keywords: List[str]
     house: str
+    create_at: str
+    update_at: str
 
     def __init__(self, id=None) -> None:
         entity_options = {

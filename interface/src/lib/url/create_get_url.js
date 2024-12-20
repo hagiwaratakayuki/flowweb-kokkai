@@ -15,6 +15,6 @@ class GetUrl {
  * @param {string} base 
  */
 export function createGetUrl(base) {
-    const inatance = new GetUrl(base)
-    return inatance.call.bind(inatance)
+    const instance = new GetUrl(base)
+    return instance.call.bind(instance)
 }

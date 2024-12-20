@@ -5,7 +5,7 @@ from db.memo import Memo
 
 from storage.meeting import Meeting
 from itertools import chain
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 import hashlib
 import re
 
@@ -28,6 +28,7 @@ class DTO(Base):
     keywords: list
     comittie: str
     weight: float
+    group: Optional[str]
 
 
 SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
@@ -142,6 +143,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.house = meeting['house']
         dto.meeting_id = meeting['id']
         dto.comittie = meeting['name']
+        dto.group = speechData.get('group')
 
         yield dto
         speechData['speaker_id'] = dto.author_id
