@@ -28,9 +28,10 @@ export function overviews_to_flow(overViews) {
         }
     }
 
-    const maxWeight = Math.log(maxConnected);
+    const maxWeight = Math.log(maxConnected) || 1;
+
     const nodes = overViews.map(function (row) {
-        row.weight = Math.max(Math.log(row.linked_count) / maxWeight, 0.1);
+        row.weight = Math.max(Math.log(row.linked_count || 1) / maxWeight, 0.1);
 
         row.y = row.position;
         return row;

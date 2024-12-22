@@ -765,7 +765,7 @@ export class FlowController {
      * @param {number} scaleRatio
      */
     _computeXFromDate(year, month, date = 0, scaleRatio = 1) {
-        return this._computeXFromDate(year - this._minYear, month, date, scaleRatio)
+        return this._computeX(year - this._minYear, month, date, scaleRatio)
     }
 
     /**
@@ -934,7 +934,7 @@ export class FlowController {
 
 
         }
-        console.log(this._interactiveGrid)
+
 
         const nodeGraphicsArr = Array.from(Object.values(nodeGraphics))
 
@@ -1036,8 +1036,13 @@ export class FlowController {
 
 
         }
-        this._edgeLineContainer.addChild(...edgeLines)
-        this._edgeArrowContainer.addChild(...edgeArrows)
+        if (edgeLines.length > 0) {
+            this._edgeLineContainer.addChild(...edgeLines)
+        }
+        if (edgeArrows.length > 0) {
+            this._edgeArrowContainer.addChild(...edgeArrows)
+        }
+
         const domContanerRect = this._domContainer.getBoundingClientRect()
         this._dragLimit.x.min = Math.min(0, domContanerRect.width - this._computeX(this._maxYear - this._minYear, this._maxMonth + 1))
         this.isDraggable = this._dragLimit.x.min < 0 || this._dragLimit.x.max > 0

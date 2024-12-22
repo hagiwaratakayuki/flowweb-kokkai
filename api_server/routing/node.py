@@ -35,7 +35,7 @@ class NodeFull(NodeOverview):
 
 
 @router.get('/all_summary')
-async def all_as_vertex() -> List[NodeOverview]:  # type: ignore
+async def all_as_vertex():  # type: ignore
     itr = await get_all_summary.fetch()
     return adjast_to_view(itr)
 

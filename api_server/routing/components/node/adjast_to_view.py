@@ -82,7 +82,7 @@ def adjast_to_view(itr) -> List[NodeOverview]:
     positions[minus_direction_index] = minus_direction_distances
     positions *= directions
 
-    ret = [NodeOverview(
+    ret = [dict(
         id=entity_map[i]['entity'].id or entity_map[i]['entity'].key.name,
         position=positions[i],
         **entity_map[i]['entity']

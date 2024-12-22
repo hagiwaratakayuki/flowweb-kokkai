@@ -15,11 +15,20 @@
   import Flow from "$lib/elements/Flow/Flow.svelte";
   import KokkaiFlowLink from "$lib/url/kokkai/KokkaiFlowLink.svelte";
   import { keywordPretter } from "$lib/util/keyword_pretter";
+  import HtmlHeader from "$lib/elements/HtmlHeader.svelte";
   /** @type {import('./$types').PageData} */
   export let data;
-  let links = data.flow.links;
+
+  let links = data.flow.links || [];
 </script>
 
+<HtmlHeader
+  title={"第" +
+    data.flow.session +
+    "回国会の" +
+    keywordPretter(data.flow.keywords).join(" ") +
+    "についての議論"}
+></HtmlHeader>
 <FlowWithTextList data={data.flow.members.nodes}>
   <div slot="sidebar" class="void">
     <h2 class="section_header">関連する議論</h2>

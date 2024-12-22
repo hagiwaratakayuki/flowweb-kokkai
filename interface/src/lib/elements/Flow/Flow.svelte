@@ -46,7 +46,9 @@
   let tooltipPosition = { top: 0, left: 0 };
 
   export function moveToNode(nodeId) {
-    controller.moveToNode(nodeId);
+    if (!controller == false) {
+      controller.moveToNode(nodeId);
+    }
   }
 
   /**

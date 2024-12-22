@@ -20,6 +20,7 @@
 
   export function setInitData(overViews, isNextExist = false) {
     _flow = overviews_to_flow(overViews);
+
     textList.setOverviews(overViews, isNextExist);
   }
   export function initError() {
