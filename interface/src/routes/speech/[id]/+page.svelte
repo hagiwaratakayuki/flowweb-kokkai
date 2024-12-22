@@ -73,17 +73,18 @@
 </script>
 
 <HtmlHeader
-  title={data.speaker.name +
-    "氏の発言(第" +
+  title={"第" +
     data.speech.session +
     "回" +
     data.speech.house +
     data.speech.meeting +
     "第" +
     data.speech.issue +
-    "号 " +
+    "号 発言番号" +
     data.speech.order +
-    "番目)"}
+    "(" +
+    data.speaker.name +
+    ")"}
 ></HtmlHeader>
 <Row class="justify-content-md-center">
   <Col md="2" sm="12" class="sticky">
