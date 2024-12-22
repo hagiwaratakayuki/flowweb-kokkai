@@ -23,11 +23,10 @@
 </script>
 
 <HtmlHeader
-  title={"第" +
+  title={keywordPretter(data.flow.keywords).join(" ") +
+    "についての議論(第" +
     data.flow.session +
-    "回国会の" +
-    keywordPretter(data.flow.keywords).join(" ") +
-    "についての議論"}
+    "回国会)"}
 ></HtmlHeader>
 <FlowWithTextList data={data.flow.members.nodes}>
   <div slot="sidebar" class="void">
