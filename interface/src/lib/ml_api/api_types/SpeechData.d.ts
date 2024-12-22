@@ -38,6 +38,7 @@ export type Position = string;
 export type Session2 = number;
 export type Role = string;
 export type House1 = string;
+export type Comittie = string;
 export type Cursor1 = string | false;
 export type Author = string;
 export type AuthorId = string;
@@ -49,7 +50,8 @@ export type PublishedList = string[] | null;
 export type Keywords2 = string[];
 export type House2 = string;
 export type Session3 = number;
-export type Comittie = string;
+export type Comittie1 = string;
+export type Group1 = string;
 export type Position1 = string | number;
 export type Nodes = NodeOverview[];
 export type LinkTo1 = NodeOverview[];
@@ -121,6 +123,7 @@ export interface SpeakerSingle {
   session: Session2;
   role: Role;
   house: House1;
+  comittie: Comittie;
   [k: string]: unknown;
 }
 export interface Id3 {
@@ -143,7 +146,8 @@ export interface NodeOverview {
   keywords: Keywords2;
   house: House2;
   session: Session3;
-  comittie: Comittie;
+  comittie: Comittie1;
+  group: Group1;
   position: Position1;
   [k: string]: unknown;
 }

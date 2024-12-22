@@ -8,3 +8,4 @@ class NodeKokkai(Node):
     house: str
     session: int
     comittie: str
+    group: str

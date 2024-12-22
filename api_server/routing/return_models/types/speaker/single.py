@@ -14,5 +14,6 @@ class SpeakerSingle(BaseModel):
     session: int
     role: str
     house: str
+    comittie: str
 
 

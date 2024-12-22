@@ -10,7 +10,7 @@
 </script>
 
 <Section>
-  <h3 class="section_header">{discussion.speaker.name}</h3>
+  <h3 class="section_header fs-5">{discussion.speaker.name}</h3>
   <ListGroup>
     {#each discussion.speeches as speech}
       <ListGroupItem>

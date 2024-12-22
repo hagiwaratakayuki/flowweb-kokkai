@@ -8,3 +8,4 @@ class Speaker(Model):
     session: int
     role: str
     house: str
+    comittie: str

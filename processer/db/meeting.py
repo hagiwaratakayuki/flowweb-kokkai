@@ -1,5 +1,5 @@
 
-from typing import Optional, List
+from typing import Any, Dict, Optional, List
 
 from google.cloud.datastore.entity import Entity
 from .model import Model
@@ -15,12 +15,10 @@ class Meeting(Model):
     url: str
     pdf: str
     header_text: str
-    moderators: dict
+    moderators: List[Dict[str, Any]]
     moderator_ids: List[str]
     keywords: List[str]
     house: str
-    create_at: str
-    update_at: str
 
     def __init__(self, id=None) -> None:
         entity_options = {

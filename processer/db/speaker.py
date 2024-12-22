@@ -1,3 +1,4 @@
+from api_server.routing.query import comittie
 from .model import Model
 
 
@@ -8,3 +9,4 @@ class Speaker(Model):
     session: int
     role: str
     house: str
+    comittie: str

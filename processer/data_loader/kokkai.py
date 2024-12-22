@@ -94,16 +94,16 @@ scoregetter = itemgetter(1)
 def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comittie_data_map: Dict[str, Dict[str, SessionComittieHouseDataType]], meeting: Dict, speaker_id_map: Dict, speeches: deque, meetings: deque, comittie_to_speaker: Dict):
     global MEETING_MAP
     MEETING_MAP[meeting['id']] = meeting
-    issue = meeting['house']
+    house = meeting['house']
     comittie_name = meeting['name']
 
-    issue = int(number_pt.search(unicodedata.normalize(
+    house = int(number_pt.search(unicodedata.normalize(
         'NFKC', meeting['issue'])).group(0))
-    meeting['issue'] = issue
-    session_comittie_data = session_comittie_data_map[comittie_name][issue]
-    if issue > session_comittie_data['max_issue']:
-        session_comittie_data['max_issue'] = issue
-    session_comittie_data['meetings'].append((issue, meeting['id'],))
+    meeting['issue'] = house
+    session_comittie_data = session_comittie_data_map[comittie_name][house]
+    if house > session_comittie_data['max_issue']:
+        session_comittie_data['max_issue'] = house
+    session_comittie_data['meetings'].append((house, meeting['id'],))
 
     comittie_data = comittie_map[comittie_name]
     session = int(meeting['session'])
@@ -119,14 +119,15 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         position = speaker.get('position', '')
         role = speaker.get('role', '')
         speaker['session'] = session
-        speaker['house'] = issue
+        speaker['house'] = house
+        speaker['comittie'] = comittie_name
 
         _speaker_name_to_data[name] = {'id': hashlib.md5('_'.join(
-            [str_session, issue, name, group, position, role]).encode()).hexdigest(), 'speaker': speaker}
+            [house, str_session, comittie_name, name, group, position, role]).encode()).hexdigest(), 'speaker': speaker}
     meeting['moderators'] = {name: _speaker_name_to_data[name]
                              for name in meeting['moderators']}
     meetings.append(meeting)
-    meeting_keywords = defaultdict(float)
+
     for speechData in meeting['speeches']:
 
         striped = speechData['speech'].strip()
@@ -150,8 +151,8 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         speechData['meeting_id'] = meeting["id"]
         speechData['meeting'] = meeting['name']
         speechData['title'] = dto.title
-        speechData['house'] = issue
-        speechData['issue'] = issue
+        speechData['house'] = house
+        speechData['issue'] = house
         speeches.append(speechData)
 
     for v in _speaker_name_to_data.values():
@@ -160,23 +161,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
 
 def save_meeting(speech_data_map: Dict[str, Iterable[Tuple[float, list]]]):
     global MEETING_MAP
-    for meeting_id, meeting in MEETING_MAP.items():
-        meeting_keywords = defaultdict(float)
-        for weight, keywords in speech_data_map[meeting_id]:
-
-            keyword_len = float(len(keywords))
-            if keyword_len == 0:
-
-                continue
-
-            regurize_weight = weight / \
-                ((keyword_len + 1.0) * keyword_len / 2.0)
-
-            for i, keyword in enumerate(keywords):
-                meeting_keywords[keyword] += (keyword_len -
-                                              i) * regurize_weight
-        meeting['keywords'] = [keywordgetter(r) for r in sorted(
-            list(meeting_keywords.items()), key=scoregetter)[:5]]
+    for meeting in MEETING_MAP.values():
         MeetingSaver.save(meeting=meeting)
     MEETING_MAP = {}
 

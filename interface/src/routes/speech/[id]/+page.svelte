@@ -13,6 +13,7 @@
   import { keywordPretter } from "$lib/util/keyword_pretter";
   import KokkaiFlowLink from "$lib/url/kokkai/KokkaiFlowLink.svelte";
   import MeetingLink from "$lib/url/kokkai/MeetingLink.svelte";
+  import SpeakerLink from "$lib/url/kokkai/SpeakerLink.svelte";
 
   /** @type {import('./$types').PageData} */
   export let data;
@@ -114,7 +115,7 @@
         <dl>
           <dt>発言者</dt>
           <dd>
-            <span>{data.speaker.name}</span>
+            <SpeakerLink id={data.speaker.id}>{data.speaker.name}</SpeakerLink>
             {#if checkAdditionalData()}
               (
               {#each getAdditionalData() as additionalData}

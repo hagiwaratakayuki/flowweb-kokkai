@@ -20,6 +20,7 @@ class NodeOverview(BaseModel):
     house: str
     session: int
     comittie: str
+    group: str
     position: typing_Union[str, float]
 
 

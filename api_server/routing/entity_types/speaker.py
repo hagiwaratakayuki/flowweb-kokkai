@@ -1,6 +1,6 @@
 
 from .basetype import BaseType
-
+from google.cloud.datastore import Entity
 
 
 class Speaker(BaseType):
@@ -9,5 +9,3 @@ class Speaker(BaseType):
     session: int
     role: str
     house: str
-
-

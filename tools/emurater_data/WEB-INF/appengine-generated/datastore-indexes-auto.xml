@@ -1,4 +1,4 @@
-<!-- Indices written at 金, 20 12月 2024 14:45:06 JST -->
+<!-- Indices written at 日, 22 12月 2024 08:36:02 JST -->
 
 <datastore-indexes autoGenerate="true">
 
@@ -10,23 +10,29 @@
         <property name="position" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 4 times in query history -->
+    <!-- Used 7 times in query history -->
     <datastore-index kind="ClusterMember" ancestor="false" source="auto">
         <property name="node_id" direction="asc"/>
         <property name="linked_count" direction="desc"/>
         <property name="cluster_id" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 4 times in query history -->
+    <!-- Used 7 times in query history -->
     <datastore-index kind="NodeKokkai" ancestor="false" source="auto">
         <property name="link_to" direction="asc"/>
         <property name="linked_count" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 2 times in query history -->
+    <!-- Used 29 times in query history -->
     <datastore-index kind="Speech" ancestor="false" source="auto">
         <property name="meeting_id" direction="asc"/>
         <property name="sortkey" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="Speaker" ancestor="false" source="auto">
+        <property name="name" direction="asc"/>
+        <property name="session" direction="desc"/>
     </datastore-index>
 
 </datastore-indexes>

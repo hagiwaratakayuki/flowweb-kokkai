@@ -16,6 +16,7 @@ export type Keywords = string[];
 export type House = string;
 export type Session = number;
 export type Comittie = string;
+export type Group = string;
 export type Position = string | number;
 
 export interface NodeOverview {
@@ -31,6 +32,7 @@ export interface NodeOverview {
   house: House;
   session: Session;
   comittie: Comittie;
+  group: Group;
   position: Position;
   [k: string]: unknown;
 }

@@ -11,6 +11,9 @@ export type Name = string;
 export type Url = string;
 export type Pdf = string;
 export type HeaderText = string;
+export type Moderators = {
+  [k: string]: unknown;
+}[];
 export type ModeratorIds = string[];
 export type Keywords = string[];
 export type House = string;
@@ -30,8 +33,5 @@ export interface MeetingSingle {
   [k: string]: unknown;
 }
 export interface Id {
-  [k: string]: unknown;
-}
-export interface Moderators {
   [k: string]: unknown;
 }

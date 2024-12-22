@@ -2,7 +2,7 @@ from typing import Dict
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 from db.speaker import Speaker
 
-keys = ["group",  "position",   "role"]
+keys = ["group", "position", "role"]
 
 
 class Saver:
@@ -15,6 +15,8 @@ class Saver:
             model.session = speaker['session']
 
             model.name = speaker['name']
+            model.house = speaker['house']
+            model.comittie = speaker['comittie']
             for key in keys:
 
                 setattr(model, key, speaker.get(key, ''))

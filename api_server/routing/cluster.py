@@ -9,7 +9,6 @@ from application.error_hundling.status_exception import StatusException
 from pydantic import BaseModel
 from routing.return_models.types.node.overview import NodeOverview
 from routing.return_models.types.node.overviews import NodeOverviews
-from .util import entity2responsetype
 from .router import get_routing_tuple
 from .return_models.types.cluster.data import ClusterData
 from typing import Optional

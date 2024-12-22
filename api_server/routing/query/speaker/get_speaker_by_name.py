@@ -1,14 +1,17 @@
+from typing import Iterable
 from db.speaker import Speaker
 from routing.entity_types.speaker import Speaker as SpeakerEntity
 import asyncio
-from routing.query.pattern import cursorfetch
+from google.cloud.datastore.query import PropertyFilter
 
 
-async def fetch(name, cursor=None, limit=10) -> SpeakerEntity:
+async def fetch(name, cursor=None, limit=10) -> Iterable[SpeakerEntity]:
     await asyncio.sleep(0)
     query = Speaker.query()
-    query.add_filter('name', '=', name)
-    return cursorfetch.fetch(cursor=cursor, query=query, limit=limit)
+
+    query.add_filter(filter=PropertyFilter('name', '=', name))
+    query.order = ["-session"]
+    return query.fetch()
 
 
 def indexer():
