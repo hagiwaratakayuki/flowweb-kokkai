@@ -5,6 +5,7 @@
   import { pushState } from "$app/navigation";
   import { page } from "$app/stores";
   import { getData } from "$lib/shallowrouting/funcs";
+  import HtmlHeader from "$lib/elements/HtmlHeader.svelte";
   /** @type {import('./$types').PageData} */
   export let data;
 
@@ -17,6 +18,7 @@
   }*/
 </script>
 
-<h1 class="w-100 text-center mb-5">会議録鉱山　国会編</h1>
+<HtmlHeader></HtmlHeader>
+<h1 class="w-100 text-center mb-5">Thought Flow 国会編</h1>
 <h2 class="mb-3 section_header">最近の主な議論</h2>
 <FlowWithTextList data={data.summary} />
