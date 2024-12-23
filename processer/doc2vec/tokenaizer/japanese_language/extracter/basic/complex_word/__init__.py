@@ -168,9 +168,12 @@ def _check_context(context: Context):
 
 
 def _add_to_complexword_set(complexword_set: set, context: Context, word_to_linenumber: DefaultDict[str, set], line_number, force_headword_map: Dict):
+    if context.chunk[-1][0] == "化":
+        context.chunk.pop()
     if _check_context(context=context) == False:
         context.clear()
         return
+
     word = ''.join([token[0] for token in context.chunk])
     word_to_linenumber[word].append(line_number)
     complexword_set.add(word)
