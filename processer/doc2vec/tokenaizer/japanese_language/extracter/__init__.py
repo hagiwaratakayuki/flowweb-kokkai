@@ -12,7 +12,7 @@ rule_extractor = [
     sakura.extract,
     lawname.extract,
     complex_word.extract,
-    sahen.extract,
+    # sahen.extract,
 
 
 

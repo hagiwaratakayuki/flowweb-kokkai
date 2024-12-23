@@ -116,37 +116,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     empty_set = set()
     keys = list(noun_sahen.keys())
 
-    new_results: Deque[SpecificKeyword] = deque()
-
-    additional_results = deque()
-
-    for key in keys:
-
-        line_numbers = noun_sahen[key]
-        noun, sahen = key
-
-        for keyword_obj in results:
-
-            if keyword_obj == noun:
-
-                inter = keyword_obj.line_numbers & line_numbers
-
-                if inter == empty_set:
-
-                    continue
-                if keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0:
-
-                    new_keyword_obj = keyword_obj.clone()
-                    new_keyword_obj.clear_subword()
-                    new_keyword_obj.add_subword(sahen)
-                    new_keyword_obj.line_numbers = inter
-
-                    additional_results.append(new_keyword_obj)
-                    keyword_obj.line_numbers -= inter
-                    noun_sahen[key] -= inter
-        results.extend(additional_results)
-        additional_results = deque()
-    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+    new_results: List[SpecificKeyword] = []
 
     for keyword_obj in results:
 
@@ -163,6 +133,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             if keyword_obj == sahen:
 
                 noun_sahen[key] -= inter
+
                 if keyword_obj.is_fixed_headword == False:
 
                     position = keyword_obj.index_of(sahen)
@@ -173,6 +144,37 @@ def extract(results: List[SpecificKeyword], parse_results, data):
         if keyword_obj.line_numbers != empty_set:
 
             new_results.append(keyword_obj)
+    results = new_results
+    for key in keys:
+
+        line_numbers = noun_sahen[key]
+        noun, sahen = key
+        index = 0
+
+        while index < len(results):
+
+            keyword_obj = results[index]
+            index += 1
+            if keyword_obj == noun:
+
+                inter = keyword_obj.line_numbers & line_numbers
+
+                if inter == empty_set:
+
+                    continue
+
+                if keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0:
+
+                    new_keyword_obj = keyword_obj.clone()
+                    new_keyword_obj.clear_subword()
+                    new_keyword_obj.add_subword(sahen)
+                    new_keyword_obj.line_numbers = inter
+
+                    results.append(new_keyword_obj)
+                    keyword_obj.line_numbers -= inter
+                    noun_sahen[key] -= inter
+
+    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
 
     additional_kws = deque()
     keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
