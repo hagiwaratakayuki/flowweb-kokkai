@@ -1,8 +1,11 @@
 from collections import defaultdict, deque
 
-from typing import Deque, Dict, List
+from typing import Deque, Dict, List, OrderedDict
+from xml.etree.ElementInclude import include
 
-from doc2vec.util.specific_keyword import SpecificKeyword
+from numpy import Infinity
+
+from doc2vec.util.specific_keyword import EqIn, SpecificKeyword
 import regex as re
 
 
@@ -23,15 +26,47 @@ sahen_blockpattern = re.compile('^お')
 class Context:
     def __init__(self) -> None:
         self.clear()
+        self.noun_sahens = defaultdict(set)
+        self.line_number = -1
 
     def clear(self):
         self.noun = None
         self.index = -2
         self.pending = None
 
+        self._clear_sahens()
+
+    def check_and_clear(self):
+        self.check_sahens()
+        self.clear()
+
+    def _clear_sahens(self):
+
+        self.sahens = []
+        self.is_sahen_add = False
+
+    def add_sahen(self, sahen):
+        self.sahens.append(sahen)
+        self.is_sahen_add = True
+
     def set_noun(self, noun, index):
+
+        self._check_and_clear_sahens()
         self.noun = noun
         self.index = index
+
+    def check_sahens(self):
+        is_sahen_add = self.is_sahen_add
+        sahens = self.sahens
+        noun = self.noun
+
+        if (is_sahen_add == True):
+            self.noun_sahens[(noun, tuple(sahens))].add(self.line_number)
+
+    def _check_and_clear_sahens(self):
+
+        self.check_sahens()
+        self._clear_sahens()
 
     def set_pending_noun(self, noun, index):
         self.pending = (noun, index,)
@@ -39,21 +74,22 @@ class Context:
     def clear_pending(self):
         self.pending = None
 
-    def use_pending(self, additional_face=''):
+    def use_pending(self, line_number, additional_face=''):
         noun, index = self.pending
         noun += additional_face
-        self.set_noun(noun=noun, index=index)
+        ret = self.set_noun(noun=noun, index=index)
         self.clear_pending()
+        return ret
 
 
 def extract(results: List[SpecificKeyword], parse_results, data):
 
-    line_number = -1
-    noun_sahen = defaultdict(set)
+    noun_sahens = defaultdict(set)
     context = Context()
     for line, tokens in parse_results:
-        context.clear()
-        line_number += 1
+        context.check_and_clear()
+
+        context.line_number += 1
 
         tokens_list = list(tokens)
         lentokens = len(tokens)
@@ -63,7 +99,8 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             index += 1
             if context.pending != None:
                 if face in "編章条項節款目":
-                    context.use_pending(face)
+                    key = context.use_pending(face)
+
                 else:
                     context.clear_pending()
 
@@ -103,118 +140,177 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     if next_face in 目的修飾接尾語:
                         continue
 
-                k = (context.noun, face,)
+                context.add_sahen(face)
+    context.check_sahens()
+    noun_sahens = context.noun_sahens
 
-                noun_sahen[k].add(line_number)
-
-    # 複合語チェック(サ変接続)
-    # 複合語チェック(名詞)
-    # サブワードリンクチェック
-    # 元の特定語と現在のペアから新しいリストを生成
-    new_results = []
+    # 行が重なっているかどうか確認
+    #  サ変が含まれるか確認　候補選定
+    #  もう一度ループ
+    #  候補に確認
+    #  もう一度ループ
+    # 　名詞が含まれるか確認　→　サ変がどれだけ含まれるか確認してカット
+    next_results = []
 
     empty_set = set()
-    keys = list(noun_sahen.keys())
 
-    new_results: List[SpecificKeyword] = []
+    canditate_index = []
+    canditates_listmap: List[Deque] = []
+    next_results: List[SpecificKeyword] = []
+    keys = list(noun_sahens.keys())
+    for key in keys:
+        for keyword_obj in results:
 
-    for keyword_obj in results:
-
-        for key in keys:
-
-            line_numbers = noun_sahen[key]
-            noun, sahen = key
+            line_numbers = noun_sahens[key]
 
             inter = keyword_obj.line_numbers & line_numbers
 
             if inter == empty_set:
+
                 continue
+            noun, sahens = key
+            is_sahens_include = False
+            not_includes = deque()
+            top_position = Infinity
+            for sahen in sahens:
+                sahen_index = keyword_obj.index_of(sahen)
+                is_include = sahen_index != -1
 
-            if keyword_obj == sahen:
+                is_sahens_include |= is_include
+                if is_include == False:
+                    not_includes.append(sahen)
+                elif top_position > sahen_index:
+                    top_position = sahen_index
+            if is_sahens_include == True:
 
-                noun_sahen[key] -= inter
+                noun_sahens[key] -= inter
 
                 if keyword_obj.is_fixed_headword == False:
 
-                    position = keyword_obj.index_of(sahen)
-                    if position == 0:
+                    if top_position == 0:
                         keyword_obj.line_numbers -= inter
-                        noun_sahen[(noun, keyword_obj.headword,)] = inter
+                        new_key = (noun, (keyword_obj.headword,) +
+                                   tuple(not_includes), )
+                        noun_sahens[new_key] = inter
+                        canditate_index.append(EqIn(keyword_obj.headword))
+                        canditates = deque()
+                        canditates.append(new_key)
+                        canditates_listmap.append(canditates)
 
-        if keyword_obj.line_numbers != empty_set:
+    is_remain_candiates = True
+    noun_sahens = {key: line_numbers for key,
+                   line_numbers in noun_sahens.items() if line_numbers != empty_set}
 
-            new_results.append(keyword_obj)
-    results = new_results
-    for key in keys:
+    while is_remain_candiates == True:
+        is_remain_candiates = False
+        linked_line_numbers_dict = defaultdict(set)
+        next_noun_sahens = {}
+        for key, line_numbers in noun_sahens.items():
 
-        line_numbers = noun_sahen[key]
-        noun, sahen = key
-        index = 0
+            noun, sahens = key
 
-        while index < len(results):
+            try:
 
-            keyword_obj = results[index]
-            index += 1
+                index = canditate_index.index(noun)
+
+                target_keys = canditates_listmap[index]
+                next_target_keys = deque()
+                for target_key in target_keys:
+                    if target_key == key or target_key not in noun_sahens:
+
+                        continue
+
+                    inter = line_numbers & noun_sahens[target_key]
+
+                    if inter == empty_set:
+                        continue
+
+                    target_noun, target_sahens = target_key
+
+                    add_sahens = [
+                        sahen for sahen in sahens if sahen not in target_sahens]
+                    new_target_sahens = target_sahens + tuple(add_sahens)
+                    new_key = (target_noun, new_target_sahens, )
+                    next_noun_sahens[new_key] = inter
+
+                    next_target_keys.append(new_key)
+                    for add_sahen in add_sahens:
+                        try:
+                            _index = canditate_index.index(add_sahen)
+                            _target_keys = canditates_listmap[_index]
+                            _target_keys.append(new_key)
+                        except ValueError:
+                            canditate_index.append(EqIn(add_sahen))
+                            canditates = deque()
+                            canditates.append(new_key)
+                            canditates_listmap.append(canditates)
+
+                    linked_line_numbers_dict[key].update(inter)
+                    linked_line_numbers_dict[target_key].update(inter)
+
+                    is_remain_candiates = True
+                target_keys.extend(next_target_keys)
+
+            except ValueError:
+
+                pass
+
+            next_noun_sahens[key] = line_numbers
+
+        noun_sahens = {key: line_numbers - linked_line_numbers_dict[key] for key,
+                       line_numbers in next_noun_sahens.items() if line_numbers != linked_line_numbers_dict[key]}
+
+    next_results = []
+
+    items = [(key, line_numbers,) for key,
+             line_numbers in noun_sahens.items() if line_numbers != empty_set]
+
+    for keyword_obj in results:
+
+        for key, line_numbers in items:
+            inter = keyword_obj.line_numbers & line_numbers
+
+            if inter == empty_set:
+
+                continue
+            noun, sahens = key
+
             if keyword_obj == noun:
-
-                inter = keyword_obj.line_numbers & line_numbers
-
-                if inter == empty_set:
-
-                    continue
 
                 if keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0:
 
                     new_keyword_obj = keyword_obj.clone()
-                    new_keyword_obj.clear_subword()
-                    new_keyword_obj.add_subword(sahen)
+                    new_keyword_obj.add_subword(sahens)
                     new_keyword_obj.line_numbers = inter
 
-                    results.append(new_keyword_obj)
+                    next_results.append(new_keyword_obj)
                     keyword_obj.line_numbers -= inter
-                    noun_sahen[key] -= inter
+                    noun_sahens[key] -= inter
+            else:
+                is_connectable = False
 
-    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+                for subword in keyword_obj.subwords:
+                    is_connectable |= noun in subword
+                    if is_connectable == True:
+                        break
+                if is_connectable and (keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0):
+                    new_keyword_obj = keyword_obj.clone()
+                    new_keyword_obj.add_subword(sahens)
+                    new_keyword_obj.line_numbers = inter
 
-    additional_kws = deque()
-    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
+                    next_results.append(new_keyword_obj)
+                    keyword_obj.line_numbers -= inter
+                    noun_sahens[key] -= inter
 
-    for keyword_obj in new_results:
+        if keyword_obj.line_numbers != empty_set:
+            next_results.append(keyword_obj)
 
-        for key in keys:
+    for key in noun_sahens:
 
-            line_numbers = noun_sahen[key]
-            noun, sahen = key
-
-            inter = keyword_obj.line_numbers & line_numbers
-
-            if inter == empty_set:
-                continue
-            if keyword_obj.is_allow_add_multiple_subword == True:
-                try:
-
-                    subword_link_index = keyword_obj.subwords.index(noun)
-                    noun_sahen[key] -= inter
-                    if subword_link_index < len(keyword_obj.subwords) - 1:
-                        new_keword_obj = keyword_obj.clone()
-                        new_keword_obj.clear_subword()
-                        new_subword = keyword_obj.subwords[:subword_link_index + 1] + [
-                            sahen]
-                        new_keword_obj.add_subword(new_subword)
-                        additional_kws.append(new_keword_obj)
-                    else:
-                        keyword_obj.add_subword(sahen)
-                except:
-                    continue
-
-    new_results.extend(additional_kws)
-    new_results = [r for r in new_results if r.line_numbers != empty_set]
-    keys = [k for k, ln in noun_sahen.items() if ln != empty_set]
-    for key in keys:
-        if noun_sahen[key] == empty_set:
+        if noun_sahens[key] == empty_set:
             continue
-        noun, sahen = key
+        noun, sahens = key
 
-        new_results.append(SpecificKeyword(headword=noun, subwords=[sahen]))
+        next_results.append(SpecificKeyword(headword=noun, subwords=sahens))
 
-    return new_results
+    return next_results

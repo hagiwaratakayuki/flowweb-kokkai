@@ -128,6 +128,11 @@ def _check_context(context: Context):
     if context.chunklen <= 1:
 
         return False
+    if context.chunk[-1][0] == "化":
+        context.chunk.pop()
+        if context.chunklen <= 1:
+
+            return False
     face, data = context.chunk[-1]
     if face in 目的修飾語 or (data[1] == "接尾" and (data[2] == "助数詞" or data[2] == "形容動詞語幹")):
 
@@ -168,8 +173,7 @@ def _check_context(context: Context):
 
 
 def _add_to_complexword_set(complexword_set: set, context: Context, word_to_linenumber: DefaultDict[str, set], line_number, force_headword_map: Dict):
-    if context.chunk[-1][0] == "化":
-        context.chunk.pop()
+
     if _check_context(context=context) == False:
         context.clear()
         return
