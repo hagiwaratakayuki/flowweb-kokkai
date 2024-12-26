@@ -36,37 +36,42 @@ class StringExtractor:
 
 
 class RegexExtractor:
-    def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, List[str]] = None, is_force=True) -> None:
+    def __init__(self, word_pt: re.Pattern, result_words: Union[None, str, List[str]] = None, is_force=True, headword: Optional[str] = None) -> None:
         self.word_pt = word_pt
         if isinstance(result_words, str) == True:
             result_words = [result_words]
 
         self.result_words = result_words
         self.is_force = is_force
+        self.headword = headword
 
     def __call__(self, results: List[SpecificKeyword], parse_results: List, data) -> Any:
-        line_number = 0
+        line_number = -1
         headword_to_line_numbers = defaultdict(deque)
+        headword_to_haystacks = defaultdict(set)
 
         for line, tokens in parse_results:
-            checked = self.word_pt.search(line)
-            if checked is not None:
+            line_number += 1
+            finds = self.word_pt.finditer(line)
+            for find in finds:
                 if self.result_words is not None:
                     headwords = tuple(self.result_words)
-                    headword = checked.group(0)
+                    headword = self.headword or find.group(0)
 
                 else:
                     headwords = None
-                    headword = checked.group(0)
+                    headword = self.headword or find.group(0)
+                key = (headwords, headword)
+                headword_to_line_numbers[key].append(line_number)
+                headword_to_haystacks[key].add(find.group(0))
 
-                headword_to_line_numbers[(
-                    headwords, headword)].append(line_number)
         for key, line_numbers in headword_to_line_numbers.items():
             headwords, headword = key
             if headwords is None:
                 results.append(SpecificKeyword(
                     headword=headword, is_force=self.is_force, line_numbers=line_numbers))
             else:
+
                 results.append(BindSpecificKeyword(
-                    headwords=headwords, headword=headword, is_force=self.is_force, line_numbers=line_numbers, is_fixed_headword=True))
+                    headwords=headwords, headword=headword, haystacks=headword_to_haystacks.get(key), is_force=self.is_force, line_numbers=line_numbers, is_fixed_headword=True))
         return results

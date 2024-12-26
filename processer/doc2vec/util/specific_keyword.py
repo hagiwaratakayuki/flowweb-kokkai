@@ -1,4 +1,4 @@
-from typing import Iterator, List, Union, Tuple, Set
+from typing import Iterator, List, Optional, Union, Tuple, Set
 
 from httpx import head
 
@@ -41,6 +41,9 @@ class SpecificKeyword:
             if isinstance(target_words, str):
                 target_words = [target_words]
             self._target_words = [EqIn(tw) for tw in target_words]
+
+    def get_headword_length(self):
+        return len(self.headword)
 
     def clone(self):
         ret = self._clone_class()
@@ -107,8 +110,9 @@ class SpecificKeyword:
 
 
 class BindSpecificKeyword(SpecificKeyword):
-    def __init__(self, headwords: List[str] = [], headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headwords: List[str] = [], haystacks: Optional[Iterator[str]] = None, headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self._headwords = tuple(headwords)
+        self._haystacks = haystacks
 
         super().__init__(headword, subwords, is_force, target_words,
                          line_numbers, is_fixed_headword, is_allow_add_multiple_subword)
@@ -116,6 +120,15 @@ class BindSpecificKeyword(SpecificKeyword):
     def _clone_class(self):
         return self.__class__(
             headwords=self._headwords, headword=self.headword)
+
+    def index_of(self, needle):
+        if self._haystacks is not None:
+            for haystack in self._haystacks:
+                position = haystack.find(needle)
+                if position != -1:
+                    return position
+            return -1
+        return super().index_of(needle)
 
     def to_extender(self):
 

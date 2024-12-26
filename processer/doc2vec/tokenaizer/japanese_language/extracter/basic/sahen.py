@@ -1,5 +1,6 @@
 from collections import defaultdict, deque
 
+from turtle import position
 from typing import Deque, Dict, List, OrderedDict
 from xml.etree.ElementInclude import include
 
@@ -158,9 +159,11 @@ def extract(results: List[SpecificKeyword], parse_results, data):
     canditates_listmap: List[Deque] = []
     next_results: List[SpecificKeyword] = []
     keys = list(noun_sahens.keys())
-    for key in keys:
-        for keyword_obj in results:
 
+    for key in keys:
+
+        for keyword_obj in results:
+            # print(keyword_obj.headword, keyword_obj.line_numbers)
             line_numbers = noun_sahens[key]
 
             inter = keyword_obj.line_numbers & line_numbers
@@ -169,9 +172,11 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 continue
             noun, sahens = key
+
             is_sahens_include = False
             not_includes = deque()
             top_position = Infinity
+            is_end = False
             for sahen in sahens:
                 sahen_index = keyword_obj.index_of(sahen)
                 is_include = sahen_index != -1
@@ -181,13 +186,16 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     not_includes.append(sahen)
                 elif top_position > sahen_index:
                     top_position = sahen_index
+                if sahen_index + len(sahen) == keyword_obj.get_headword_length():
+                    is_end == True
+
             if is_sahens_include == True:
 
                 noun_sahens[key] -= inter
 
                 if keyword_obj.is_fixed_headword == False:
 
-                    if top_position == 0:
+                    if top_position == 0 or is_end == True:
                         keyword_obj.line_numbers -= inter
                         new_key = (noun, (keyword_obj.headword,) +
                                    tuple(not_includes), )
