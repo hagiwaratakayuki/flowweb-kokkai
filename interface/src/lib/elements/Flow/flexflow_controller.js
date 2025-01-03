@@ -1,3 +1,4 @@
+import { Legend } from "chart.js";
 import * as PIXI from "pixi.js";
 import { Application } from 'pixi.js';
 
@@ -106,7 +107,10 @@ export class FlowController {
          * @type {Object.<string, import("./Flow.event").IntaractiveData>}
          */
         this._interactiveGrid = {};
-        this._gridStep = 5
+        this._gridStep = options.gridStep || 5;
+
+        this._boxYStep = options.boxYStep || 5;
+        this._boxXStep = options.boxXStep || 50;
 
         this._maxYear = -1;
         this._maxMonth = -1;
@@ -864,7 +868,14 @@ export class FlowController {
 
 
         const days = Array.from(Object.keys(dailyNodesMap)).sort();
+        let maxX = 0;
+        const dateStartToX = {};
+        const boxGridMap = {};
+
+
         for (const day of days) {
+            dateStartToX[day] = maxX;
+
 
 
             for (const nodeId of dailyNodesMap[day]) {
@@ -876,9 +887,17 @@ export class FlowController {
 
 
                 //当たり判定と重複処理
+
+                const yGridNumber = Math.floor(node.y / (1 / this._boxYStep))
+
+                const baseY = (1 - (this._boxYStep - yGridNumber) / this._boxYStep) * this.app.screen.height / 2;
+                const baseX = boxGridMap[yGridNumber] || 0;
+                const nextGridX = baseX + this._boxXStep;
+                boxGridMap[yGridNumber] = nextGridX
+                maxX = Math.max(maxX, nextGridX)
                 let x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
 
-                let y = (1 - node.y) * this.app.screen.height / 2;
+
 
 
 
