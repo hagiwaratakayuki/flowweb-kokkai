@@ -871,8 +871,10 @@ export class FlowController {
         let maxX = 0;
         const dateStartToX = {};
         const boxGridMap = {};
-
-
+        const boxGridStepY = this.app.screen.height / (this._boxYStep * 2)
+        const boxGridGradient = Math.atan2(boxGridStepY, this._boxXStep)
+        const xAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / this._boxXStep
+        const yAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / boxGridStepY
         for (const day of days) {
             dateStartToX[day] = maxX;
 
@@ -888,14 +890,19 @@ export class FlowController {
 
                 //当たり判定と重複処理
 
-                const yGridNumber = Math.floor(node.y / (1 / this._boxYStep))
+                const yGridNumber = Math.ceil(node.y / (1 / this._boxYStep))
 
-                const baseY = (1 - (this._boxYStep - yGridNumber) / this._boxYStep) * this.app.screen.height / 2;
+                //const baseY = (1 - (this._boxYStep - yGridNumber) / this._boxYStep) * this.app.screen.height / 2;
+                const baseY = yGridNumber / this._boxYStep
                 const baseX = boxGridMap[yGridNumber] || 0;
                 const nextGridX = baseX + this._boxXStep;
                 boxGridMap[yGridNumber] = nextGridX
                 maxX = Math.max(maxX, nextGridX)
-                let x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
+                const yDiff = (node.y - baseY) * Math.sin(boxGridGradient) * yAdjast
+                const xDiff = Math.abs(node.y - baseY) * Math.cos(boxGridGradient) * xAdjast
+                let x = 5 + 10 + this._baseSize + xDiff * this._boxXStep + baseX
+                let y = (1 - baseY) * this.app.screen.width / 2 + 5 + 10 + this._baseSize + yDiff * this.app.screen.width / 2;
+                //let x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
 
 
 
