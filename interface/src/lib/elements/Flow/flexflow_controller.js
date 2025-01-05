@@ -1,4 +1,4 @@
-import { Legend } from "chart.js";
+
 import * as PIXI from "pixi.js";
 import { Application } from 'pixi.js';
 
@@ -497,10 +497,10 @@ export class FlowController {
 
 
         /**
-         * @type {{scale:PIXI.Container; year:number; month:number;}[]}
+         * @type {{scale:PIXI.Container; year:string; month:string;}[]}
          */
-        const scales = this._yearMonthScales
-        if (this._transforms.scaleX !== 1) {
+        //const scales = this._yearMonthScales
+        /*if (this._transforms.scaleX !== 1) {
             for (const { scale, year, month } of scales) {
                 const newX = this._computeX(year, month, 0, this._transforms.scaleX)
                 scale.position.set(newX, scale.position.y)
@@ -514,7 +514,7 @@ export class FlowController {
 
 
             }
-        }
+        }*/
 
         this._circulerDayScale()
     }
@@ -610,11 +610,11 @@ export class FlowController {
      */
     setData(nodes, edges) {
         // 表示すべき日付のリストを返すように
-        const { yearDiff, minYear, } = this.addNode(nodes, edges)
+        const { dateStartToX } = this.addNode(nodes, edges)
 
         this._createForegroundScale();
         // 表示すべき日付のリストを受け取るように
-        this._createSubscale(minYear, yearDiff)
+        this._createSubscale(dateStartToX)
 
 
     }
@@ -626,7 +626,7 @@ export class FlowController {
         this._monthScaleContainer = new PIXI.Container();
         this._yearScaleContainer = new PIXI.Container()
         /**
-         * @type {{ scale: PIXI.Container; month:number; year:number; }[]}
+         * @type {{ scale: PIXI.Container; month:string; year:string; }[]}
          */
         this._yearMonthScales = [];
 
@@ -710,10 +710,10 @@ export class FlowController {
     }
     /**
      * 
-     * @param {number} minYear 
-     * @param {number} yearDiff 
+     * @param {Object<string, number>} dateStartToX
+     * 
      */
-    _createSubscale(minYear, yearDiff) {
+    _createSubscale(dateStartToX) {
         let scaleContainer;
         let lineHeight;
         const style = new PIXI.TextStyle({
@@ -721,44 +721,47 @@ export class FlowController {
             fontSize: 14,
             fill: '#000000',
         });
-        for (let yearStep = 0; yearStep < yearDiff + 1; yearStep++) {
-            const year = minYear + yearStep;
-            let month = yearStep == 0 ? this._minMonth : 0
-            while (month < 12) {
 
-                const x = this._computeX(yearStep, month, 0, 1)
+        let nowYear = '0';
 
-
-                let scaleType;
-                if (month === 0) {
-                    scaleType = 'year';
-
-                    scaleContainer = this._yearScaleContainer;
-
-                    lineHeight = 10;
+        for (const [dateKey, x] of Object.entries(dateStartToX)) {
+            const [year, month, date] = dateKey.split(/\D+/)
 
 
 
-                }
-                else {
-                    scaleType = 'month';
-                    scaleContainer = this._monthScaleContainer
-                    lineHeight = 8;
 
-                }
 
-                const scale = this._createScale(0, lineHeight, scaleType)
-                const label = new PIXI.Text({ text: `${year}/${String(month + 1).padStart(2, '0')}`, style })
-                label.position.set(5, 5)
-                const wrapContainer = new PIXI.Container()
 
-                wrapContainer.addChild(scale)
-                wrapContainer.addChild(label)
-                wrapContainer.position.set(x, this.app.screen.height - 15 - lineHeight);
-                scaleContainer.addChild(wrapContainer)
-                this._yearMonthScales.push({ scale: wrapContainer, year: yearStep, month });
-                month++;
+            let scaleType;
+            if (nowYear !== year) {
+                scaleType = 'year';
+
+                scaleContainer = this._yearScaleContainer;
+
+                lineHeight = 10;
+                nowYear = year
+
+
+
             }
+            else {
+                scaleType = 'month';
+                scaleContainer = this._monthScaleContainer
+                lineHeight = 8;
+
+            }
+
+            const scale = this._createScale(0, lineHeight, scaleType)
+            const label = new PIXI.Text({ text: `${year}/${month}./${date.padStart(2, '0')}`, style })
+            label.position.set(5, 5)
+            const wrapContainer = new PIXI.Container()
+
+            wrapContainer.addChild(scale)
+            wrapContainer.addChild(label)
+            wrapContainer.position.set(x, this.app.screen.height - 15 - lineHeight);
+            scaleContainer.addChild(wrapContainer)
+            this._yearMonthScales.push({ scale: wrapContainer, year: year, month });
+
 
         }
 
@@ -869,6 +872,9 @@ export class FlowController {
 
         const days = Array.from(Object.keys(dailyNodesMap)).sort();
         let maxX = 0;
+        /**
+         * @type {Object<string, number>}
+         * */
         const dateStartToX = {};
         const boxGridMap = {};
         const boxGridStepY = this.app.screen.height / (this._boxYStep * 2)
@@ -912,12 +918,13 @@ export class FlowController {
 
 
 
-                const end = y + size;
-                let _y = y - size;
+
                 /**
                  * @type {Object.<string, true>}
                  */
-                const grids = {};
+                const grids = {}; const end = y + size;
+                let _y = y - size;
+
                 while (_y <= end) {
                     const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, _y);
 
@@ -971,6 +978,7 @@ export class FlowController {
 
 
             }
+
         }
 
         const nodeGraphicsArr = Array.from(Object.values(nodeGraphics))
@@ -1083,7 +1091,7 @@ export class FlowController {
         const domContanerRect = this._domContainer.getBoundingClientRect()
         this._dragLimit.x.min = Math.min(0, domContanerRect.width - this._computeX(this._maxYear - this._minYear, this._maxMonth + 1))
         this.isDraggable = this._dragLimit.x.min < 0 || this._dragLimit.x.max > 0
-        return { nodeGraphics, yearDiff, minYear, minMonth };
+        return { nodeGraphics, yearDiff, minYear, minMonth, dateStartToX };
 
 
 
