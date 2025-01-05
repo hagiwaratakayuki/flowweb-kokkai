@@ -168,6 +168,7 @@ export class FlowController {
         this._isNodeOver = false
 
         this._baseSize = 15
+        this._minSize = 5;
 
 
 
@@ -303,8 +304,8 @@ export class FlowController {
      */
     setTransform(arg) {
 
-        this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, (arg.x || this._transforms.x || 0) + arg.moveX || 0))
-        this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, (arg.y || this._transforms.y || 0) + arg.moveY || 0))
+        this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, (arg.x || this._transforms.x || 0) + (arg.moveX || 0)))
+        this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, (arg.y || this._transforms.y || 0) + (arg.moveY || 0)))
         this._transforms.deltaX = arg.x || 0;
 
 
@@ -379,7 +380,7 @@ export class FlowController {
         const y = yCenter + (mouseEvent.clientY - target_rect.top - this._transforms.y - yCenter) / this._transforms.scaleY;
 
 
-        const grid = this._getGridFromAxis(x, y);
+        const grid = this._getGrid(x, y);
 
 
         if (grid in this._interactiveGrid) {
@@ -861,7 +862,7 @@ export class FlowController {
 
             const reguraizedWeight = sigma === 0 ? 1 : (node.weight - avg) / sigma;
 
-            nodeDatas[node.id] = [yearMonthDates[node.id], (Math.tanh(reguraizedWeight / 2) + 1) / 2]
+            nodeDatas[node.id] = (Math.tanh(reguraizedWeight / 2) + 1) / 2
         }
 
         /**
@@ -889,7 +890,7 @@ export class FlowController {
 
 
             for (const nodeId of dailyNodesMap[day]) {
-                const [yearMonthDate, weight] = nodeDatas[nodeId];
+                const weight = nodeDatas[nodeId];
                 const node = this._index[nodeId];
                 const size = (5 + this._baseSize * weight) / 2;
 
@@ -924,11 +925,12 @@ export class FlowController {
                 /**
                  * @type {Object.<string, true>}
                  */
-                const grids = {}; const end = y + size;
+                const grids = {};
+                const end = y + size;
                 let _y = y - size;
 
                 while (_y <= end) {
-                    const grid = this._getGrid(yearMonthDate.year, yearMonthDate.month, yearMonthDate.date, _y);
+                    const grid = this._getGrid(x, _y);
 
                     _y += this._gridStep;
                     grids[grid] = true
@@ -1103,34 +1105,15 @@ export class FlowController {
 
 
     }
+
     /**
      * @param {number} x
      * @param {number} y
      */
-    _getGridFromAxis(x, y) {
-        const baseX = (x - this.padding) / this.dayStep;
-        const yearDiff = 12 * 31;
-        const monthDiff = 31;
-        let year = Math.floor(baseX / yearDiff) + this._minYear;
-        let month = Math.ceil(Math.abs(baseX % yearDiff) / 31) + this._minMonth - 1;
-        year += Math.floor(month / 12)
-        month = month % 12
-
-        const date = Math.floor(Math.abs(baseX % yearDiff) % monthDiff);
-        //console.log(year, month, date)
-
-        return this._getGrid(year, month, date, y);
-
-
-    }
-    /**
-     * @param {number} year
-     * @param {number} month
-     * @param {number} date
-     * @param {number} y
-     */
-    _getGrid(year, month, date, y) {
-        return [year, month, date, Math.floor(y / 5)].join('_');
+    _getGrid(x, y) {
+        const xStep = Math.floor(x / (this._baseSize + this._minSize))
+        const yStep = Math.floor(y / ((this._baseSize + this._minSize)))
+        return [xStep, yStep].join('_');
     }
 
 
