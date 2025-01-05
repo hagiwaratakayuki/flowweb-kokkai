@@ -304,7 +304,7 @@ export class FlowController {
     setTransform(arg) {
 
         this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, (arg.x || this._transforms.x || 0) + arg.moveX || 0))
-        this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, arg.y || this._transforms.y || 0 + arg.moveY || 0))
+        this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, (arg.y || this._transforms.y || 0) + arg.moveY || 0))
         this._transforms.deltaX = arg.x || 0;
 
 
