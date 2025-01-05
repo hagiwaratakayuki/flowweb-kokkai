@@ -1,6 +1,7 @@
 
 import * as PIXI from "pixi.js";
 import { Application } from 'pixi.js';
+import { i } from "vitest/dist/reporters-MmQN-57K.js";
 
 /**
  * @typedef {import("$lib/relay_types/flow").Flow} Nodes
@@ -883,7 +884,7 @@ export class FlowController {
         const boxGridStepY = this.app.screen.height / (this._boxYStep * 2)
         const boxGridGradient = Math.atan2(boxGridStepY, this._boxXStep)
         const xAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / this._boxXStep
-        const yAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / boxGridStepY
+        const yAdjast = 2 * (this._baseSize + 5 + 10) * Math.sin(boxGridGradient) / boxGridStepY
         for (const day of days) {
             dateStartToX[day] = maxX + this._boxXStep;
 
@@ -945,6 +946,9 @@ export class FlowController {
 
 
 
+                    }
+                    if (grid in grids) {
+                        continue
                     }
 
                     if (interactiveData.isOverwraped === false) {
