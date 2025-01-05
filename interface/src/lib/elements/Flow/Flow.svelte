@@ -1,6 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from "svelte";
-  import { FlowController, FlowControllerBuilder } from "./flow_controller";
+  import { FlowController, FlowControllerBuilder } from "./flexflow_controller";
   import { browser } from "$app/environment";
   import Tooltip from "./ToolTip.svelte";
   import NodeModal from "./NodeModal.svelte";

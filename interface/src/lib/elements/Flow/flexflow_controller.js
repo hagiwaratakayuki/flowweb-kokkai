@@ -303,9 +303,11 @@ export class FlowController {
      */
     setTransform(arg) {
 
-        this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, arg.x || this._transforms.x || 0 + arg.moveX || 0))
+        this._transforms.x = Math.min(this._dragLimit.x.max, Math.max(this._dragLimit.x.min, (arg.x || this._transforms.x || 0) + arg.moveX || 0))
         this._transforms.y = Math.min(this._dragLimit.y.max, Math.max(this._dragLimit.y.min, arg.y || this._transforms.y || 0 + arg.moveY || 0))
         this._transforms.deltaX = arg.x || 0;
+
+
 
 
         /*const scaleX = this._transforms.scaleX + arg.scaleX || 0
@@ -871,7 +873,7 @@ export class FlowController {
 
 
         const days = Array.from(Object.keys(dailyNodesMap)).sort();
-        let maxX = 0;
+        let maxX = -1 * this._boxXStep;
         /**
          * @type {Object<string, number>}
          * */
@@ -882,7 +884,7 @@ export class FlowController {
         const xAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / this._boxXStep
         const yAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / boxGridStepY
         for (const day of days) {
-            dateStartToX[day] = maxX;
+            dateStartToX[day] = maxX + this._boxXStep;
 
 
 
@@ -1089,7 +1091,8 @@ export class FlowController {
         }
 
         const domContanerRect = this._domContainer.getBoundingClientRect()
-        this._dragLimit.x.min = Math.min(0, domContanerRect.width - this._computeX(this._maxYear - this._minYear, this._maxMonth + 1))
+
+        this._dragLimit.x.min = Math.min(0, domContanerRect.width - maxX)
         this.isDraggable = this._dragLimit.x.min < 0 || this._dragLimit.x.max > 0
         return { nodeGraphics, yearDiff, minYear, minMonth, dateStartToX };
 
