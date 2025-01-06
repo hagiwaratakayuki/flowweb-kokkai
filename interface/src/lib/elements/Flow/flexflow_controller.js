@@ -873,6 +873,9 @@ export class FlowController {
         const boxGridGradient = Math.atan2(boxGridStepY, this._boxXStep)
         const xAdjast = 2 * (this._baseSize + 5 + 10) * Math.cos(boxGridGradient) / this._boxXStep
         const yAdjast = 2 * (this._baseSize + 5 + 10) * Math.sin(boxGridGradient) / boxGridStepY
+        const viewPortHeight = this._domContainer.getBoundingClientRect().height;
+
+        console.log(this.app.screen.width)
         for (const day of days) {
             dateStartToX[day] = maxX + this._boxXStep;
 
@@ -899,7 +902,8 @@ export class FlowController {
                 const yDiff = (node.y - baseY) * Math.sin(boxGridGradient) * yAdjast
                 const xDiff = Math.abs(node.y - baseY) * Math.cos(boxGridGradient) * xAdjast
                 let x = 5 + 10 + this._baseSize + xDiff * this._boxXStep + baseX
-                let y = (1 - baseY) * this.app.screen.width / 2 + 5 + 10 + this._baseSize + yDiff * this.app.screen.width / 2;
+                let y = (1 - baseY) * viewPortHeight / 2 + 5 + 10 + this._baseSize + yDiff * viewPortHeight / 2;
+                //console.dir(node.y, y)
                 //let x = this._computeX(yearMonthDate.year - this._minYear, yearMonthDate.month, yearMonthDate.date);
 
 
