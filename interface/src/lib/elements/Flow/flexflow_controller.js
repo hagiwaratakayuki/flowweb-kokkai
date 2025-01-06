@@ -804,10 +804,9 @@ export class FlowController {
         let total = 0;
         const weights = [];
 
-        let maxYear = this._maxYear || 0;
 
-        let minYear = this._minYear;
-        let minMonth = this._minMonth;
+
+
         /**
          * @type {Object<any,{year:number, month:number, date:number}>}
          *  */
@@ -835,18 +834,7 @@ export class FlowController {
             yearMonthDates[node.id] = { year, month, date }
 
         }
-        if (this._minYear >= minYear) {
-            this._minYear = minYear
-            if (this._minMonth > minMonth) {
-                this._minMonth = minMonth
-            }
-        }
 
-        if (maxYear > this._maxYear) {
-            this._maxYear = maxYear;
-        }
-
-        const yearDiff = maxYear - minYear || 1;
         const avg = total / nodes.length
         const sigma = Math.sqrt(weights.reduce(function (prev, cur) {
             return prev + Math.pow(cur - avg, 2)
@@ -927,46 +915,55 @@ export class FlowController {
                  * @type {Object.<string, true>}
                  */
                 const grids = {};
-                const end = y + size;
-                let _y = y - size;
+                const endX = x + size + this._gridStep;
+                const endY = y + size + this._gridStep;
+                let _x = x - size - this._gridStep;
 
-                while (_y <= end) {
-                    const grid = this._getGrid(x, _y);
-
-                    _y += this._gridStep;
-                    grids[grid] = true
-
-
-                    const interactiveData = this._interactiveGrid[grid] || {
-                        nodes: [],
-                        isOverwraped: false,
-                        x: x,
-                        y: 0,
-                        maxWeight: -1
+                while (_x <= endX) {
+                    _x += this._gridStep
+                    let _y = y - size;
 
 
+
+                    while (_y <= endY) {
+                        const grid = this._getGrid(_x, _y);
+
+                        _y += this._gridStep;
+                        if (grid in grids) {
+                            continue
+                        }
+                        grids[grid] = true
+
+
+                        const interactiveData = this._interactiveGrid[grid] || {
+                            nodes: [],
+                            isOverwraped: false,
+                            x: x,
+                            y: 0,
+                            maxWeight: -1
+
+
+
+                        }
+
+
+                        if (interactiveData.isOverwraped === false) {
+                            interactiveData.isOverwraped = grid in this._interactiveGrid;
+                        }
+                        if (interactiveData.maxWeight < weight) {
+                            interactiveData.y = y
+                            interactiveData.maxWeight = node.weight
+                            interactiveData.nodes.unshift(node)
+                        }
+                        else {
+                            interactiveData.nodes.push(node)
+                        }
+                        this._interactiveGrid[grid] = interactiveData
 
                     }
-                    if (grid in grids) {
-                        continue
-                    }
-
-                    if (interactiveData.isOverwraped === false) {
-                        interactiveData.isOverwraped = grid in this._interactiveGrid;
-                    }
-                    if (interactiveData.maxWeight < weight) {
-                        interactiveData.y = y
-                        interactiveData.maxWeight = node.weight
-                        interactiveData.nodes.unshift(node)
-                    }
-                    else {
-                        interactiveData.nodes.push(node)
-                    }
-                    this._interactiveGrid[grid] = interactiveData
-
                 }
-                x += size * 0.5
-                y += size * 0.5
+                //x -= size * 2
+                //y -= size * 2
                 this._index[node.id] = Object.assign(node, { x, y, size, grids })
 
                 //@todo 中心を基準に並び順を変更
@@ -1100,7 +1097,7 @@ export class FlowController {
 
         this._dragLimit.x.min = Math.min(0, domContanerRect.width - maxX)
         this.isDraggable = this._dragLimit.x.min < 0 || this._dragLimit.x.max > 0
-        return { nodeGraphics, yearDiff, minYear, minMonth, dateStartToX };
+        return { nodeGraphics, dateStartToX };
 
 
 
@@ -1115,8 +1112,8 @@ export class FlowController {
      * @param {number} y
      */
     _getGrid(x, y) {
-        const xStep = Math.floor(x / (this._baseSize + this._minSize))
-        const yStep = Math.floor(y / ((this._baseSize + this._minSize)))
+        const xStep = Math.floor(x / this._gridStep)
+        const yStep = Math.floor(y / this._gridStep)
         return [xStep, yStep].join('_');
     }
 
