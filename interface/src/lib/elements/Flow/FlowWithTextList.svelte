@@ -4,6 +4,7 @@
   import { Row, Col } from "@sveltestrap/sveltestrap";
   import { overviews_to_flow } from "./overviews_to_flow";
   import Section from "../GuiComponent/Section.svelte";
+  import { getTextUrl } from "$lib/url/basic/text";
   /**
    * @type {TextList}
    * */
@@ -12,6 +13,7 @@
   let _overViews;
   let _isError = false;
   let _isNextExist = false;
+  export let getItemUrl = getTextUrl;
 
   /**
    * @type {Flow}
@@ -57,14 +59,23 @@
     <Section>
       <slot name="textlist_header"><h2 class="section_header">発言</h2></slot>
       <div class="sidebar vertical-scroll me-4">
-        <TextList bind:this={textList} on:mouseover={onListItemMouseOver} />
+        <TextList
+          bind:this={textList}
+          on:mouseover={onListItemMouseOver}
+          {getItemUrl}
+        />
       </div>
     </Section>
   </Col>
   <Col class="h-100" md="10" sm="12">
     <slot name="main" />
     <div class="h-100 border border-primary-subtle rounded-1">
-      <Flow bind:this={flowComponent} flow={_flow} on:NodeOver={onNodeOver} />
+      <Flow
+        bind:this={flowComponent}
+        flow={_flow}
+        on:NodeOver={onNodeOver}
+        {getItemUrl}
+      />
     </div>
   </Col>
 </Row>

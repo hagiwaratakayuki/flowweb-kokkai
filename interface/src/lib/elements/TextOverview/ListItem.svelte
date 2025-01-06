@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { getUrl } from "$lib/url/basic/text";
+  import { getTextUrl } from "$lib/url/basic/text";
+  import BaseLink from "$lib/url/BaseLink.svelte";
   const dispatcher = createEventDispatcher();
   export function select(isScroll = true) {
     isSelected = true;
@@ -8,7 +9,7 @@
       element.scrollIntoView({ behavior: "smooth" });
     }
   }
-
+  export let getItemUrl = getTextUrl;
   export function deselect() {
     isSelected = false;
   }
@@ -33,26 +34,24 @@
   bind:this={element}
   on:mouseenter={onMouseEnter}
 >
-  <a href={getUrl(overview.id)} class:selected={isSelected}>
-    {overview.title.slice(0, 15)}...
-  </a>
+  <BaseLink href={getItemUrl(overview.id)}>
+    {#if isSelected == true}<span class="selected icon">〇</span>
+    {:else}
+      <span class="icon">◇</span>
+    {/if}
+    <span>{overview.title.slice(0, 15)}...</span>
+  </BaseLink>
 </li>
 
 <style>
-  a {
-    text-decoration: none;
-    display: inline-block;
-  }
-  a::before {
-    content: "◇";
+  .icon {
     margin-right: 1rem;
   }
   li:hover {
     background-color: var(--bs-secondary-bg-subtle);
     border-radius: var(--bs-border-radius-sm);
   }
-  a.selected::before {
-    content: "●";
+  .selected::before {
     color: var(--bs-teal);
   }
 </style>

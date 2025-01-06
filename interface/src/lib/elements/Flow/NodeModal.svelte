@@ -1,7 +1,7 @@
 <script>
-  import { tick } from "svelte";
   import { ListGroup, ListGroupItem } from "@sveltestrap/sveltestrap";
-
+  import { getTextUrl } from "$lib/url/basic/text";
+  import BaseLink from "$lib/url/BaseLink.svelte";
   /**
    * @typef {import("./flow").GridInfo} GridInfo
    * @type {GridInfo}
@@ -14,7 +14,7 @@
   let contentHeight = 0;
   let isScroll = false;
   let lock = true;
-
+  export let getItemUrl = getTextUrl;
   $: {
     isScroll = frameHeight < contentHeight;
   }
@@ -56,7 +56,7 @@
       <ListGroup class="bg-white rounded-2">
         {#each _interactiveData.nodes as node}
           <ListGroupItem>
-            <a href="/text/{node.id}">{node.title}</a>
+            <BaseLink url={getItemUrl(node.id)}>{node.title}</BaseLink>
           </ListGroupItem>
         {/each}
       </ListGroup>

@@ -5,6 +5,7 @@
   import Tooltip from "./ToolTip.svelte";
   import NodeModal from "./NodeModal.svelte";
   import ToolTip from "./ToolTip.svelte";
+  import { getTextUrl } from "$lib/url/basic/text";
 
   const dispatcher = createEventDispatcher();
   /**
@@ -44,7 +45,7 @@
   let isToolTipVisible = false;
   let tooltipMessage = "";
   let tooltipPosition = { top: 0, left: 0 };
-
+  export let getItemUrl = getTextUrl;
   export function moveToNode(nodeId) {
     if (!controller == false) {
       controller.moveToNode(nodeId);
@@ -123,7 +124,7 @@
   class:node_selected={isSelected}
 >
   <div class="flow_container" bind:this={container} />
-  <NodeModal bind:this={nodeModal} />
+  <NodeModal bind:this={nodeModal} {getItemUrl} />
 </div>
 <Tooltip bind:this={toolTip} flowElement={containerRoot} />
 

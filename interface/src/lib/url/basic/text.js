@@ -1,19 +1,9 @@
-let TEXT_BASEPATH = '/text/';
-
-/**
- * @param {string} text_basepath
- */
-export function setBaseurl(text_basepath) {
+import { createGetUrl } from "../create_get_url";
 
 
-    TEXT_BASEPATH = text_basepath
 
-}
 
 /**
  * @param {string} id
  */
-export function getUrl(id) {
-
-    return TEXT_BASEPATH + id
-}
+export const getTextUrl = createGetUrl("/text/")

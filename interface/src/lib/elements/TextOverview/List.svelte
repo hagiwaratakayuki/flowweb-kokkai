@@ -4,8 +4,10 @@
   import { createEventDispatcher } from "svelte";
   import { onMount } from "svelte";
   import ListItem from "./ListItem.svelte";
+  import { getTextUrl } from "$lib/url/basic/text";
   const dispatcher = createEventDispatcher();
   export let selectedId = "";
+  export let getItemUrl = getTextUrl;
 
   export function selectItem(id, isScroll = true) {
     if (selectedItem != null) {
@@ -68,6 +70,7 @@
       {selectedId}
       bind:this={elements[overview.id]}
       on:mouseenter={onMouseEnterItem}
+      {getItemUrl}
     />
   {/each}
 </ListGroup>

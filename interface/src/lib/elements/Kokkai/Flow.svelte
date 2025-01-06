@@ -3,7 +3,7 @@
   import FlowWithTextList from "../Flow/FlowWithTextList.svelte";
 
   import { onMount } from "svelte";
-  setBaseurl("/speech/");
+
   export let data;
   let _isMounted = false;
 
@@ -20,7 +20,7 @@
   }
 </script>
 
-<FlowWithTextList bind:this={flowWithTextList}>
+<FlowWithTextList bind:this={flowWithTextList} getItemUrl={}>
   <div slot="sidebar"><slot name="sidebar" /></div>
   <div slot="main"><slot name="main" /></div>
 </FlowWithTextList>
