@@ -161,7 +161,7 @@
     <h2 class="section_header">この発言を含む議論</h2>
     <Section>
       <Panel>
-        {#if data.clusters}
+        {#if (data.clusters || []).length !== 0}
           <ListGroup flush={true}>
             {#each data.clusters?.overviews || [] as cluster}
               <ListGroupItem>
@@ -181,7 +181,7 @@
           <h3 class="section_header">この発言に繋がる発言</h3>
 
           <Panel>
-            {#if data.link_from}
+            {#if (data.link_from?.nodes || []).length !== 0}
               <ListGroup flush={true}>
                 {#each data.link_from?.nodes || [] as node}
                   <ListGroupItem>
@@ -197,7 +197,7 @@
         <Col md="6">
           <h3 class="section_header">この発言から繋がる発言</h3>
           <Panel>
-            {#if data.link_to}
+            {#if (data.link_to || []).length !== 0}
               <ListGroup flush={true}>
                 {#each data.link_to || [] as link}
                   <ListGroupItem>

@@ -1,15 +1,15 @@
-<!-- Indices written at 月, 6 1月 2025 18:08:19 JST -->
+<!-- Indices written at 火, 7 1月 2025 12:29:05 JST -->
 
 <datastore-indexes autoGenerate="true">
 
-    <!-- Used 14 times in query history -->
+    <!-- Used 30 times in query history -->
     <datastore-index kind="ClusterMember" ancestor="false" source="auto">
         <property name="node_id" direction="asc"/>
         <property name="linked_count" direction="desc"/>
         <property name="cluster_id" direction="asc"/>
     </datastore-index>
 
-    <!-- Used 13 times in query history -->
+    <!-- Used 24 times in query history -->
     <datastore-index kind="NodeKokkai" ancestor="false" source="auto">
         <property name="link_to" direction="asc"/>
         <property name="linked_count" direction="asc"/>
