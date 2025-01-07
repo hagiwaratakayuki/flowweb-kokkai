@@ -3,7 +3,7 @@
   import { getTextUrl } from "./text";
 
   export let id;
-  export let newWindow = false;
+  export let isNewWindow = false;
 </script>
 
-<BaseLink {newWindow} url={getTextUrl(id)}><slot /></BaseLink>
+<BaseLink {isNewWindow} url={getTextUrl(id)}><slot /></BaseLink>

@@ -2,15 +2,12 @@
   import BaseLink from "../BaseLink.svelte";
   import { getSpeechUrl } from "./speech.js";
   export let id;
-  export let newWindow = true;
+  export let isNewWindow = true;
   let props;
   $: {
-    if (newWindow == true) {
-      props = { target: "_brank" };
-    }
   }
 </script>
 
-<BaseLink href={getSpeechUrl(id)} {...props}>
+<BaseLink url={getSpeechUrl(id)} {isNewWindow}>
   <slot />
 </BaseLink>

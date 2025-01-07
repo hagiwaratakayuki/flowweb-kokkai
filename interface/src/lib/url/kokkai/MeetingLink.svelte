@@ -3,7 +3,7 @@
   import { getMeetingUrl } from "./meeting";
 
   export let id;
-  export let newWindow = false;
+  export let isNewWindow = false;
 </script>
 
-<BaseLink {newWindow} url={getMeetingUrl(id)}><slot /></BaseLink>
+<BaseLink {isNewWindow} url={getMeetingUrl(id)}><slot /></BaseLink>

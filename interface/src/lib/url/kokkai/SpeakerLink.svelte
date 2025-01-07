@@ -3,7 +3,7 @@
   import { getSpeakerUrl } from "./speaker";
 
   export let id;
-  export let newWindow = false;
+  export let isNewWindow = false;
 </script>
 
-<BaseLink {newWindow} url={getSpeakerUrl(id)}><slot /></BaseLink>
+<BaseLink {isNewWindow} url={getSpeakerUrl(id)}><slot /></BaseLink>

@@ -1,10 +1,10 @@
 <script>
   export let url;
-  export let newWindow = true;
+  export let isNewWindow = true;
   let props;
 
   $: {
-    if (newWindow == true) {
+    if (isNewWindow == true) {
       props = { target: "_brank" };
     }
   }
