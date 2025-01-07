@@ -35,23 +35,25 @@
   on:mouseenter={onMouseEnter}
 >
   <BaseLink url={getItemUrl(overview.id)}>
-    {#if isSelected == true}<span class="selected icon">〇</span>
-    {:else}
-      <span class="icon">◇</span>
-    {/if}
-    <span>{overview.title.slice(0, 15)}...</span>
+    <div class="d-flex flex-row">
+      {#if isSelected == true}
+        <div class="selected icon align-self-center">●</div>
+      {:else}
+        <div class="icon align-self-center">◇</div>
+      {/if}
+      <div>{overview.title.slice(0, 15)}...</div>
+    </div>
   </BaseLink>
 </li>
 
 <style>
   .icon {
-    margin-right: 1rem;
+    text-align: center;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
   }
-  li:hover {
-    background-color: var(--bs-secondary-bg-subtle);
-    border-radius: var(--bs-border-radius-sm);
-  }
-  .selected::before {
+
+  .selected {
     color: var(--bs-teal);
   }
 </style>
