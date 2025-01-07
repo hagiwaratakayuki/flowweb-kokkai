@@ -116,6 +116,8 @@
       <Panel>
         {#each keywordPretter(data.keywords) as keyword}
           <span>{keyword} </span>
+        {:else}
+          <span>キーワードはありません</span>
         {/each}
       </Panel>
     </Section>
@@ -159,13 +161,17 @@
     <h2 class="section_header">この発言を含む議論</h2>
     <Section>
       <Panel>
-        <ListGroup flush={true}>
-          {#each data.clusters.overviews as cluster}
-            <ListGroupItem>
-              <KokkaiFlowLink id={cluster.id} keywords={cluster.keywords} />
-            </ListGroupItem>
-          {/each}
-        </ListGroup>
+        {#if data.clusters}
+          <ListGroup flush={true}>
+            {#each data.clusters?.overviews || [] as cluster}
+              <ListGroupItem>
+                <KokkaiFlowLink id={cluster.id} keywords={cluster.keywords} />
+              </ListGroupItem>
+            {/each}
+          </ListGroup>
+        {:else}
+          <span>この発言を含む議論はありません</span>
+        {/if}
       </Panel>
     </Section>
     <h2 class="section_header">他の発言との繋がり</h2>
@@ -173,26 +179,35 @@
       <Row>
         <Col md="6">
           <h3 class="section_header">この発言に繋がる発言</h3>
+
           <Panel>
-            <ListGroup flush={true}>
-              {#each data.link_from.nodes as node}
-                <ListGroupItem>
-                  <SpeechLink id="{node.id}}">{node.title}</SpeechLink>
-                </ListGroupItem>
-              {/each}
-            </ListGroup>
-          </Panel>
+            {#if data.link_from}
+              <ListGroup flush={true}>
+                {#each data.link_from?.nodes || [] as node}
+                  <ListGroupItem>
+                    <SpeechLink id="{node.id}}">{node.title}</SpeechLink>
+                  </ListGroupItem>
+                {/each}
+              </ListGroup>
+            {:else}
+              <span>この発言に繋がる発言はありません</span>
+            {/if}</Panel
+          >
         </Col>
         <Col md="6">
           <h3 class="section_header">この発言から繋がる発言</h3>
           <Panel>
-            <ListGroup flush={true}>
-              {#each data.link_to as link}
-                <ListGroupItem>
-                  <SpeechLink id={link.id}>{link.title}</SpeechLink>
-                </ListGroupItem>
-              {/each}
-            </ListGroup>
+            {#if data.link_to}
+              <ListGroup flush={true}>
+                {#each data.link_to || [] as link}
+                  <ListGroupItem>
+                    <SpeechLink id={link.id}>{link.title}</SpeechLink>
+                  </ListGroupItem>
+                {/each}
+              </ListGroup>
+            {:else}
+              <span>この発言から繋がる発言はありません</span>
+            {/if}
           </Panel>
         </Col>
       </Row>

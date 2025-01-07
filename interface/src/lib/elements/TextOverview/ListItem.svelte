@@ -34,7 +34,7 @@
   bind:this={element}
   on:mouseenter={onMouseEnter}
 >
-  <BaseLink href={getItemUrl(overview.id)}>
+  <BaseLink url={getItemUrl(overview.id)}>
     {#if isSelected == true}<span class="selected icon">〇</span>
     {:else}
       <span class="icon">◇</span>

@@ -1,5 +1,5 @@
 <script>
-  import { setBaseurl } from "$lib/url/basic/text";
+  import { getSpeechUrl } from "$lib/url/kokkai/speech";
   import FlowWithTextList from "../Flow/FlowWithTextList.svelte";
 
   import { onMount } from "svelte";
@@ -20,7 +20,7 @@
   }
 </script>
 
-<FlowWithTextList bind:this={flowWithTextList} getItemUrl={}>
+<FlowWithTextList bind:this={flowWithTextList} getItemUrl={getSpeechUrl}>
   <div slot="sidebar"><slot name="sidebar" /></div>
   <div slot="main"><slot name="main" /></div>
 </FlowWithTextList>
