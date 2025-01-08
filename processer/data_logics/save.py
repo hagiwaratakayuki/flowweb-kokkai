@@ -1,6 +1,7 @@
 
 from functools import reduce
 from hashlib import md5
+from emojis import count
 import numpy as np
 
 import logging
@@ -87,11 +88,27 @@ class Logic:
 
         # edge_chunk = Chunker()
         linked_counts_map = defaultdict(int)
-        for vertexs in taged.graph.values():
-            for vertex in vertexs:
-                link_to = index2id[vertex]
+        link_counts_map = {}
+        for index, link_nodes in taged.graph.items():
+
+            link_counts_map[index] = len(link_nodes)
+            for link_node in link_nodes:
+                link_to = index2id[link_node]
                 linked_counts_map[link_to] += 1
 
+        is_apex_flag_map = {}
+        for index, link_nodes in taged.graph.items():
+            nodeid = index2id[index]
+            link_count = link_counts_map[index]
+            linked_count = linked_counts_map[nodeid]
+            is_apex_flag = link_count > 1 and link_count < linked_count
+            if is_apex_flag == True:
+                for link_node in link_nodes:
+                    link_to = index2id[link_node]
+                    if linked_counts_map.get(link_to, 0) > link_counts_map.get(index, 0):
+                        is_apex_flag == False
+                        break
+            is_apex_flag_map[nodeid] = is_apex_flag
         cluster_chunker = ChunkedBatchSaver()
         members_chunk = deque()
 
@@ -103,16 +120,17 @@ class Logic:
 
         logging.info('start text save')
 
-        for index, id in index2id.items():
+        for index, nodeid in index2id.items():
             vector = index2vector[index]
             data = index2data[index]
             keywords = index2tag[index]
             sentimentResult = index2sentiments[index]
 
             link_to = [index2id[to_index] for to_index in taged.graph[index]]
-            linked_count = linked_counts_map[id]
-            result, weight, published_list = nodeLogic.save(id=id, dto=data, vector=vector, sentiment_result=sentimentResult,
-                                                            link_to=link_to, linked_count=linked_count, keywords=keywords)
+            linked_count = linked_counts_map[nodeid]
+            is_apex_flag = is_apex_flag_map[nodeid]
+            result, weight, published_list = nodeLogic.save(id=nodeid, dto=data, vector=vector, sentiment_result=sentimentResult,
+                                                            link_to=link_to, linked_count=linked_count, keywords=keywords, is_apex_flag=is_apex_flag)
 
             index2weight[index] = weight
             author_keyword_saver.put(data.author_id, keywords=keywords)

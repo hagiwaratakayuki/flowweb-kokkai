@@ -13,6 +13,7 @@ export type Published = string;
 export type Title = string;
 export type PublishedList = string[] | null;
 export type Keywords = string[];
+export type IsApex = boolean;
 export type House = string;
 export type Session = number;
 export type Comittie = string;
@@ -29,6 +30,7 @@ export interface NodeOverview {
   title: Title;
   published_list: PublishedList;
   keywords: Keywords;
+  is_apex: IsApex;
   house: House;
   session: Session;
   comittie: Comittie;

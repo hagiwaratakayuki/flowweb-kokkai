@@ -14,6 +14,7 @@ class Node(Model):
     title: str
     published_list: Optional[List[str]]
     keywords: List[str]
+    is_apex: bool
     hash: str
 
     def __init__(self, *args, **kwargs) -> None:

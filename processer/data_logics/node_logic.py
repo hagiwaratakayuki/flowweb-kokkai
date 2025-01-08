@@ -19,7 +19,7 @@ class NodeLogic(ChunkedBatchSaver):
         self.nodeBodyModel = NodeBodyModel
         self.nodeBodySaver = NodBodySaverClass(size)
 
-    def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int, keywords: list[str]):
+    def save(self, id, dto: DTO, vector, sentiment_result: SentimentResult, link_to: list[str], linked_count: int, keywords: list[str], is_apex_flag: bool):
 
         nodeEntity = self.nodeModel(id=id)
 
@@ -35,7 +35,8 @@ class NodeLogic(ChunkedBatchSaver):
             link_to=link_to,
             linked_count=linked_count,
             sentiment=sentiment,
-            keywords=keywords)
+            keywords=keywords,
+            is_apex_flag=is_apex_flag)
 
         return self.put(nodeEntity), weight, publishedlist
 
@@ -52,7 +53,7 @@ class NodeLogic(ChunkedBatchSaver):
         }
         return sentiment
 
-    def setEntityProperty(self, entity: node.Node, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords):
+    def setEntityProperty(self, entity: node.Node, dto: DTO, nodeEntity: node.Node, vector: np.ndarray, link_to, linked_count, sentiment, keywords, is_apex_flag):
 
         data: NodeData = dict(vector=vector.tolist(),
                               sentiment=sentiment)
@@ -76,6 +77,7 @@ class NodeLogic(ChunkedBatchSaver):
         entity.linked_count = linked_count
         entity.hash = get_hash(vector=vector)
         entity.keywords = keywords
+        entity.is_apex = is_apex_flag
         datetime_list = spliter.split(str(published))
 
         entity.published_list = get_ymd(datetime_list)

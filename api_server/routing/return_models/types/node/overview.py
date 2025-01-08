@@ -17,6 +17,7 @@ class NodeOverview(BaseModel):
     title: str
     published_list: typing_Optional[typing_List[str]]
     keywords: typing_List[str]
+    is_apex: bool
     house: str
     session: int
     comittie: str

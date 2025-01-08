@@ -1,4 +1,3 @@
-from api_server.routing.query import comittie
 from .model import Model
 
 

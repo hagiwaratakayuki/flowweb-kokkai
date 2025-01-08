@@ -29,9 +29,9 @@ class KokkaiNodeLogic(NodeLogic):
     def set_vectors(self, sentiment_result: SentimentResult):
         return super().set_vectors(sentiment_result)
 
-    def setEntityProperty(self, entity, dto: DTO, nodeEntity: NodeKokkai, vector, link_to, linked_count, sentiment, keywords):
+    def setEntityProperty(self, entity, dto: DTO, nodeEntity: NodeKokkai, vector, link_to, linked_count, sentiment, keywords, is_apex_flag):
         ret = super().setEntityProperty(entity, dto, nodeEntity,
-                                        vector, link_to, linked_count, sentiment, keywords)
+                                        vector, link_to, linked_count, sentiment, keywords, is_apex_flag)
 
         nodeEntity.session = self.session
         nodeEntity.house = dto.house
