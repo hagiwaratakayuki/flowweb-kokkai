@@ -4,8 +4,6 @@
   export let id;
   export let isNewWindow = true;
   let props;
-  $: {
-  }
 </script>
 
 <BaseLink url={getSpeechUrl(id)} {isNewWindow}>
