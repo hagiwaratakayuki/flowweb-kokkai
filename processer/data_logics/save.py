@@ -2,6 +2,7 @@
 from functools import reduce
 from hashlib import md5
 from emojis import count
+
 import numpy as np
 
 import logging
@@ -52,7 +53,7 @@ class Logic:
         index2vector = {}
         innerid2clusterid = {}
 
-        index = 0
+        node_index = 0
 
         is_first = True
         logging.info('start saving')
@@ -68,18 +69,18 @@ class Logic:
                 is_first = False
                 vector_dimention = vector.shape[0]
                 vector_dtype = vector.dtype
-            index2vector[index] = vector
-            index2sentiments[index] = sentimentResult
+            index2vector[node_index] = vector
+            index2sentiments[node_index] = sentimentResult
 
-            index2id[index] = data.id
-            index2tag[index] = keywords
-            index2published[index] = data.published
-            index2data[index] = data
-            index += 1
+            index2id[node_index] = data.id
+            index2tag[node_index] = keywords
+            index2published[node_index] = data.published
+            index2data[node_index] = data
+            node_index += 1
 
         logging.info('create vectors')
-        vectors = np.fromiter((index2vector[i] for i in range(index)), dtype=np.dtype(
-            (vector_dtype, vector_dimention,)), count=index)
+        vectors = np.fromiter((index2vector[i] for i in range(node_index)), dtype=np.dtype(
+            (vector_dtype, vector_dimention,)), count=node_index)
 
         taged = Taged()
 
@@ -89,25 +90,31 @@ class Logic:
         # edge_chunk = Chunker()
         linked_counts_map = defaultdict(int)
         link_counts_map = {}
-        for index, link_nodes in taged.graph.items():
+        for node_index, link_node_indexs in taged.graph.items():
 
-            link_counts_map[index] = len(link_nodes)
-            for link_node in link_nodes:
-                link_to = index2id[link_node]
-                linked_counts_map[link_to] += 1
+            link_counts_map[node_index] = len(link_node_indexs)
+            for link_node_index in link_node_indexs:
+                link_node_id = index2id[link_node_index]
+                linked_counts_map[link_node_id] += 1
 
         is_apex_flag_map = {}
-        for index, link_nodes in taged.graph.items():
-            nodeid = index2id[index]
-            link_count = link_counts_map[index]
+        for node_index, link_node_indexs in taged.graph.items():
+            nodeid = index2id[node_index]
+            link_count = link_counts_map[node_index]
             linked_count = linked_counts_map[nodeid]
-            is_apex_flag = link_count > 1 and link_count < linked_count
-            if is_apex_flag == True:
-                for link_node in link_nodes:
-                    link_to = index2id[link_node]
-                    if linked_counts_map.get(link_to, 0) > link_counts_map.get(index, 0):
-                        is_apex_flag == False
-                        break
+            is_apex_flag = False
+            if link_count > 1 and link_count < linked_count:
+                for link_node_index in link_node_indexs:
+                    link_node_id = index2id[link_node_index]
+                    if linked_counts_map.get(link_node_id, 0) >= link_counts_map.get(link_node_index, 0):
+                        try:
+
+                            taged.graph.get(link_node_index, []
+                                            ).index(node_index)
+                            is_apex_flag = True
+                        except ValueError:
+                            continue
+
             is_apex_flag_map[nodeid] = is_apex_flag
         cluster_chunker = ChunkedBatchSaver()
         members_chunk = deque()
@@ -120,19 +127,20 @@ class Logic:
 
         logging.info('start text save')
 
-        for index, nodeid in index2id.items():
-            vector = index2vector[index]
-            data = index2data[index]
-            keywords = index2tag[index]
-            sentimentResult = index2sentiments[index]
+        for node_index, nodeid in index2id.items():
+            vector = index2vector[node_index]
+            data = index2data[node_index]
+            keywords = index2tag[node_index]
+            sentimentResult = index2sentiments[node_index]
 
-            link_to = [index2id[to_index] for to_index in taged.graph[index]]
+            link_node_id = [index2id[to_index]
+                            for to_index in taged.graph[node_index]]
             linked_count = linked_counts_map[nodeid]
             is_apex_flag = is_apex_flag_map[nodeid]
             result, weight, published_list = nodeLogic.save(id=nodeid, dto=data, vector=vector, sentiment_result=sentimentResult,
-                                                            link_to=link_to, linked_count=linked_count, keywords=keywords, is_apex_flag=is_apex_flag)
+                                                            link_to=link_node_id, linked_count=linked_count, keywords=keywords, is_apex_flag=is_apex_flag)
 
-            index2weight[index] = weight
+            index2weight[node_index] = weight
             author_keyword_saver.put(data.author_id, keywords=keywords)
 
             """
