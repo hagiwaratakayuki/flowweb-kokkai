@@ -7,12 +7,12 @@ funcs = [count_one, valid_noun]
 def function_remover(words):
     ret = []
     for word in words:
-        is_break = False
+        is_valid = True
         for func in funcs:
             if func(word) == True:
-                is_break = True
+                is_valid = False
                 break
-        if is_break:
-            break
+        if is_valid == False:
+            continue
         ret.append(word)
     return ret
