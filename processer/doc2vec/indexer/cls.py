@@ -41,7 +41,7 @@ def get_norm_weight(filtered_map: Dict[str, Dict]):
         index += 1
     norms_array = np.array(norms)
     norm_avg = np.average(norms_array)
-    weight_array = np.power(norms_array / norm_avg, 1.5)
+    weight_array = np.power(norms_array / norm_avg, 2)
     ret = {}
     index = 0
     for weight in weight_array:
@@ -150,7 +150,7 @@ class Indexer:
             if len(scored_keywords) == 0:
                 scored_keywords = [word_index[sorted_array[0]]]
 
-            return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
+            return [keyword for keyword in scored_keywords if keyword in keyword_set][:3]
         except:
             return []
 

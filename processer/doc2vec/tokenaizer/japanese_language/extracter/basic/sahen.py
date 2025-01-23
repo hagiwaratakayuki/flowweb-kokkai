@@ -12,9 +12,9 @@ import regex as re
 
 from doc2vec.components.japanese_language.rule.symbol_not_bracket import check_is_breaktoken, check_symbol, check_symbol_without_bracket
 from doc2vec.components.japanese_language.rule.valid_noun_jp import check_valid_noun
-from doc2vec.components.japanese_language.rule.usual_and_sahen import check_ususal_and_sahen
+
 from doc2vec.components.japanese_language.regex_patterns import hiragana_include
-from doc2vec.components.japanese_language.regex_patterns import noun_blockpattern
+
 
 eiji = re.compile(r'^\w+$', re.A)
 kigou = re.compile(r'^\W+$')
@@ -221,7 +221,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
                 index = canditate_index.index(noun)
 
-                target_keys = canditates_listmap[index]
+                target_keys = list(canditates_listmap[index])
                 next_target_keys = deque()
                 for target_key in target_keys:
                     if target_key == key or target_key not in noun_sahens:
@@ -257,7 +257,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
                     linked_line_numbers_dict[target_key].update(inter)
 
                     is_remain_candiates = True
-                target_keys.extend(next_target_keys)
+                canditates_listmap[index].extend(next_target_keys)
 
             except ValueError:
 

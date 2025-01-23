@@ -1,4 +1,5 @@
 
+import array
 from functools import reduce
 from hashlib import md5
 from emojis import count
@@ -107,13 +108,12 @@ class Logic:
                 for link_node_index in link_node_indexs:
                     link_node_id = index2id[link_node_index]
                     if linked_counts_map.get(link_node_id, 0) >= link_counts_map.get(link_node_index, 0):
-                        try:
 
-                            taged.graph.get(link_node_index, []
-                                            ).index(node_index)
+                        graph: np.ndarray = taged.graph.get(
+                            link_node_index, np.array([])) == node_index
+                        if graph.sum() >= 1:
                             is_apex_flag = True
-                        except ValueError:
-                            continue
+                            break
 
             is_apex_flag_map[nodeid] = is_apex_flag
         cluster_chunker = ChunkedBatchSaver()

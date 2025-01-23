@@ -11,17 +11,13 @@ import regex as re
 
 
 from doc2vec.components.japanese_language.rule import symbol_not_bracket
-from doc2vec.components.japanese_language.rule.usual_and_sahen import check_ususal_and_sahen
-from doc2vec.components.japanese_language.rule.valid_noun_jp import check_valid_noun
-from doc2vec.components.japanese_language.regex_patterns import kanji_only
 from doc2vec.components.japanese_language.regex_patterns import hiragana_include
 
 
 eiji_pt = re.compile(r'^[\w]+$', re.A)
 kigou = re.compile(r'^\W+$')
-kuuhaku = re.compile(r'\s+')
-hiragana_pt = re.compile(r'[\p{Hiragana},。、]')
-hiragana_itimoji_pt = re.compile(r'\p{Hiragana}{2}')
+
+
 式と型 = {'式', '型'}
 目的修飾語 = {'用', '専用', '等'}
 辞書に収録されている元号 = {'昭和', '平成', '明治', '大正'}
@@ -36,6 +32,10 @@ class Context:
         self.force_headword = False
         self.chunklen = 0
 
+    def pop_chunk(self):
+        self.chunk.pop()
+        self.chunklen -= 1
+
     def append_token(self, face, data):
         self.chunk.append((face, data,))
         self.chunklen += 1
@@ -49,7 +49,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
 
     complexword_set = set()
     context = Context()
-    context.chunklen = 0
+
     word_to_linenumber = defaultdict(deque)
     force_headword_map = {}
 
@@ -129,7 +129,8 @@ def _check_context(context: Context):
 
         return False
     if context.chunk[-1][0] == "化":
-        context.chunk.pop()
+        context.pop_chunk()
+
         if context.chunklen <= 1:
 
             return False
@@ -143,8 +144,10 @@ def _check_context(context: Context):
     latest_number_token = None
     latest_number_index = -1
     is_number_only = True
+
     while index < limit:
         index += 1
+
         face, data = context.chunk[index]
 
         is_keep_number = data[1] == "数" or data[2] == "助数詞" or (

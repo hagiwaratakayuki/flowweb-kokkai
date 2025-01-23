@@ -23,11 +23,11 @@ class Saver:
         model.house = meeting['house']
         moderaters = []
         moderater_ids = []
-        for moderater_data in meeting['moderators']:
+        for moderater_data in meeting['moderators'].values():
             moderater = {'id': moderater_data['id'],
                          'name': moderater_data['speaker']}
             if 'group' in moderater_data['speaker']:
-                moderater['group'] = moderater_data['group']
+                moderater['group'] = moderater_data['speaker']['group']
             moderaters.append(moderater)
             moderater_ids.append(moderater_data['id'])
 

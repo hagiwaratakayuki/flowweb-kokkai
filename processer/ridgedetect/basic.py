@@ -61,7 +61,8 @@ class RidgeDitect(object):
                 for target in targets:
                     cluster[target] = True
                     checked[target] = True
-                    canditates = {}
+                    canditates = set()
+
                     canditates.update(self.graph.get(target, {}))
                     canditates.update(reverse_nodes.get(target, {}))
 

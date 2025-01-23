@@ -97,12 +97,12 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
     house = meeting['house']
     comittie_name = meeting['name']
 
-    house = int(number_pt.search(unicodedata.normalize(
+    issue = int(number_pt.search(unicodedata.normalize(
         'NFKC', meeting['issue'])).group(0))
-    meeting['issue'] = house
+    meeting['issue'] = issue
     session_comittie_data = session_comittie_data_map[comittie_name][house]
-    if house > session_comittie_data['max_issue']:
-        session_comittie_data['max_issue'] = house
+    if issue > session_comittie_data['max_issue']:
+        session_comittie_data['max_issue'] = issue
     session_comittie_data['meetings'].append((house, meeting['id'],))
 
     comittie_data = comittie_map[comittie_name]
