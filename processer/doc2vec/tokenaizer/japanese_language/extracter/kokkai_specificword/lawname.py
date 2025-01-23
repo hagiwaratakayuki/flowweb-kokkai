@@ -199,6 +199,7 @@ def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[
                     waiting_sections = []
                     waiting_line_numbers = set()
                 continue
+            tail_rank = rank
             target_law.append((face, rank, ))
 
         if (tail_rank != None) and (len(target_law) != 0):

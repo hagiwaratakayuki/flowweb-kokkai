@@ -150,7 +150,7 @@ class Indexer:
             if len(scored_keywords) == 0:
                 scored_keywords = [word_index[sorted_array[0]]]
 
-            return [keyword for keyword in scored_keywords if keyword in keyword_set][:3]
+            return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
         except:
             return []
 

@@ -40,6 +40,6 @@ class JapaneseLanguageIndexer(Indexer):
 
                 keywords_dict[(word,)] = True
 
-        ret = ['/'.join(kw) for kw in keywords_dict.keys()]
+        ret = ['/'.join(kw) for kw in keywords_dict.keys()][:10]
 
         return ret

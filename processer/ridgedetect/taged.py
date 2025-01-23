@@ -3,7 +3,7 @@ from multiprocessing.pool import Pool
 from typing import Dict, Optional
 from .basic import RidgeDitect
 import numpy as np
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 from itertools import combinations
 import uuid
 EMPTY_SET = frozenset([])
@@ -55,19 +55,39 @@ class Taged(RidgeDitect):
 
         cluster_link = defaultdict(dict)
         new_clusters = {}
-        cluster_group_id = 0
-        cluster_group = {}
+        members_to_tags = defaultdict(set)
         tags_2_members = defaultdict(deque)
         sub_clusters = defaultdict(set)
-
+        tag_counter = Counter()
         for cluster_member in cluster_members:
             tags = self._tags_map[cluster_member]
+            tag_counter.update(tags)
+            for tag in tags:
+                members_to_tags[tag].add(cluster_member)
 
-            for i in range(1, len(tags) + 1):
-                for combination in combinations(tags, i):
-                    tags_2_members[frozenset(combination)].append(
-                        cluster_member)
+        target_members_to_tags = defaultdict(set)
 
+        for cluster_member, tags in self._tags_map.items():
+            is_unique_tag_exist = False
+            for tag in tags:
+                if tag_counter.get(tag, 0) > 1:
+                    target_members_to_tags[tag].add(cluster_member)
+                else:
+                    is_unique_tag_exist = True
+            if is_unique_tag_exist == True:
+                tags_2_members[frozenset(tags)] = set([cluster_member])
+
+        for cluster_member, _tags in self._tags_map.items():
+            tags = [tag for tag in _tags if tag_counter.get(tag, 0) > 1]
+            len_tags = len(tags)
+            if len_tags > 0:
+                frozen_keys = [frozenset(combination) for combination in [
+                    combinations(tags, i) for i in range(1, len_tags + 1)]]
+
+                for frozen_key in frozen_keys:
+                    tags_2_members[frozen_key].append(cluster_member)
+            if len_tags < len(_tags):
+                sub_clusters[frozenset([cluster_member])].update(_tags)
         for tags, members in tags_2_members.items():
             members_set = frozenset(members)
             sub_clusters[members_set].update(tags)
