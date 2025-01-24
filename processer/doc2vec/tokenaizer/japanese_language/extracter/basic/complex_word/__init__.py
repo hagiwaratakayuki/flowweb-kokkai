@@ -12,6 +12,7 @@ import regex as re
 
 from doc2vec.components.japanese_language.rule import symbol_not_bracket
 from doc2vec.components.japanese_language.regex_patterns import hiragana_include
+from doc2vec.components.japanese_language.regex_patterns import noun_blockpattern
 
 
 eiji_pt = re.compile(r'^[\w]+$', re.A)
@@ -60,7 +61,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
             complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)
         line_number += 1
         for face, data in tokens:
-            if hiragana_include.pattern.search(face):
+            if face != '子ども' and hiragana_include.pattern.search(face) is not None or noun_blockpattern.compiled.search(face) is not None:
 
                 _add_to_complexword_set(
                     complexword_set=complexword_set, context=context, line_number=line_number, word_to_linenumber=word_to_linenumber, force_headword_map=force_headword_map)

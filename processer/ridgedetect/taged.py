@@ -66,7 +66,7 @@ class Taged(RidgeDitect):
                 members_to_tags[tag].add(cluster_member)
 
         target_members_to_tags = defaultdict(set)
-
+        tag_member_count = Counter()
         for cluster_member, tags in self._tags_map.items():
             is_unique_tag_exist = False
             for tag in tags:
@@ -80,14 +80,14 @@ class Taged(RidgeDitect):
         for cluster_member, _tags in self._tags_map.items():
             tags = [tag for tag in _tags if tag_counter.get(tag, 0) > 1]
             len_tags = len(tags)
-            if len_tags > 0:
-                frozen_keys = [frozenset(combination) for combination in [
-                    combinations(tags, i) for i in range(1, len_tags + 1)]]
-
-                for frozen_key in frozen_keys:
-                    tags_2_members[frozen_key].append(cluster_member)
+            frozen_keys = [frozenset(combination) for combination in [
+                combinations(tags, i) for i in range(1, len_tags + 1)]]
+            tag_member_count.update(frozen_keys)
+            for frozen_key in frozen_keys:
+                tags_2_members[frozen_key].append(cluster_member)
             if len_tags < len(_tags):
-                sub_clusters[frozenset([cluster_member])].update(_tags)
+                tags_2_members[frozenset(self._tags_map[cluster_member])].append(
+                    cluster_member)
         for tags, members in tags_2_members.items():
             members_set = frozenset(members)
             sub_clusters[members_set].update(tags)
