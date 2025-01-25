@@ -11,6 +11,7 @@ def get_position(index2sentiments: dict[int, SentimentResult], cluster_members: 
     index2directionvector = {}
 
     shape = [0, 0]
+
     for member in cluster_members:
 
         sentiment = index2sentiments[member]

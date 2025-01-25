@@ -1,12 +1,15 @@
 
 from multiprocessing.pool import Pool
+
 from typing import Dict, Optional
+
+
 from .basic import RidgeDitect
 import numpy as np
 from collections import Counter, defaultdict, deque
 from itertools import combinations
 import uuid
-EMPTY_SET = frozenset([])
+EMPTY_SET = frozenset()
 
 
 class Taged(RidgeDitect):
@@ -30,7 +33,7 @@ class Taged(RidgeDitect):
         tag_index = {}
 
         new_clusters = {}
-        cluster_id = 0
+
         cluster_link = defaultdict(deque)
 
         if pool != None:
@@ -55,44 +58,74 @@ class Taged(RidgeDitect):
 
         cluster_link = defaultdict(dict)
         new_clusters = {}
-        members_to_tags = defaultdict(set)
-        tags_2_members = defaultdict(deque)
+        tag_member_map = defaultdict(frozenset)
+        tags_2_members = defaultdict(frozenset)
         sub_clusters = defaultdict(set)
-        tag_counter = Counter()
+        tag_paires = defaultdict(set)
+        single_tags = set()
         for cluster_member in cluster_members:
             tags = self._tags_map[cluster_member]
-            tag_counter.update(tags)
-            for tag in tags:
-                members_to_tags[tag].add(cluster_member)
+            memset = frozenset([cluster_member])
 
-        target_members_to_tags = defaultdict(set)
-        tag_member_count = Counter()
-        for cluster_member, tags in self._tags_map.items():
-            is_unique_tag_exist = False
             for tag in tags:
-                if tag_counter.get(tag, 0) > 1:
-                    target_members_to_tags[tag].add(cluster_member)
-                else:
-                    is_unique_tag_exist = True
-            if is_unique_tag_exist == True:
-                tags_2_members[frozenset(tags)] = set([cluster_member])
 
-        for cluster_member, _tags in self._tags_map.items():
-            tags = [tag for tag in _tags if tag_counter.get(tag, 0) > 1]
-            len_tags = len(tags)
-            frozen_keys = [frozenset(combination) for combination in [
-                combinations(tags, i) for i in range(1, len_tags + 1)]]
-            tag_member_count.update(frozen_keys)
-            for frozen_key in frozen_keys:
-                tags_2_members[frozen_key].append(cluster_member)
-            if len_tags < len(_tags):
-                tags_2_members[frozenset(self._tags_map[cluster_member])].append(
-                    cluster_member)
-        for tags, members in tags_2_members.items():
-            members_set = frozenset(members)
-            sub_clusters[members_set].update(tags)
+                tag_member_map[tag] |= memset
+                tags_2_members[frozenset([tag])] |= memset
+            if len(tags) > 1:
+                for tag_a, tag_b in combinations(tags, 2):
+                    tag_paires[tag_a].add(tag_b)
+                    tag_paires[tag_b].add(tag_a)
+            else:
+                single_tags.add(tags[0])
+
+        checked = {}
+
+        for tag in tag_paires.keys():
+            step_sub_clusters = {}
+            ftgset = frozenset([tag])
+            sub_clusters[tags_2_members[ftgset]] |= ftgset
+
+            start_tags_deque = deque([(ftgset, tag,)])
+            is_path_link_exist = True
+
+            while is_path_link_exist == True:
+                next_start_tags_deque = deque()
+
+                is_path_link_exist = False
+                step_member_check = {}
+                for start_tags, tail in start_tags_deque:
+
+                    step_members = tags_2_members[start_tags]
+
+                    for link in tag_paires.get(tail, EMPTY_SET) - start_tags:
+
+                        next_tags = start_tags | frozenset([link])
+
+                        if next_tags in checked:
+                            continue
+                        checked[next_tags] = True
+                        members_set = tag_member_map[link] & step_members
+
+                        if members_set == EMPTY_SET or (members_set in step_member_check) or (members_set in sub_clusters):
+                            continue
+                        tags_2_members[next_tags] = members_set
+                        step_member_check[members_set] = next_tags
+                        is_path_link_exist = True
+                        next_start_tags_deque.append((next_tags, link,))
+                step_sub_clusters.update(step_member_check)
+                start_tags_deque = next_start_tags_deque
+
+            sub_clusters.update(step_sub_clusters)
+
+        for tag in single_tags:
+
+            memset = tag_member_map[tag]
+
+            sub_clusters[memset] |= frozenset([tag])
+
         tag2subclsuter = defaultdict(deque)
         for members, tags in sub_clusters.items():
+
             subcluster_id = uuid.uuid4().hex
             new_clusters[subcluster_id] = members
             tag_index[subcluster_id] = tags

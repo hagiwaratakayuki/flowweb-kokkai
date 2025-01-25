@@ -64,7 +64,7 @@ class Logic:
 
         for vector, sentimentResult, keywords, data in datas:
 
-            if vector is None:
+            if vector is None or len(keywords) == 0:
                 continue
             if is_first == True:
                 is_first = False
@@ -164,6 +164,7 @@ class Logic:
         keyword_model_chunk = ChunkedBatchSaver()
         logging.info('start cluster save')
         for innerid, cluster_members in taged.clusters.items():
+
             positions = get_position(
                 index2sentiments=index2sentiments, cluster_members=cluster_members)
             member_positions_chunk.append(positions)
