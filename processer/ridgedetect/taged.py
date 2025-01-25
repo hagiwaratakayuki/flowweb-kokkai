@@ -9,7 +9,8 @@ import numpy as np
 from collections import Counter, defaultdict, deque
 from itertools import combinations
 import uuid
-EMPTY_SET = frozenset()
+EMPTY_FROZEN_SET = frozenset()
+EMPTY_SET = set()
 
 
 class Taged(RidgeDitect):
@@ -53,7 +54,7 @@ class Taged(RidgeDitect):
         self.cluster_link = cluster_link
 
     def _mapper(self, cluster_members):
-        global EMPTY_SET
+        global EMPTY_FROZEN_SET
         tag_index = {}
 
         cluster_link = defaultdict(dict)
@@ -62,7 +63,7 @@ class Taged(RidgeDitect):
         tags_2_members = defaultdict(frozenset)
         sub_clusters = defaultdict(set)
         tag_paires = defaultdict(set)
-        single_tags = set()
+
         for cluster_member in cluster_members:
             tags = self._tags_map[cluster_member]
             memset = frozenset([cluster_member])
@@ -70,22 +71,20 @@ class Taged(RidgeDitect):
             for tag in tags:
 
                 tag_member_map[tag] |= memset
-                tags_2_members[frozenset([tag])] |= memset
+
             if len(tags) > 1:
                 for tag_a, tag_b in combinations(tags, 2):
                     tag_paires[tag_a].add(tag_b)
                     tag_paires[tag_b].add(tag_a)
-            else:
-                single_tags.add(tags[0])
 
         checked = {}
 
-        for tag in tag_paires.keys():
+        for tag, init_members in tag_member_map.items():
             step_sub_clusters = {}
             ftgset = frozenset([tag])
-            sub_clusters[tags_2_members[ftgset]] |= ftgset
+            sub_clusters[init_members] |= ftgset
 
-            start_tags_deque = deque([(ftgset, tag,)])
+            start_tags_deque = deque([(ftgset, init_members, tag,)])
             is_path_link_exist = True
 
             while is_path_link_exist == True:
@@ -93,9 +92,7 @@ class Taged(RidgeDitect):
 
                 is_path_link_exist = False
                 step_member_check = {}
-                for start_tags, tail in start_tags_deque:
-
-                    step_members = tags_2_members[start_tags]
+                for start_tags, step_members, tail in start_tags_deque:
 
                     for link in tag_paires.get(tail, EMPTY_SET) - start_tags:
 
@@ -106,22 +103,17 @@ class Taged(RidgeDitect):
                         checked[next_tags] = True
                         members_set = tag_member_map[link] & step_members
 
-                        if members_set == EMPTY_SET or (members_set in step_member_check) or (members_set in sub_clusters):
+                        if members_set == EMPTY_FROZEN_SET or (members_set in step_member_check) or (members_set in sub_clusters):
                             continue
                         tags_2_members[next_tags] = members_set
                         step_member_check[members_set] = next_tags
                         is_path_link_exist = True
-                        next_start_tags_deque.append((next_tags, link,))
+                        next_start_tags_deque.append(
+                            (next_tags, members_set, link,))
                 step_sub_clusters.update(step_member_check)
                 start_tags_deque = next_start_tags_deque
 
             sub_clusters.update(step_sub_clusters)
-
-        for tag in single_tags:
-
-            memset = tag_member_map[tag]
-
-            sub_clusters[memset] |= frozenset([tag])
 
         tag2subclsuter = defaultdict(deque)
         for members, tags in sub_clusters.items():
