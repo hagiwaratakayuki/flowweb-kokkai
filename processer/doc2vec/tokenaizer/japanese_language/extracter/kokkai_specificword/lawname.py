@@ -53,7 +53,7 @@ class EqInShorter:
         return __value in self.value
 
 
-def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[Tuple[str, List]]]], data: DTO):
+def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[Tuple[str, List]]]], data: DTO, valid_faces):
 
     target_law = []
     waiting_sections = []

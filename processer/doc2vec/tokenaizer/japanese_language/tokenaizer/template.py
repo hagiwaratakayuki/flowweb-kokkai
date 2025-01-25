@@ -20,12 +20,14 @@ class TokenazierTemplate:
         tokens = deque()
         parse_results = []
         keywords_set = set()
+        faces = set()
         for face, datas in self._parse(text):
 
             tokens.append((face, datas,))
 
             if datas[0] == "名詞":
                 verbs.append(face)
+                faces.add(face)
                 if (datas[1] == '固有名詞' or datas[1] == '一般') and len(face) > 1:
                     keywords_set.add(face)
             if face == "。":
@@ -45,8 +47,10 @@ class TokenazierTemplate:
                 results.append((verbs, sentences[senetence_number],))
 
         specific_words = []
+
         for extractor in self._extractors:
-            specific_words = extractor(specific_words, parse_results, data)
+            specific_words = extractor(
+                specific_words, parse_results, data, )
 
         return results, specific_words, keywords_set
 

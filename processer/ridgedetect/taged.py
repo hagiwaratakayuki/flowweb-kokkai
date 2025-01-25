@@ -59,18 +59,17 @@ class Taged(RidgeDitect):
 
         cluster_link = defaultdict(dict)
         new_clusters = {}
-        tag_member_map = defaultdict(frozenset)
-        tags_2_members = defaultdict(frozenset)
+        tag_member_map = defaultdict(deque)
+
         sub_clusters = defaultdict(set)
         tag_paires = defaultdict(set)
 
         for cluster_member in cluster_members:
             tags = self._tags_map[cluster_member]
-            memset = frozenset([cluster_member])
 
             for tag in tags:
 
-                tag_member_map[tag] |= memset
+                tag_member_map[tag].append(cluster_member)
 
             if len(tags) > 1:
                 for tag_a, tag_b in combinations(tags, 2):
@@ -78,40 +77,42 @@ class Taged(RidgeDitect):
                     tag_paires[tag_b].add(tag_a)
 
         checked = {}
+        tag_member_map_frozen = {tag: frozenset(
+            members) for tag, members in tag_member_map.items()}
 
-        for tag, init_members in tag_member_map.items():
+        for tag, init_members in tag_member_map_frozen.items():
             step_sub_clusters = {}
             ftgset = frozenset([tag])
             sub_clusters[init_members] |= ftgset
 
-            start_tags_deque = deque([(ftgset, init_members, tag,)])
-            is_path_link_exist = True
+            step_tags_deque = deque([(ftgset, init_members, tag,)])
+            is_link_tag_exist = True
 
-            while is_path_link_exist == True:
-                next_start_tags_deque = deque()
+            while is_link_tag_exist == True:
+                next_step_tags_deque = deque()
 
-                is_path_link_exist = False
+                is_link_tag_exist = False
                 step_member_check = {}
-                for start_tags, step_members, tail in start_tags_deque:
+                for step_tags, step_members, connecter_tag in step_tags_deque:
 
-                    for link in tag_paires.get(tail, EMPTY_SET) - start_tags:
+                    for link_tag in tag_paires.get(connecter_tag, EMPTY_SET) - step_tags:
 
-                        next_tags = start_tags | frozenset([link])
+                        next_tags = step_tags | frozenset([link_tag])
 
                         if next_tags in checked:
                             continue
                         checked[next_tags] = True
-                        members_set = tag_member_map[link] & step_members
+                        members_set = tag_member_map_frozen[link_tag] & step_members
 
                         if members_set == EMPTY_FROZEN_SET or (members_set in step_member_check) or (members_set in sub_clusters):
                             continue
-                        tags_2_members[next_tags] = members_set
+
                         step_member_check[members_set] = next_tags
-                        is_path_link_exist = True
-                        next_start_tags_deque.append(
-                            (next_tags, members_set, link,))
+                        is_link_tag_exist = True
+                        next_step_tags_deque.append(
+                            (next_tags, members_set, link_tag,))
                 step_sub_clusters.update(step_member_check)
-                start_tags_deque = next_start_tags_deque
+                step_tags_deque = next_step_tags_deque
 
             sub_clusters.update(step_sub_clusters)
 
