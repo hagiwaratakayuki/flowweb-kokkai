@@ -76,7 +76,6 @@ class Taged(RidgeDitect):
                     tag_paires[tag_a].add(tag_b)
                     tag_paires[tag_b].add(tag_a)
 
-        checked = {}
         tag_member_map_frozen = {tag: frozenset(
             members) for tag, members in tag_member_map.items()}
 
@@ -99,9 +98,6 @@ class Taged(RidgeDitect):
 
                         next_tags = step_tags | frozenset([link_tag])
 
-                        if next_tags in checked:
-                            continue
-                        checked[next_tags] = True
                         members_set = tag_member_map_frozen[link_tag] & step_members
 
                         if members_set == EMPTY_FROZEN_SET or (members_set in step_member_check) or (members_set in sub_clusters):
