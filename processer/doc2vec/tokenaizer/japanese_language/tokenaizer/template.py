@@ -50,7 +50,7 @@ class TokenazierTemplate:
 
         for extractor in self._extractors:
             specific_words = extractor(
-                specific_words, parse_results, data, )
+                specific_words, parse_results, data)
 
         return results, specific_words, keywords_set
 

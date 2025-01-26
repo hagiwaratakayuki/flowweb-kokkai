@@ -83,7 +83,7 @@ class Context:
         return ret
 
 
-def extract(results: List[SpecificKeyword], parse_results, data, valid_words):
+def extract(results: List[SpecificKeyword], parse_results, data):
 
     noun_sahens = defaultdict(set)
     context = Context()
