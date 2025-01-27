@@ -104,16 +104,14 @@ class Logic:
             link_count = link_counts_map[node_index]
             linked_count = linked_counts_map[nodeid]
             is_apex_flag = False
-            if link_count > 1 and link_count < linked_count:
-                for link_node_index in link_node_indexs:
-                    link_node_id = index2id[link_node_index]
-                    if linked_counts_map.get(link_node_id, 0) >= link_counts_map.get(link_node_index, 0):
 
-                        graph: np.ndarray = taged.graph.get(
-                            link_node_index, np.array([])) == node_index
-                        if graph.sum() >= 1:
-                            is_apex_flag = True
-                            break
+            for link_node_index in link_node_indexs:
+
+                graph: np.ndarray = taged.graph.get(
+                    link_node_index, np.array([])) == node_index
+                if graph.sum() >= 1:
+                    is_apex_flag = True
+                    break
 
             is_apex_flag_map[nodeid] = is_apex_flag
         cluster_chunker = ChunkedBatchSaver()

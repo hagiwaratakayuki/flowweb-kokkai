@@ -31,14 +31,14 @@ class JapaneseLanguageIndexer(Indexer):
 
         for word in cand_words:
 
-            try:
-                specific_keyword = specific_keywords[specific_keywords.index(
-                    word)]
+            for specific_keyword in specific_keywords:
+                if specific_keyword.is_force is True or specific_keyword != word:
+                    continue
+
                 keywords_dict.update(
                     [(k, True, ) for k in specific_keyword.to_extender()])
-            except:
 
-                keywords_dict[(word,)] = True
+            keywords_dict[(word,)] = True
 
         ret = ['/'.join(kw) for kw in keywords_dict.keys()][:10]
 
