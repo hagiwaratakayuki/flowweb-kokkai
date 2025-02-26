@@ -66,7 +66,7 @@ def adjast_to_view(itr) -> List[NodeOverview]:
         plus_direction_distances = (
             np.tanh((plus_direction_to_x * 2 / 2)) + 1) / 2
         plus_direction_distances[plus_direction_distances > 0.8] = 0.8
-    positions[plus_direction_index] = plus_direction_distances
+        positions[plus_direction_index] = plus_direction_distances
     if isinstance(minus_direction_index.size, int) == True and minus_direction_index.size != 0:
 
         minus_direction_distances = positions[minus_direction_index]
@@ -79,7 +79,7 @@ def adjast_to_view(itr) -> List[NodeOverview]:
         minus_direction_distances = (
             np.tanh((minus_direction_to_x * 2 / 2)) + 1) / 2
         minus_direction_distances[minus_direction_distances > 0.8] = 0.8
-    positions[minus_direction_index] = minus_direction_distances
+        positions[minus_direction_index] = minus_direction_distances
     positions *= directions
 
     ret = [dict(

@@ -72,7 +72,7 @@ def load(storage_model_class=Meeting,
         speeches = deque()
         meetings = deque()
         comittie_to_speaker = {}
-        yield session, chain.from_iterable((processDownlod(comittie_map, session_comittie_data_map, meeting, speaker_id_map=speaker_id_map, speeches=speeches, meetings=meetings, comittie_to_speaker=comittie_to_speaker) for meeting in chain.from_iterable(meetingChunks)))
+        yield session, chain.from_iterable(processDownlod(comittie_map, session_comittie_data_map, meeting, speaker_id_map=speaker_id_map, speeches=speeches, meetings=meetings, comittie_to_speaker=comittie_to_speaker) for meeting in chain.from_iterable(meetingChunks))
         speaker_saver.save(speaker_id_map=speaker_id_map)
         speech_saver.save(session=session, speeches=speeches)
 

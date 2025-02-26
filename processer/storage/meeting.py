@@ -24,12 +24,11 @@ class Meeting(Model):
     def _getItrable(self, session):
         prefix = self._getDir(session)
         blobs = self.bucket.list_blobs(prefix=prefix)
-
-        ret = [json.loads(r) for r in download(blobs=blobs)]
-
-        self._isContinue = len(ret) > 0
-
-        return ret
+        isContinue = False
+        for r in download(blobs=blobs):
+            isContinue = True
+            yield json.loads(r)
+        self._isContinue = isContinue
 
     def upload(self, session, filename, data):
         filename = self._getDir(session) + '/' + filename
