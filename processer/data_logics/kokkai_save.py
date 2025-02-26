@@ -5,7 +5,7 @@ from numpy import ndarray
 from db.node import Node
 from data_loader.kokkai import DTO
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from doc2vec.indexer.dto import SentimentResult
+from doc2vec.protocol.sentiment import SentimentResult
 from .node_logic import NodeLogic
 from .save import Logic
 from db.node_kokkai import NodeKokkai

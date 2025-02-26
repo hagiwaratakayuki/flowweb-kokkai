@@ -1,22 +1,9 @@
 import numpy as np
 import random
 
-
-class SentimentWeights:
-    neutral: float
-    positive: float
-    negative: float
-
-
-class SentimentVector:
-    neutral: np.ndarray
-    positive: np.ndarray
-    negative: np.ndarray
-
-
-class SentimentResult:
-    vectors: SentimentVector
-    weights: SentimentWeights
+from doc2vec.protocol.sentiment import SentimentWeights
+from doc2vec.protocol.sentiment import SentimentVectors
+from doc2vec.protocol.sentiment import SentimentResult
 
 
 def build_mock_sentiment_result(d1: int):
@@ -31,7 +18,7 @@ def build_mock_sentiment_result(d1: int):
     neutral = np.random.rand(d1)
     positive = np.random.rand(d1)
     negative = np.random.rand(d1)
-    vectors = SentimentVector()
+    vectors = SentimentVectors()
 
     vectors.neutral = neutral
     vectors.positive = positive

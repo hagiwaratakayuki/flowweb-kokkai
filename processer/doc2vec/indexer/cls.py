@@ -4,7 +4,9 @@ import math
 from typing import Dict
 import numpy as np
 
-from .dto import SentimentWeights, SentimentVector, SentimentResult
+from ..protocol.sentiment import SentimentVectors, SentimentWeights
+
+from ..protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 WORD_2_NORM = {}
 
@@ -155,7 +157,7 @@ class Indexer:
             return []
 
     def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
-        sentimentVectors = SentimentVector()
+        sentimentVectors = SentimentVectors()
 
         for sentiment, sentimentWords in sentimentWordMap.items():
 

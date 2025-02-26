@@ -4,7 +4,7 @@ from fastapi.background import P
 import spacy
 import numpy as np
 
-from processer.doc2vec import sentiment
+from doc2vec import sentiment
 from .const import MAIN_POS
 from .projections import project_vector
 
@@ -22,6 +22,7 @@ class SentimentScoreDict(TypedDict):
 
 class Sentiment:
     sentiment_vecs: SentimentBaseDict
+    cache: Dict[any, SentimentScoreDict]
 
     def __init__(self, posiwords, negwords, name, punct=' '):
         self.cache = {}
@@ -41,13 +42,13 @@ class Sentiment:
             projected_dict = project_vector(norms)
             self.sentiment_vecs[key] = deque(projected_dict.values())
 
-    def evaluate(self, vectors_dict: Dict[any, np.ndarray]):
+    def evaluate(self, norm_to_vectors: Dict[any, np.ndarray]) -> Dict[any, SentimentScoreDict]:
 
         index2key = {}
         vectors = []
         index = -1
 
-        for key, vector in vectors_dict.items():
+        for key, vector in norm_to_vectors.items():
             if key in self.cache:
                 continue
             index += 1
@@ -86,4 +87,4 @@ class Sentiment:
 
             self.cache.update(new_scores_dict)
         return {key: self.cache[key]
-                for key in vectors_dict.keys()}
+                for key in norm_to_vectors.keys()}

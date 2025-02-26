@@ -1,7 +1,7 @@
 from collections import deque
 import math
 import token
-from typing import Dict, Iterable, List, TypedDict
+from typing import Deque, Dict, Iterable, List, Tuple, TypedDict
 from xml.dom.expatbuilder import theDOMImplementation
 import spacy
 from spacy.tokens import Doc, Token
@@ -9,8 +9,11 @@ import numpy as np
 
 from data_loader.dto import DTO
 
+from doc2vec.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
+from .sentiment import Sentiment
+
 from .const import MAIN_DEP, MAIN_POS
-from processer.doc2vec.spacy.vectaizer.projections import project_vector
+from .projections import project_vector
 
 
 class WeightCalicurater:
@@ -39,11 +42,12 @@ class TokenWeightCaliculater(WeightCalicurater):
 
 class BasicVectaizer:
 
-    def __init__(self, poswords: List[str], negwords: List[str], name, punct=' '):
-        pass
+    def __init__(self, sentiment: Sentiment, projecter=project_vector):
+        self.sentiment = sentiment
+        self.projecter = projecter
 
     def exec(self, doc: Doc, data: DTO):
-        tokens = deque()
+        tokens: Deque[Tuple[Token, float]] = deque()
         sent_count = len(doc.sents)
         if sent_count == 0:
 
@@ -58,9 +62,28 @@ class BasicVectaizer:
             tokens.extend(scored_subnodes)
         norm_to_vecter = {token.norm_: token.vector for token in doc}
 
-        projected_vecter_dict = project_vector(norm_to_vecter)
+        projected_vecter_dict = self.projecter(norm_to_vecter)
 
-        sentiment_vectors = {
+        norm_to_vecters = {
             token.norm_: projected_vecter_dict[token.norm_] for token in doc if token.pos_ in MAIN_POS}
+        sentiment_scores = self.sentiment.evaluate(norm_to_vecters)
+        total_score = sum([r[1] for r in tokens])
+        document_vector = sum(
+            [projected_vecter_dict[token.norm_] * score for token, score in tokens]) / total_score
 
-    def calicurate_sentiment(self, sentiment_vectors: Dict[any, np.ndarray]):
+        default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
+        sentiment_vectors = SentimentVectors()
+        sentiment_weights = SentimentWeights()
+        sentiment_result = SentimentResult()
+
+        for polarity in ["positive", "negative", "neutral"]:
+            weighted_tokens: List[Tuple[Token, float]] = [
+                (token, score * sentiment_scores.get(token.norm_, default_score)[polarity],) for token, score in tokens]
+            total_sentimented_score = sum([r[1] for r in weighted_tokens])
+            sentiment_vector = sum(
+                [token.vector * score for token, score in weighted_tokens]) / total_sentimented_score
+            sentimemnt_weight = total_sentimented_score / total_score
+            setattr(sentiment_vectors, polarity, sentiment_vector)
+            setattr(sentiment_weights, polarity, sentimemnt_weight)
+        sentiment_result.weights = sentiment_weights
+        sentiment_result.vectors = sentiment_vectors

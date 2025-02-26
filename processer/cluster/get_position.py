@@ -1,4 +1,4 @@
-from doc2vec.indexer.dto import SentimentResult
+from processer.doc2vec.protocol.sentiment import SentimentResult
 import numpy as np
 
 # @todo 計算の共通化

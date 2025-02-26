@@ -1,7 +1,7 @@
 from data_loader.dto import DTO
 from db import node, node_body
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from doc2vec.indexer.dto import SentimentResult
+from doc2vec.protocol.sentiment import SentimentResult
 import datetime
 import json
 import math

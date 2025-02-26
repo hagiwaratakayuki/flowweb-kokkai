@@ -52,10 +52,15 @@ async def main():
     await task1
     await task2
 
-asyncio.run(main())
+
+def check():
+    for i in range(2):
+        yield i, 0
+# asyncio.run(main())
 
 
-main()
+print(list(check()))
+# main()
 """
 if __name__ == '__main__':
     # start 4 worker processes
