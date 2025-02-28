@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 from typing import DefaultDict, Deque, Dict, List
 
 
-from doc2vec.util.specific_keyword import SpecificKeyword
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 import regex as re
 
 
@@ -46,7 +46,7 @@ class Context:
         self.chunklen += len(faces)
 
 
-def extract(results: List[SpecificKeyword], parse_results: List, data):
+def extract(results: List[SpecifiedKeyword], parse_results: List, data):
 
     complexword_set = set()
     context = Context()
@@ -115,7 +115,7 @@ def extract(results: List[SpecificKeyword], parse_results: List, data):
         if complexword in results:
             continue
 
-        results.append(SpecificKeyword(
+        results.append(SpecifiedKeyword(
             headword=complexword, line_numbers=word_to_linenumber[complexword], is_fixed_headword=force_headword_map[complexword]))
 
     return results

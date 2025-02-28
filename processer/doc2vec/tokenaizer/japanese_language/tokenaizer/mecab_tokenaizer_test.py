@@ -2,7 +2,7 @@ import unittest
 
 from data_loader.util import list_runner
 from .mecab_tokenaizer import MeCabTokenazier
-from doc2vec.util.specific_keyword import SpecificKeyword
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 from data_loader.dto import DTO
 import unicodedata
 
@@ -28,7 +28,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             "アイヌ新法について質問させていただきます。", data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
@@ -44,7 +44,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             "桜を見る会について質問させていただきます。", data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
@@ -60,7 +60,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             "根本の問題であるから、この労働者教育に対して十分な処置をせられたいということを希望しておきます。途中でありますが、あと時間的に......。。", data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
@@ -83,7 +83,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             text, data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
@@ -104,7 +104,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             text, data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)
@@ -149,7 +149,7 @@ class TestMecabTokenizer(unittest.TestCase):
         res = toknaizer.exec(
             text, data)
 
-        specific_keyword: SpecificKeyword = res[1][0]
+        specific_keyword: SpecifiedKeyword = res[1][0]
 
         print(specific_keyword.headword)
         print(specific_keyword.subwords)

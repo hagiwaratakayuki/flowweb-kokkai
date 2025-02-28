@@ -21,7 +21,8 @@ text = """
 def example(i):
 
     # doc = nlp(convert("アリスは説明します。今日は昨日と決定的に違って駄菓子屋ではなくラーメン屋とスーパーに行きます、と", None))
-    doc = nlp(convert("調整統一連絡をはかる必要", None))
+    doc = nlp(
+        convert("内閣総辞職に値します", None))
     for chunk in doc.noun_chunks:
         print(chunk.text)
 
@@ -42,7 +43,8 @@ def example(i):
                 token.tag_,
                 token.dep_,
                 token.head.i,
-                token.vector.shape
+                token.vector.shape,
+                list(token.lefts)
             )
 
         print('EOS')

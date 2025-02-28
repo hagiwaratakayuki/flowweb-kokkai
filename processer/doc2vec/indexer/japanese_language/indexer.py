@@ -2,11 +2,11 @@ from ..cls import Indexer
 from typing import Dict, Tuple, List, Union
 from collections import deque, OrderedDict
 from .stopwords import remove_stopwords
-from doc2vec.util.specific_keyword import SpecificKeyword
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 
 
 class JapaneseLanguageIndexer(Indexer):
-    def _extract_keywords(self, filtered_map: Dict, vector, keyword_set, specific_keywords: List[SpecificKeyword]):
+    def _extract_keywords(self, filtered_map: Dict, vector, keyword_set, specific_keywords: List[SpecifiedKeyword]):
 
         _cand_words = remove_stopwords(list(filtered_map))
 

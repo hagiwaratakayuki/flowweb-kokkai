@@ -1,20 +1,22 @@
 from collections import deque
 from pydoc import doc
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 import spacy
 from spacy.tokens import Doc
 from data_loader.dto import DTO
 import multiprocessing
 
 from doc2vec.spacy.vectaizer.cls import BasicVectaizer
+from doc2vec.spacy.keyword_extracter.cls import BasicKeywordExtratcer
+from processer.doc2vec.spacy.vectaizer.sentiment import BasicSentiment
 
 
-class Doc2Vec:
+class SpacyDoc2Vec:
 
-    def __init__(self, name, vectaizer: BasicVectaizer, keyword_extracter, delimiter=".\n", batch_size=50, spacy_cofing={}):
+    def __init__(self, name, keyword_extracter: BasicKeywordExtratcer, sentiment: BasicSentiment, vectaizer: Optional[BasicVectaizer] = None, delimiter=".\n", batch_size=50, spacy_cofing={}):
         self.nlp = spacy.load(name=name, **spacy_cofing)
         self.delimiter = delimiter
-        self.vectaizer = vectaizer
+        self.vectaizer = vectaizer or BasicVectaizer()
         self.keyword_extracter = keyword_extracter
         self.batch_size = batch_size
 

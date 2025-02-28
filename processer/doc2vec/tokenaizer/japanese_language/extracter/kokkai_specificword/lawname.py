@@ -3,7 +3,7 @@
 from typing import Deque, Iterator, List, Tuple
 
 
-from doc2vec.util.specific_keyword import SpecificKeyword, EqIn
+from doc2vec.util.specified_keyword import SpecifiedKeyword, EqIn
 import regex as re
 
 import os
@@ -53,7 +53,7 @@ class EqInShorter:
         return __value in self.value
 
 
-def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[Tuple[str, List]]]], data: DTO):
+def extract(results: List[SpecifiedKeyword], parse_results: List[Tuple[str, List[Tuple[str, List]]]], data: DTO):
 
     target_law = []
     waiting_sections = []
@@ -80,7 +80,7 @@ def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[
             detected_phrases.add(phrase)
     for detected_phrase in detected_phrases:
 
-        results.append(SpecificKeyword(
+        results.append(SpecifiedKeyword(
             headword=detected_phrase, is_force=True))
 
     if law_count == standard_phrase_count:
@@ -219,11 +219,11 @@ def extract(results: List[SpecificKeyword], parse_results: List[Tuple[str, List[
 
         target_words = reverse_dict.get(headword, [])
 
-        kw = SpecificKeyword(
+        kw = SpecifiedKeyword(
             headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
         kws.append(kw)
     for headword in additional_law_words:
-        kw = SpecificKeyword(
+        kw = SpecifiedKeyword(
             headword=headword, is_force=True, line_numbers={-1})
         kws.append(kw)
 

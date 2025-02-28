@@ -1,7 +1,7 @@
 from collections import deque
 import math
 import token
-from typing import Deque, Dict, Iterable, List, Tuple, TypedDict
+from typing import Deque, Dict, Iterable, List, Optional, Tuple, TypedDict
 from xml.dom.expatbuilder import theDOMImplementation
 import spacy
 from spacy.tokens import Doc, Token
@@ -10,7 +10,7 @@ import numpy as np
 from data_loader.dto import DTO
 
 from doc2vec.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
-from .sentiment import Sentiment
+from .sentiment import BasicSentiment
 
 from .const import MAIN_DEP, MAIN_POS
 from .projections import project_vector
@@ -42,7 +42,7 @@ class TokenWeightCaliculater(WeightCalicurater):
 
 class BasicVectaizer:
 
-    def __init__(self, sentiment: Sentiment, projecter=project_vector):
+    def __init__(self, sentiment: Optional[BasicSentiment], projecter=project_vector):
         self.sentiment = sentiment
         self.projecter = projecter
 
@@ -87,3 +87,4 @@ class BasicVectaizer:
             setattr(sentiment_weights, polarity, sentimemnt_weight)
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
+        return document_vector, sentiment_result

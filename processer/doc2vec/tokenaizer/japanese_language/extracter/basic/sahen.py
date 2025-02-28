@@ -6,7 +6,7 @@ from xml.etree.ElementInclude import include
 
 from numpy import Infinity
 
-from doc2vec.util.specific_keyword import EqIn, SpecificKeyword
+from doc2vec.util.specified_keyword import EqIn, SpecifiedKeyword
 import regex as re
 
 
@@ -83,7 +83,7 @@ class Context:
         return ret
 
 
-def extract(results: List[SpecificKeyword], parse_results, data):
+def extract(results: List[SpecifiedKeyword], parse_results, data):
 
     noun_sahens = defaultdict(set)
     context = Context()
@@ -157,7 +157,7 @@ def extract(results: List[SpecificKeyword], parse_results, data):
 
     canditate_index = []
     canditates_listmap: List[Deque] = []
-    next_results: List[SpecificKeyword] = []
+    next_results: List[SpecifiedKeyword] = []
     keys = list(noun_sahens.keys())
 
     for key in keys:
@@ -319,6 +319,6 @@ def extract(results: List[SpecificKeyword], parse_results, data):
             continue
         noun, sahens = key
 
-        next_results.append(SpecificKeyword(headword=noun, subwords=sahens))
+        next_results.append(SpecifiedKeyword(headword=noun, subwords=sahens))
 
     return next_results

@@ -1,6 +1,7 @@
 from typing import Iterator, List, Optional, Union, Tuple, Set
 
 from httpx import head
+import numpy as np
 
 
 class EqIn:
@@ -14,7 +15,7 @@ class EqIn:
 empty_set = set()
 
 
-class SpecificKeyword:
+class SpecifiedKeyword:
     is_force: bool
     headword: str
     subwords: List[str]
@@ -24,13 +25,14 @@ class SpecificKeyword:
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
     line_numbers: set[int]
+    vector: np.ndarray
 
-    def __init__(self, headword, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headword, vector, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.line_numbers = set(line_numbers)
         self.is_allow_add_multiple_subword = is_allow_add_multiple_subword
-
+        self.vector = vector
         self._tuple = None
 
         self.subwords = subwords[:]
@@ -109,12 +111,12 @@ class SpecificKeyword:
         self.subwords = []
 
 
-class BindSpecificKeyword(SpecificKeyword):
-    def __init__(self, headwords: List[str] = [], haystacks: Optional[Iterator[str]] = None, headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+class BindSpecifiedKeyword(SpecifiedKeyword):
+    def __init__(self, headwords: List[str] = [], vector=[], haystacks: Optional[Iterator[str]] = None, headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self._headwords = tuple(headwords)
         self._haystacks = haystacks
 
-        super().__init__(headword, subwords, is_force, target_words,
+        super().__init__(headword, vector, subwords, is_force, target_words,
                          line_numbers, is_fixed_headword, is_allow_add_multiple_subword)
 
     def _clone_class(self):

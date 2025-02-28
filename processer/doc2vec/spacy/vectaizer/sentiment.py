@@ -20,7 +20,7 @@ class SentimentScoreDict(TypedDict):
     neutral: float
 
 
-class Sentiment:
+class BasicSentiment:
     sentiment_vecs: SentimentBaseDict
     cache: Dict[any, SentimentScoreDict]
 
