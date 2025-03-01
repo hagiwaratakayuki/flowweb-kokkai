@@ -31,7 +31,7 @@ class StringExtractor:
         if is_found == True:
             for result_word in (self.result_words or self.words):
                 results.append(SpecifiedKeyword(headword=result_word,
-                                                is_force=self.is_force, line_numbers=line_numbers, target_words=target_words))
+                                                is_force=self.is_force, source_ids=line_numbers, target_words=target_words))
         return results
 
 
@@ -69,7 +69,7 @@ class RegexExtractor:
             headwords, headword = key
             if headwords is None:
                 results.append(SpecifiedKeyword(
-                    headword=headword, is_force=self.is_force, line_numbers=line_numbers))
+                    headword=headword, is_force=self.is_force, source_ids=line_numbers))
             else:
 
                 results.append(BindSpecifiedKeyword(

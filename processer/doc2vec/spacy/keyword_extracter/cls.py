@@ -7,6 +7,7 @@ from doc2vec.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 from doc2vec.spacy.keyword_extracter.protocol import KeywordExtractRule
 from doc2vec.util.specified_keyword import SpecifiedKeyword
+from doc2vec.spacy.japanese_language.keyword_extract.rule import noun
 
 
 class BasicKeywordExtratcer:
@@ -16,20 +17,10 @@ class BasicKeywordExtratcer:
 
     def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO):
         results: List[SpecifiedKeyword] = []
-        nounmap = []
-
-        for sent in doc.sents:
-            token_index = -1
-            noun2index = defaultdict(list)
-            for token in sent:
-                token_index += 1
-                if token.pos_ == "NOUN":
-                    noun2index[token.norm_].append(token_index)
-            nounmap.append(noun2index)
-
+        tokenid2keyword = defaultdict(dict)
         for rule in self.rules:
-            results = rule.execute(
-                doc, vector, sentiment_results, dto, results=results, nounmap=nounmap)
+            results, tokenid2keyword = rule.execute(
+                doc, vector, sentiment_results, dto, results=results, tokenid2keyword=tokenid2keyword)
         keyword_objects = [
             result for result in results if result.is_force == True]
         index2object = {}

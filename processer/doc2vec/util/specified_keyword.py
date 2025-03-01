@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional, Union, Tuple, Set
+from typing import FrozenSet, Iterator, List, Optional, Union, Tuple, Set
 
 from httpx import head
 import numpy as np
@@ -24,16 +24,18 @@ class SpecifiedKeyword:
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
-    line_numbers: set[int]
+    _id: Optional[FrozenSet]
+    source_ids: set[int]
     vector: np.ndarray
 
-    def __init__(self, headword, vector, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headword, vector, subwords=[], is_force=False, target_words=None, source_ids: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
-        self.line_numbers = set(line_numbers)
+        self.source_ids = set(source_ids)
         self.is_allow_add_multiple_subword = is_allow_add_multiple_subword
         self.vector = vector
         self._tuple = None
+        self._id = None
 
         self.subwords = subwords[:]
         self.is_force = is_force
@@ -47,6 +49,15 @@ class SpecifiedKeyword:
     def get_headword_length(self):
         return len(self.headword)
 
+    @property
+    def id(self) -> FrozenSet:
+        if self._id == None:
+            idset: Set = self.source_ids | {self.headword}
+            if len(self.subwords) != 0:
+                idset.update(self.subwords)
+            self._id = frozenset(idset)
+        return self._id
+
     def clone(self):
         ret = self._clone_class()
         ret.add_subword(self.subwords)
@@ -55,7 +66,7 @@ class SpecifiedKeyword:
 
         ret._target_words = self._target_words
 
-        ret.line_numbers = self.line_numbers.copy()
+        ret.source_ids = self.source_ids.copy()
         return ret
 
     def _clone_class(self):

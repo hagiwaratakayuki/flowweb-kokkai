@@ -220,11 +220,11 @@ def extract(results: List[SpecifiedKeyword], parse_results: List[Tuple[str, List
         target_words = reverse_dict.get(headword, [])
 
         kw = SpecifiedKeyword(
-            headword=headword, subwords=subwords, is_force=True, line_numbers=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
+            headword=headword, subwords=subwords, is_force=True, source_ids=line_numbers, target_words=target_words, is_allow_add_multiple_subword=True)
         kws.append(kw)
     for headword in additional_law_words:
         kw = SpecifiedKeyword(
-            headword=headword, is_force=True, line_numbers={-1})
+            headword=headword, is_force=True, source_ids={-1})
         kws.append(kw)
 
     # pending

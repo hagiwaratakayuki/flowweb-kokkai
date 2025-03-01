@@ -166,7 +166,7 @@ def extract(results: List[SpecifiedKeyword], parse_results, data):
             # print(keyword_obj.headword, keyword_obj.line_numbers)
             line_numbers = noun_sahens[key]
 
-            inter = keyword_obj.line_numbers & line_numbers
+            inter = keyword_obj.source_ids & line_numbers
 
             if inter == empty_set:
 
@@ -196,7 +196,7 @@ def extract(results: List[SpecifiedKeyword], parse_results, data):
                 if keyword_obj.is_fixed_headword == False:
 
                     if top_position == 0 or is_end == True:
-                        keyword_obj.line_numbers -= inter
+                        keyword_obj.source_ids -= inter
                         new_key = (noun, (keyword_obj.headword,) +
                                    tuple(not_includes), )
                         noun_sahens[new_key] = inter
@@ -276,7 +276,7 @@ def extract(results: List[SpecifiedKeyword], parse_results, data):
     for keyword_obj in results:
 
         for key, line_numbers in items:
-            inter = keyword_obj.line_numbers & line_numbers
+            inter = keyword_obj.source_ids & line_numbers
 
             if inter == empty_set:
 
@@ -289,10 +289,10 @@ def extract(results: List[SpecifiedKeyword], parse_results, data):
 
                     new_keyword_obj = keyword_obj.clone()
                     new_keyword_obj.add_subword(sahens)
-                    new_keyword_obj.line_numbers = inter
+                    new_keyword_obj.source_ids = inter
 
                     next_results.append(new_keyword_obj)
-                    keyword_obj.line_numbers -= inter
+                    keyword_obj.source_ids -= inter
                     noun_sahens[key] -= inter
             else:
                 is_connectable = False
@@ -304,13 +304,13 @@ def extract(results: List[SpecifiedKeyword], parse_results, data):
                 if is_connectable and (keyword_obj.is_allow_add_multiple_subword == True or len(keyword_obj.subwords) == 0):
                     new_keyword_obj = keyword_obj.clone()
                     new_keyword_obj.add_subword(sahens)
-                    new_keyword_obj.line_numbers = inter
+                    new_keyword_obj.source_ids = inter
 
                     next_results.append(new_keyword_obj)
-                    keyword_obj.line_numbers -= inter
+                    keyword_obj.source_ids -= inter
                     noun_sahens[key] -= inter
 
-        if keyword_obj.line_numbers != empty_set:
+        if keyword_obj.source_ids != empty_set:
             next_results.append(keyword_obj)
 
     for key in noun_sahens:

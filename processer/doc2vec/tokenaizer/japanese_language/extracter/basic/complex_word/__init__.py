@@ -116,7 +116,7 @@ def extract(results: List[SpecifiedKeyword], parse_results: List, data):
             continue
 
         results.append(SpecifiedKeyword(
-            headword=complexword, line_numbers=word_to_linenumber[complexword], is_fixed_headword=force_headword_map[complexword]))
+            headword=complexword, source_ids=word_to_linenumber[complexword], is_fixed_headword=force_headword_map[complexword]))
 
     return results
 

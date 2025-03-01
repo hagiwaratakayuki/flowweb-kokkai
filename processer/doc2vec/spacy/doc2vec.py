@@ -8,7 +8,7 @@ import multiprocessing
 
 from doc2vec.spacy.vectaizer.cls import BasicVectaizer
 from doc2vec.spacy.keyword_extracter.cls import BasicKeywordExtratcer
-from processer.doc2vec.spacy.vectaizer.sentiment import BasicSentiment
+from doc2vec.spacy.vectaizer.sentiment import BasicSentiment
 
 
 class SpacyDoc2Vec:
