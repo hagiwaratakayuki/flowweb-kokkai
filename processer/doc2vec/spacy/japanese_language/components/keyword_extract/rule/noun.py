@@ -4,7 +4,7 @@ from typing import Dict, List, Set
 
 from ..stopwords import remove_stopwords
 from ..util.inflection_check import is_sahen, is_adverbable, is_tail
-from doc2vec.spacy.keyword_extracter.protocol import KeywordExtractRule, TokenID2Keyword
+from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule, TokenID2Keyword
 from spacy.tokens import Doc
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword

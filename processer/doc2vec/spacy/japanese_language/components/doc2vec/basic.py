@@ -1,9 +1,9 @@
 
 
-from doc2vec.spacy.doc2vec import SpacyDoc2Vec
-from doc2vec.spacy.japanese_language.const import MODEL_NAME
-from doc2vec.spacy.japanese_language.keyword_extract import JapaneseLanguageKeywordExtracter
-from doc2vec.spacy.japanese_language.sentiment import JapaneseLanguageSentiment
+from processer.doc2vec.spacy.components.doc2vec import SpacyDoc2Vec
+from doc2vec.spacy.japanese_language.components.const import MODEL_NAME
+from doc2vec.spacy.japanese_language.components.keyword_extract import JapaneseLanguageKeywordExtracter
+from doc2vec.spacy.japanese_language.components.sentiment import JapaneseLanguageSentiment
 
 
 class BasicJapaneseLangugageDoc2Vec(SpacyDoc2Vec):

@@ -1,4 +1,4 @@
-from doc2vec.spacy.keyword_extracter.cls import BasicKeywordExtratcer
+from doc2vec.spacy.components.keyword_extracter.cls import BasicKeywordExtratcer
 RULES = []
 
 

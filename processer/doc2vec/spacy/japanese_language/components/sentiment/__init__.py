@@ -1,5 +1,5 @@
-from doc2vec.spacy.vectaizer.sentiment import BasicSentiment
-from doc2vec.spacy.japanese_language.const import MODEL_NAME
+from doc2vec.spacy.components.vectaizer.sentiment import BasicSentiment
+from doc2vec.spacy.japanese_language.components.const import MODEL_NAME
 from .words import posiwords, negawords
 
 

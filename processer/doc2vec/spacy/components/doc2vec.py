@@ -6,9 +6,9 @@ from spacy.tokens import Doc
 from data_loader.dto import DTO
 import multiprocessing
 
-from doc2vec.spacy.vectaizer.cls import BasicVectaizer
-from doc2vec.spacy.keyword_extracter.cls import BasicKeywordExtratcer
-from doc2vec.spacy.vectaizer.sentiment import BasicSentiment
+from doc2vec.spacy.components.vectaizer.cls import BasicVectaizer
+from doc2vec.spacy.components.keyword_extracter.cls import BasicKeywordExtratcer
+from doc2vec.spacy.components.vectaizer.sentiment import BasicSentiment
 
 
 class SpacyDoc2Vec:

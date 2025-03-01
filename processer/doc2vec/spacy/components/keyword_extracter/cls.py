@@ -5,9 +5,8 @@ import numpy as np
 
 from doc2vec.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
-from doc2vec.spacy.keyword_extracter.protocol import KeywordExtractRule
+from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule
 from doc2vec.util.specified_keyword import SpecifiedKeyword
-from doc2vec.spacy.japanese_language.keyword_extract.rule import noun
 
 
 class BasicKeywordExtratcer:

@@ -4,7 +4,7 @@ from fastapi.background import P
 import spacy
 import numpy as np
 
-from doc2vec import sentiment
+from processer.doc2vec.spacy.components.doc2vec import sentiment
 from .const import MAIN_POS
 from .projections import project_vector
 
