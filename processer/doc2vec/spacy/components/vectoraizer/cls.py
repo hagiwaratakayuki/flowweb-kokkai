@@ -1,19 +1,19 @@
 from collections import deque
 import math
-import token
-from typing import Deque, Dict, Iterable, List, Optional, Tuple, TypedDict
-from xml.dom.expatbuilder import theDOMImplementation
-import spacy
+
+from typing import Callable, Deque, List, Optional, Tuple
+
+
 from spacy.tokens import Doc, Token
-import numpy as np
+
 
 from data_loader.dto import DTO
 
 from doc2vec.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
-from .sentiment import BasicSentiment
+from ..sentiment.cls import BasicSentiment
 
-from .const import MAIN_DEP, MAIN_POS
-from .projections import project_vector
+from ..commons.const import MAIN_DEP, MAIN_POS
+from ..commons.projections import project_vector
 
 
 class WeightCalicurater:
@@ -40,15 +40,15 @@ class TokenWeightCaliculater(WeightCalicurater):
         return ret
 
 
-class BasicVectaizer:
+class BasicVectoraizer:
 
-    def __init__(self, sentiment: Optional[BasicSentiment], projecter=project_vector):
+    def initialize(self, sentiment: BasicSentiment, projecter: Callable):
         self.sentiment = sentiment
         self.projecter = projecter
 
     def exec(self, doc: Doc, data: DTO):
         tokens: Deque[Tuple[Token, float]] = deque()
-        sent_count = len(doc.sents)
+        sent_count = len(list(doc.sents))
         if sent_count == 0:
 
             return None, None, None, data

@@ -1,17 +1,18 @@
 from collections import deque
-from typing import Dict, Iterable, Optional, TypedDict
-from fastapi.background import P
-import spacy
+import token
+from typing import Callable, Dict, Iterable, Tuple, Optional, TypedDict
+
+from spacy.language import Language
 import numpy as np
 
-from processer.doc2vec.spacy.components.doc2vec import sentiment
-from .const import MAIN_POS
-from .projections import project_vector
+
+from ..commons.const import MAIN_POS
+from ..commons.projections import project_vector
 
 
 class SentimentBaseDict(TypedDict):
-    negative: Iterable[np.ndarray]
-    positive: Iterable[np.ndarray]
+    negative: Iterable[Tuple[np.ndarray, int]]
+    positive: Iterable[Tuple[np.ndarray, int]]
 
 
 class SentimentScoreDict(TypedDict):
@@ -24,23 +25,26 @@ class BasicSentiment:
     sentiment_vecs: SentimentBaseDict
     cache: Dict[any, SentimentScoreDict]
 
-    def __init__(self, posiwords, negwords, name, punct=' '):
+    def __init__(self, posiwords, negwords, punct=' '):
         self.cache = {}
-        nlp = spacy.load(name=name)
-        pdoc = nlp(punct.join(posiwords))
-        ndoc = nlp(punct.join(negwords))
+        self.posiwords = posiwords
+        self.negwords = negwords
+        self.punct = punct
+
+    def initialize(self, nlp: Language, projecter=Callable):
+        pdoc = nlp(self.punct.join(self.posiwords))
+        ndoc = nlp(self.punct.join(self.negwords))
         self.sentiment_vecs = {}
 
         for doc, key in [(pdoc, 'positive',), (ndoc, 'negative')]:
 
-            norms = {}
-            for token in doc:
-                if token.pos_ not in MAIN_POS:
-                    continue
+            norms = {
+                token.norm_: token.vector for token in doc if token.pos_ not in MAIN_POS}
 
-                norms[token.norm_] = token.vector
-            projected_dict = project_vector(norms)
-            self.sentiment_vecs[key] = deque(projected_dict.values())
+            projected_dict = projecter(norms)
+
+            self.sentiment_vecs[key] = (
+                deque(projected_dict.values()), len(norms),)
 
     def evaluate(self, norm_to_vectors: Dict[any, np.ndarray]) -> Dict[any, SentimentScoreDict]:
 
@@ -56,16 +60,13 @@ class BasicSentiment:
             vectors.append(vector)
         if index > -1:
             vector_array = np.array(vectors)
+
             polarity_scores_dict: SentimentBaseDict = {}
-            for polarity, polarity_vectors in self.sentiment_vecs.items():
-                total_distance: Optional[np.ndarray] = None
-                for polarity_vector in polarity_vectors:
-                    distances = np.linalg.norm(
-                        vector_array - polarity_vector, axis=1)
-                    if total_distance == None:
-                        total_distance = distances
-                    else:
-                        total_distance += distances
+            for polarity, pack in self.sentiment_vecs.items():
+                polarity_vectors, polarity_vectors_len = pack
+                distances = np.sum([np.linalg.norm(vector_array - polarity_vector, axis=1)
+                                   for polarity_vector in polarity_vectors], axis=0) / polarity_vectors_len
+
                 distances[distances == 0.0] = 1
                 polarity_scores_dict[polarity] = 1 / distances
             adajst = 1 / \

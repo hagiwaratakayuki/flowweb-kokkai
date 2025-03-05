@@ -1,1 +1,1 @@
-MODEL_NAME = "ginza_ja"
+MODEL_NAME = "ja_ginza"

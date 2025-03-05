@@ -1,4 +1,5 @@
 from collections import deque
+from functools import reduce
 from multiprocessing import Pool, TimeoutError
 import time
 import os
@@ -54,12 +55,30 @@ async def main():
 
 
 def check():
-    for i in range(2):
-        yield i, 0
-# asyncio.run(main())
+    r = []
+    l = range(1000)
+
+    start = time.perf_counter()
+    for i in range(5):
+
+        r.append(i)
+
+    print(start - time.perf_counter())
+    reducer = Reducer()
+    start = time.perf_counter()
+    [i for i in range(5)]
+    print(start - time.perf_counter())
 
 
-print(list(check()))
+class Reducer:
+    def __init__(self):
+        self.value = 0
+
+    def reduce(self, i):
+        self.value += i
+
+
+check()
 # main()
 """
 if __name__ == '__main__':

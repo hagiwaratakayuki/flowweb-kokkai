@@ -2,7 +2,11 @@ from multiprocessing import Pool
 import spacy
 import ginza
 from data_loader.kokkai_reguraizer.kyujitai import convert
+
+import time
+
 nlp = spacy.load('ja_ginza')
+
 
 text = """
 わが國においても、當然これはもつと早く設置されておらなければならなかつたのでございまするが、今日に至つたのでございまして、吉田内閣當時においても設置の考えはあつたのでございまするが、ついにその實現を見ずして、この片山内閣において初めてここにいよいよ設置することにきまりまして、この法案の提出をみるに至つたのでございます。
@@ -20,34 +24,42 @@ text = """
 
 def example(i):
 
+    print(nlp.batch_size)
     # doc = nlp(convert("アリスは説明します。今日は昨日と決定的に違って駄菓子屋ではなくラーメン屋とスーパーに行きます、と", None))
-    doc = nlp(
-        convert("最初に、通産省の扱うことで具体的な問題で一つお聞きしたいのですが、四十六年の三月の衆議院の地方行政委員会で問題になった問題です。当時、幸世物産という会社が韓国から空気散弾銃を大量に輸入していたということが問題になりまして、鋭和Ｂ３という空気散弾銃ですね。この議会で問題になった当時は、すでに二千五百丁輸入されていまして、さらに一万五千丁輸入の申請が出ていたという問題ですが、この問題では、この委員会の中で、当時の後藤田警察庁長官も、この銃は好ましくない、狩猟用としても、また競技用としても認められないということで、その後輸入が禁止されたという事実があるわけですが、この点については、その後この鋭和Ｂ３という空気散弾銃は輸入されていないということで間違いありませんか。", None))
-    for chunk in doc.noun_chunks:
-        print(chunk.text)
 
-    print(doc.sentiment)
-    print(doc.user_data)
-    for sent in doc.sents:
+    start = time.perf_counter()
+    docs = nlp.pipe(
+        [convert("最初に、通産省の扱うことで具体的な問題で一つお聞きしたいのですが、四十六年の三月の衆議院の地方行政委員会で問題になった問題です。当時、幸世物産という会社が韓国から空気散弾銃を大量に輸入していたということが問題になりまして、鋭和Ｂ３という空気散弾銃ですね。この議会で問題になった当時は、すでに二千五百丁輸入されていまして、さらに一万五千丁輸入の申請が出ていたという問題ですが、この問題では、この委員会の中で、当時の後藤田警察庁長官も、この銃は好ましくない、狩猟用としても、また競技用としても認められないということで、その後輸入が禁止されたという事実があるわけですが、この点については、その後この鋭和Ｂ３という空気散弾銃は輸入されていないということで間違いありませんか。", None)])
+    print(time.perf_counter() - start)
 
-        for token in sent:
+    for doc in docs:
 
-            print(
-                token.i,
-                token.orth_,
-                token.lemma_,
-                token.norm_,
-                token.morph.get("Reading"),
-                token.pos_,
-                token.morph.get("Inflection"),
-                token.tag_,
-                token.dep_,
-                token.head.i,
-                token.vector.shape,
-                list(token.lefts)
-            )
+        for chunk in doc.noun_chunks:
+            print(chunk.text)
+            print(list(chunk.noun_chunks))
+        print(nlp.batch_size)
+        print(doc.sentiment)
+        print(doc.user_data)
+        for sent in doc.sents:
 
-        print('EOS')
+            for token in sent:
+
+                print(
+                    token.i,
+                    token.orth_,
+                    token.lemma_,
+                    token.norm_,
+                    token.morph.get("Reading"),
+                    token.pos_,
+                    token.morph.get("Inflection"),
+                    token.tag_,
+                    token.dep_,
+                    token.head.i,
+                    token.vector.shape,
+                    list(token.lefts)
+                )
+
+            print('EOS')
 
 
 if __name__ == '__main__':

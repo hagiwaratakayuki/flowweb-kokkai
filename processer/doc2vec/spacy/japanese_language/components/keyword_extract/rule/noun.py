@@ -1,20 +1,25 @@
 from collections import defaultdict
 
-from typing import Dict, List, Set
+from typing import Callable, Dict, List, Set
+
+import numpy as np
+
+from processer.data_loader.dto import DTO
+from processer.doc2vec.protocol.sentiment import SentimentResult
 
 from ..stopwords import remove_stopwords
 from ..util.inflection_check import is_sahen, is_adverbable, is_tail
-from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule, TokenID2Keyword
+from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
 from spacy.tokens import Doc
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword
+from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
 
 
 class NounDTO:
     faces: Set[str]
     source_ids: Set[int]
     is_force: bool
-    vector: any
 
     def __init__(self):
         self.faces = set()
@@ -27,10 +32,10 @@ MAIN_TAG = {'nsubj', 'ROOT'}
 
 
 class NounExtractRule(KeywordExtractRule):
-    def execute(self, doc: Doc, vector, sentiment_results, dto, results: List, tokenid2keyword: TokenID2Keyword):
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpecifiedKeyword]:
 
         noun_datas = defaultdict(NounDTO)
-
+        noun_vectors: NounVectors = {}
         for sent in doc.sents:
 
             for token in sent:
@@ -43,13 +48,12 @@ class NounExtractRule(KeywordExtractRule):
                     noun_data.faces.add(token.orth_)
                     noun_data.source_ids.add(token.i)
                     noun_data.is_force |= token.tag_ in MAIN_TAG
-                    noun_data.vector = vector
+                    noun_vectors[token.norm_] = token.vector
+        projected_noun_vectors = projecter(noun_vectors)
         noun_datas = {noun: noun_datas[noun]
                       for noun in remove_stopwords(noun_datas.keys())}
-
-        sks = [SpecifiedKeyword(
-            headword=noun, vector=data.vector, target_words=data.faces, is_force=data.is_force, source_ids=data.source_ids) for noun, data in noun_datas.items()]
-        for sk in sks:
-            for sourceid in sk.source_ids:
-                tokenid2keyword[sourceid][sk.id] = sk
-        return sks, tokenid2keyword
+        for noun, data in noun_datas.items():
+            sk = SpecifiedKeyword(
+                headword=noun, vector=projected_noun_vectors[noun], target_words=data.faces, is_force=data.is_force, source_ids=data.source_ids)
+            results.add_keyword(sk)
+        return results
