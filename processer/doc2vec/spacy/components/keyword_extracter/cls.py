@@ -26,24 +26,26 @@ class BasicKeywordExtratcer:
                 vector=vector,
                 sentiment_results=sentiment_results,
                 dto=dto,
-                results=results)
+                results=results,
+                projecter=self.projecter
+            )
 
         if len(results.keywords) == 0:
             return []
         result_keywords = results.get_keywords()
         keyword_objects = [
-            result for result in result_keyword if result.is_force == True]
+            result for result in result_keywords if result.is_force == True]
 
         index2object = {}
         index = -1
         vectors = []
-        for result_keyword in result_keywords:
+        for result_keywords in result_keywords:
 
-            if result_keyword.is_force:
+            if result_keywords.is_force:
                 continue
             index += 1
-            index2object[index] = result_keyword
-            vectors.append(result_keyword.vector)
+            index2object[index] = result_keywords
+            vectors.append(result_keywords.vector)
 
         vectors_array = np.array(vectors)
         vectors_array -= vector

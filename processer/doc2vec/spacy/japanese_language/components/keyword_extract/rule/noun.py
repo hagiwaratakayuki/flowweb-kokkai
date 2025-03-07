@@ -4,11 +4,11 @@ from typing import Callable, Dict, List, Set
 
 import numpy as np
 
-from processer.data_loader.dto import DTO
-from processer.doc2vec.protocol.sentiment import SentimentResult
+from data_loader.dto import DTO
+from doc2vec.protocol.sentiment import SentimentResult
 
 from ..stopwords import remove_stopwords
-from ..util.inflection_check import is_sahen, is_adverbable, is_tail
+from ..util.tag_check import is_sahen, is_adverbable, is_tail
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
 from spacy.tokens import Doc
 
@@ -31,14 +31,14 @@ IGNORE_TAG = {'compound', 'nmod', 'obl'}
 MAIN_TAG = {'nsubj', 'ROOT'}
 
 
-class NounExtractRule(KeywordExtractRule):
+class Rule(KeywordExtractRule):
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpecifiedKeyword]:
 
         noun_datas = defaultdict(NounDTO)
         noun_vectors: NounVectors = {}
-        for sent in doc.sents:
+        for noun_chunk in doc.noun_chunks:
 
-            for token in sent:
+            for token in noun_chunk:
                 if token.pos_ == "NOUN" and is_sahen.check(token) == False and is_adverbable.check(token) == False and is_tail.check(token) == False and token.tag_ not in IGNORE_TAG:
                     if token.i > 0:
                         if doc[token.i - 1].tag_ in IGNORE_TAG:
@@ -49,6 +49,7 @@ class NounExtractRule(KeywordExtractRule):
                     noun_data.source_ids.add(token.i)
                     noun_data.is_force |= token.tag_ in MAIN_TAG
                     noun_vectors[token.norm_] = token.vector
+                    noun_datas[token.norm_] = noun_data
         projected_noun_vectors = projecter(noun_vectors)
         noun_datas = {noun: noun_datas[noun]
                       for noun in remove_stopwords(noun_datas.keys())}

@@ -1,7 +1,8 @@
 from doc2vec.spacy.components.keyword_extracter.cls import BasicKeywordExtratcer
-from doc2vec.spacy.japanese_language.components.keyword_extract.rule.noun import NounExtractRule
+from doc2vec.spacy.japanese_language.components.keyword_extract.rule import noun, complex_word
 
-BASIC_RULES = [NounExtractRule()]
+
+BASIC_RULES = [noun.Rule(), complex_word.Rule()]
 SAHEN_RULES = []
 
 

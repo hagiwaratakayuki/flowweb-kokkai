@@ -23,21 +23,27 @@ class ExtractResultDTO:
         self.token_id_2_keyword = defaultdict(dict)
         self.keywords = []
 
-    def add_keyword(self, keyword: SpecifiedKeyword, tokens: Iterable[Token], is_overwrite_token=True):
+    def add_keyword(self, keyword: SpecifiedKeyword, is_overwrite_token=True):
         self.keywords.append(keyword)
         if is_overwrite_token == True:
 
-            for token in tokens:
-                self.token_id_2_keyword[token.i][keyword.id].source_ids -= token.i
-                self.token_id_2_keyword[token.i][keyword.id] = keyword
+            for source_id in keyword.source_ids:
+                source_id_set = {source_id}
+                for target_keyword in self.token_id_2_keyword.get(source_id, {}).values():
+
+                    target_keyword.source_ids -= source_id_set
+                self.token_id_2_keyword[source_id][keyword.id] = keyword
         else:
-            for token in tokens:
-                self.token_id_2_keyword[token.i][keyword.id] = keyword
-        self.keywords.append(keyword)
+            for source_id in keyword.source_ids:
+                self.token_id_2_keyword[source_id][keyword.id] = keyword
 
     def get_keywords(self):
         # refaernce shortcut
         return [keyword for keyword in self.keywords if keyword.source_ids != EMPTY_SET]
+
+    def remove_keyword(self, keyword: SpecifiedKeyword):
+        for source_id in keyword.source_ids:
+            self.token_id_2_keyword[source_id][keyword.id].source_ids -= source_id
 
 
 class KeywordExtractRule:

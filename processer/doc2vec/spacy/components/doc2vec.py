@@ -21,6 +21,7 @@ class SpacyDoc2Vec:
         sentiment.initialize(nlp=self.nlp, projecter=projecter)
         self.vectoraizer.initialize(sentiment=sentiment, projecter=projecter)
         self.keyword_extracter = keyword_extracter
+        self.keyword_extracter.initialize(projeccter=projecter)
         self.batch_size = batch_size
         self.n_process = n_process
 
@@ -52,4 +53,8 @@ class SpacyDoc2Vec:
         return doc
 
     def _get_text(self, dto: DTO):
-        return self.delimiter.join([dto.title, dto.body])
+        res = ''
+        if dto.title:
+            res += dto.title + self.delimiter
+        res += dto.body
+        return res
