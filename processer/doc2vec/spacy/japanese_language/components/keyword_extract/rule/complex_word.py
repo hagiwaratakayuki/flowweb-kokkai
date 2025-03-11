@@ -1,9 +1,7 @@
-from ast import Tuple
+
 from collections import defaultdict, deque
 
-from functools import reduce
-from tkinter import S
-import token
+
 from typing import Dict, Iterator, List, Optional, Set
 
 import numpy as np
@@ -12,7 +10,6 @@ from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
 
 
-from ..stopwords import remove_stopwords
 from ..util.tag_check import is_sahen, is_adverbable, is_tail, is_popular_noun
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
 from spacy.tokens import Doc, Token
@@ -20,9 +17,9 @@ from spacy.tokens import Doc, Token
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
 
-CONPOUND_TAG = 'compound'
-KEEP_TAG = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT'}
-MAIN_TAG = {'nsubj', 'ROOT'}
+CONPOUND_DEP = 'compound'
+KEEP_DEP = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT'}
+MAIN_DEP = {'nsubj', 'ROOT'}
 EMPTY_SET = set()
 
 
@@ -61,7 +58,7 @@ class Rule(KeywordExtractRule):
 
                 if is_canditate_exists == True:
 
-                    if token.dep_ in KEEP_TAG:
+                    if token.dep_ in KEEP_DEP:
                         canditate_tokens.append(token)
 
                     else:
@@ -73,7 +70,7 @@ class Rule(KeywordExtractRule):
 
                         canditate_tokens = []
 
-                elif token.dep_ == CONPOUND_TAG:
+                elif token.dep_ == CONPOUND_DEP:
                     is_canditate_exists = True
 
                     canditate_tokens.append(token)
@@ -102,7 +99,7 @@ class Rule(KeywordExtractRule):
         is_force = False
         for token in canditate_tokens:
             is_complex_noun |= is_popular_noun.check(token)
-            is_force |= token.dep_ in MAIN_TAG
+            is_force |= token.dep_ in MAIN_DEP
             if is_complex_noun == True and is_force == True:
                 break
 

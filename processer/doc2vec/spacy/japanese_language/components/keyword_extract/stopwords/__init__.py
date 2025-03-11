@@ -5,9 +5,6 @@ from typing import List
 
 removers = [
     list_remover,
-    preg_remover,
-    function_remover
-
 ]
 
 

@@ -12,7 +12,3 @@ stopword_set.update(stopword.postpositional_particle)
 stopword_set.update(stopword.slothlib)
 stopword_set.update(stopword.auxiliary_verb)
 stopword_set.update(stopword.adjective)
-
-
-def list_remover(words):
-    return [word for word in words if word not in stopword_set]

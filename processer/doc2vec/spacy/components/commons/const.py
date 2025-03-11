@@ -1,12 +1,15 @@
 MAIN_DEP = {
-    "ROOT",
+
     "nsubj",
     "csubj"
 }
-MAIN_POS = {
-    "ADJ",
+
+SPECIFIABLE_POS = {
     "NOUN",
     "PROPN",
     "VERB"
-
 }
+
+
+MAIN_POS = SPECIFIABLE_POS.copy()
+MAIN_POS.update(["ADJ"])

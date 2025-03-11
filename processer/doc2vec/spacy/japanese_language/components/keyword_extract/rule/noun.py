@@ -14,6 +14,7 @@ from spacy.tokens import Doc
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
+from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
 class NounDTO:
@@ -27,8 +28,7 @@ class NounDTO:
         self.is_force = False
 
 
-IGNORE_TAG = {'compound', 'nmod', 'obl'}
-MAIN_TAG = {'nsubj', 'ROOT'}
+IGNORE_DEP = {'advcl', 'amod'}
 
 
 class Rule(KeywordExtractRule):
@@ -36,25 +36,35 @@ class Rule(KeywordExtractRule):
 
         noun_datas = defaultdict(NounDTO)
         noun_vectors: NounVectors = {}
+        faces = set()
+        specifiable_vector_total_length = 0.0
+        specifiable_vector_count = 0
+
+        for token in doc:
+            specifiable_vector_total_length += 1
+            specifiable_vector_total_length
+
         for noun_chunk in doc.noun_chunks:
 
             for token in noun_chunk:
-                if token.pos_ == "NOUN" and is_sahen.check(token) == False and is_adverbable.check(token) == False and is_tail.check(token) == False and token.tag_ not in IGNORE_TAG:
-                    if token.i > 0:
-                        if doc[token.i - 1].tag_ in IGNORE_TAG:
-                            continue
+                if token.pos_ == "NOUN" and is_sahen.check(token) == False and is_adverbable.check(token) == False and is_tail.check(token) == False and token.dep_ not in IGNORE_DEP:
 
                     noun_data = noun_datas[token.norm_]
                     noun_data.faces.add(token.orth_)
+                    noun_data.faces.add(token.lemma_)
+                    noun_data.faces.add(token.norm_)
+                    faces |= noun_data.faces
                     noun_data.source_ids.add(token.i)
-                    noun_data.is_force |= token.tag_ in MAIN_TAG
+                    noun_data.is_force = False
                     noun_vectors[token.norm_] = token.vector
                     noun_datas[token.norm_] = noun_data
         projected_noun_vectors = projecter(noun_vectors)
-        noun_datas = {noun: noun_datas[noun]
-                      for noun in remove_stopwords(noun_datas.keys())}
+        removed_words = set(remove_stopwords(list(faces)))
+
         for noun, data in noun_datas.items():
+            if (data.faces & removed_words) != data.faces:
+                continue
             sk = SpecifiedKeyword(
-                headword=noun, vector=projected_noun_vectors[noun], target_words=data.faces, is_force=data.is_force, source_ids=data.source_ids)
+                headword=noun, vector=projected_noun_vectors[noun], is_force=data.is_force, source_ids=data.source_ids)
             results.add_keyword(sk)
         return results

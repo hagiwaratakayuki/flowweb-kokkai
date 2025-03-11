@@ -1,6 +1,6 @@
 from spacy.tokens import Token
 
-from .get_inflection import get_tag
+from .get_tag import get_tag
 
 
 def check(token: Token):
