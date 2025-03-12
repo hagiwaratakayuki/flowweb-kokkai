@@ -1,12 +1,13 @@
 from collections import defaultdict, deque
 import math
 
-import token
-from typing import Callable, Deque, List, Optional, Tuple
+
+from turtle import position
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 
 import numpy as np
-from spacy.tokens import Doc, Token
+from spacy.tokens import Doc, Token, Span
 
 
 from data_loader.dto import DTO
@@ -15,30 +16,6 @@ from doc2vec.protocol.sentiment import SentimentResult, SentimentVectors, Sentim
 from ..sentiment.cls import BasicSentiment
 
 from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS
-
-
-class WeightCalicurater:
-    def __init__(self, total):
-        self.position = 0.0
-        self.total = float(total)
-
-    def get_score(self):
-        ret = 1 - math.sin(math.pi * self.position /
-                           self.total) * 0.8 - 0.1 * self.position / self.total
-        self.position += 1.0
-        return ret
-
-
-class TokenWeightCaliculater(WeightCalicurater):
-    def get_score(self, token: Token):
-        adjast = 1.0
-        if token.dep_ in MAIN_DEP:
-            adjast = 1.5
-        elif token.pos_ not in MAIN_POS:
-            adjast = 0.5
-        ret = super().get_score() * adjast
-
-        return ret
 
 
 class BasicVectoraizer:
@@ -67,11 +44,11 @@ class BasicVectoraizer:
         index = -1
         sent_number = -1
         sents_to_specifi_tokens = defaultdict(set)
-        sents_to_tokens = defaultdict(set)
+
         for sent in doc.sents:
             sent_number += 1
             sent_to_specifi_tokens = sents_to_specifi_tokens[sent_number]
-            sent_to_tokens = sents_to_tokens[sent_number]
+
             for token in doc:
 
                 if (token.vector_norm == 0) or (token.pos_ not in SPECIFIABLE_POS):
@@ -83,7 +60,6 @@ class BasicVectoraizer:
                     index2norm[index] = token.norm_
                 specifiable_tokens.add(token.norm_)
                 sent_to_specifi_tokens.add(token.norm_)
-                sent_to_tokens.add(token.norm_)
 
         specifiable_token_vector = np.array(specifiable_tokens_vector_list)
         specifiable_tokens_center = np.average(
@@ -105,18 +81,37 @@ class BasicVectoraizer:
         for weight in weights:
             index += 1
             specifiable_token_to_weight[index2norm[index]] = weight
+        sent_to_weights = {}
+        all_sent_weight = 0.0
 
+        for sent_number, sent_to_specifi_tokens in sents_to_specifi_tokens.items():
+            sent_total_weight = 0.0
+            count = 0.0
+            sent_count += 1
+            for norm in sent_to_specifi_tokens:
+                count += 1.0
+                sent_total_weight += specifiable_token_to_weight[norm]
+            sent_weight = sent_total_weight / count
+            sent_to_weights[sent_number] = sent_weight
+            all_sent_weight += sent_weight
+        all_sent_weight = all_sent_weight or 1.0
+
+        for sent_number in sent_to_weights.keys():
+            sent_to_weights[sent_number] /= all_sent_weight
+        sent_number = -1
         for sent in doc.sents:
             token_score_caliculater = self(len(sent))
-            line_score = line_weight_calicurater.get_score()
+            sent_number += 1
+
+            sent_weight = sent_to_weights[sent_number]
 
             scored_subnodes = [
-                (token, line_score * token_score_caliculater.get_score(token=token),) for token in sent]
+                (token, sent_weight * token_score_caliculater.get_score(token=token),) for token in sent]
             tokens.extend(scored_subnodes)
 
-        norm_to_vecters = {
+        main_pos_to_vecters = {
             token.norm_: projected_vecter_dict[token.norm_] for token in doc if token.pos_ in MAIN_POS}
-        sentiment_scores = self.sentiment.evaluate(norm_to_vecters)
+        sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
         total_score = sum([r[1] for r in tokens])
         document_vector = sum(
             [projected_vecter_dict[token.norm_] * score for token, score in tokens]) / total_score
@@ -139,5 +134,24 @@ class BasicVectoraizer:
         sentiment_result.vectors = sentiment_vectors
         return document_vector, sentiment_result
 
-    def _get_line_weight_claicurater(self, sent_count):
-        return WeightCalicurater(sent_count)
+    def get_token_score(self, sent: Span, specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
+        total_step_count = 0.0
+        token_steps = deque()
+        last_step_count = 0.0
+        for token in sent:
+            step_count = specifiable_token_to_weight.get(token.norm_, 0.1)
+            total_step_count += step_count
+            token_steps.append((token, step_count, ))
+            last_step_count = step_count
+        total_step_count -= last_step_count
+        position = 0.0
+        result = deque()
+        for token, step_count in token_steps:
+
+            score = 1 - math.sin(math.pi * position / total_step_count) * \
+                0.8 - 0.1 * position / total_step_count
+            score *= step_count
+            position += step_count
+            result.append((token, score, ))
+
+        return result
