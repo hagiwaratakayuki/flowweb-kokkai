@@ -26,13 +26,11 @@ class BasicVectoraizer:
         self.token_weight_rules = token_weight_rules
 
     def exec(self, doc: Doc, data: DTO):
-        tokens: Deque[Tuple[Token, float]] = deque()
+
         sent_count = len(list(doc.sents))
         if sent_count == 0:
 
             return None, None, None, data
-        line_weight_calicurater = self._get_line_weight_claicurater(
-            sent_count=sent_count)
 
         specifiable_tokens = set()
 
@@ -96,25 +94,30 @@ class BasicVectoraizer:
             all_sent_weight += sent_weight
         all_sent_weight = all_sent_weight or 1.0
 
-        for sent_number in sent_to_weights.keys():
-            sent_to_weights[sent_number] /= all_sent_weight
         sent_number = -1
+        total_score = 0.0
+        scored_sents: Deque[Deque[Tuple[Token, float]]] = deque()
+
         for sent in doc.sents:
-            token_score_caliculater = self(len(sent))
-            sent_number += 1
-
-            sent_weight = sent_to_weights[sent_number]
-
-            scored_subnodes = [
-                (token, sent_weight * token_score_caliculater.get_score(token=token),) for token in sent]
-            tokens.extend(scored_subnodes)
+            scored_sent, sentence_total_score = self._get_sentence_score(
+                sent=sent, sent_weight=sent_to_weights[sent_number] / all_sent_weight)
+            scored_sents.append(scored_sent)
+            total_score += sentence_total_score
 
         main_pos_to_vecters = {
             token.norm_: projected_vecter_dict[token.norm_] for token in doc if token.pos_ in MAIN_POS}
         sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
-        total_score = sum([r[1] for r in tokens])
-        document_vector = sum(
-            [projected_vecter_dict[token.norm_] * score for token, score in tokens]) / total_score
+
+        document_vector = None
+        is_document_vector_initialized = False
+        for scored_sent in scored_sents:
+            for token, score in scored_sent:
+                token_vector = projected_vecter_dict[token.norm_] * score
+                if is_document_vector_initialized == False:
+                    is_document_vector_initialized = True
+                    document_vector = token_vector
+                else:
+                    document_vector += token_vector
 
         default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
         sentiment_vectors = SentimentVectors()
@@ -123,7 +126,7 @@ class BasicVectoraizer:
 
         for polarity in ["positive", "negative", "neutral"]:
             weighted_tokens: List[Tuple[Token, float]] = [
-                (token, score * sentiment_scores.get(token.norm_, default_score)[polarity],) for token, score in tokens]
+                (token, score * sentiment_scores.get(token.norm_, default_score)[polarity],) for token, score in scored_sents]
             total_sentimented_score = sum([r[1] for r in weighted_tokens])
             sentiment_vector = sum(
                 [token.vector * score for token, score in weighted_tokens]) / total_sentimented_score
@@ -134,7 +137,7 @@ class BasicVectoraizer:
         sentiment_result.vectors = sentiment_vectors
         return document_vector, sentiment_result
 
-    def get_token_score(self, sent: Span, specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
+    def _get_sentence_score(self, sent: Span, specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0
         token_steps = deque()
         last_step_count = 0.0
@@ -146,12 +149,15 @@ class BasicVectoraizer:
         total_step_count -= last_step_count
         position = 0.0
         result = deque()
+        total_score = 0.0
         for token, step_count in token_steps:
 
             score = 1 - math.sin(math.pi * position / total_step_count) * \
                 0.8 - 0.1 * position / total_step_count
-            score *= step_count
+            score *= step_count * sent_weight
+
+            total_score += score
             position += step_count
             result.append((token, score, ))
 
-        return result
+        return result, score
