@@ -51,13 +51,17 @@ class BasicKeywordExtratcer:
         vectors_array -= vector
 
         distances = np.absolute(vectors_array).sum(axis=1)
-        avg_distace = np.average(distances)
-        std_distance = np.
+        avg_distance = np.average(distances)
+        std_distance = np.std(distances)
 
         count = 0
+
         for index in np.argsort(distances):
 
-            if count >= self.keyword_limit or distances[index] > avg_distace:
+            if count >= self.keyword_limit or distances[index] > avg_distance - std_distance:
+                if count == 0:
+                    count += 1
+                    keyword_objects.append(index2object[index])
                 break
 
             count += 1
