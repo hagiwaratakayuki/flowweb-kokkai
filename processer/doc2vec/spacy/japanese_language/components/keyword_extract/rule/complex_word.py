@@ -93,7 +93,7 @@ class Rule(KeywordExtractRule):
 
     def _update_section(self, canditate_tokens: List[Token], complex_word_tokens: Dict[str, ComplexWordDTO], noun_vectors: NounVectors):
         if len(canditate_tokens) <= 1:
-            return
+            return complex_word_tokens, noun_vectors
 
         is_complex_noun = False
         is_force = False

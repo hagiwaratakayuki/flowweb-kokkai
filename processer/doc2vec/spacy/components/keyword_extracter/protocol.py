@@ -24,7 +24,7 @@ class ExtractResultDTO:
         self.keywords = {}
 
     def add_keyword(self, keyword: SpecifiedKeyword, is_overwrite_token=True):
-        self.keywords[keyword.id] = keyword.id
+        self.keywords[keyword.id] = keyword
         if is_overwrite_token == True:
 
             for source_id in keyword.source_ids:
@@ -45,7 +45,7 @@ class ExtractResultDTO:
         for source_id in keyword.source_ids:
             self.token_id_2_keyword[source_id][keyword.id].source_ids -= source_id
 
-    def overwrite_keyword(self, targets: Union[Iterable[SpecifiedKeyword, SpecifiedKeyword]], keyword: SpecifiedKeyword):
+    def overwrite_keyword(self, targets: Union[Iterable[SpecifiedKeyword], SpecifiedKeyword], keyword: SpecifiedKeyword):
         if not isinstance(targets, Iterable):
             targets = [targets]
         for target in targets:

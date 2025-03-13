@@ -34,7 +34,7 @@ class BasicVectoraizer:
 
         specifiable_tokens = set()
 
-        token_to_vector = {token.norm_ for tokns in doc}
+        token_to_vector = {token.norm_: token.vector for token in doc}
 
         projected_vecter_dict = self.projecter(token_to_vector)
         specifiable_tokens_vector_list = []
@@ -72,7 +72,7 @@ class BasicVectoraizer:
         weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
                                     specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
         # 0.1 to 1.0
-        weights *= 0.9
+        weights *= 1.8
         weights += 0.1
         index = -1
         specifiable_token_to_weight = {}
@@ -99,8 +99,9 @@ class BasicVectoraizer:
         scored_sents: Deque[Deque[Tuple[Token, float]]] = deque()
 
         for sent in doc.sents:
+            sent_number += 1
             scored_sent, sentence_total_score = self._get_sentence_score(
-                sent=sent, sent_weight=sent_to_weights[sent_number] / all_sent_weight)
+                sent=sent, sent_weight=sent_to_weights[sent_number] / all_sent_weight, specifiable_token_to_weight=specifiable_token_to_weight)
             scored_sents.append(scored_sent)
             total_score += sentence_total_score
 
@@ -108,31 +109,46 @@ class BasicVectoraizer:
             token.norm_: projected_vecter_dict[token.norm_] for token in doc if token.pos_ in MAIN_POS}
         sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
 
-        document_vector = None
-        is_document_vector_initialized = False
+        scored_vectors_deque = deque()
+
         for scored_sent in scored_sents:
             for token, score in scored_sent:
-                token_vector = projected_vecter_dict[token.norm_] * score
-                if is_document_vector_initialized == False:
-                    is_document_vector_initialized = True
-                    document_vector = token_vector
-                else:
-                    document_vector += token_vector
+                token_vector = projected_vecter_dict[token.norm_] * \
+                    score / total_score
+
+                scored_vectors_deque.append(token_vector)
+        scored_vectors = np.vstack(scored_vectors_deque).T
+        document_vector = np.sum(scored_vectors.T, axis=0)
 
         default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
         sentiment_vectors = SentimentVectors()
         sentiment_weights = SentimentWeights()
         sentiment_result = SentimentResult()
-
+        polarity_scores = {}
+        total_polarty_score = 0.0
         for polarity in ["positive", "negative", "neutral"]:
-            weighted_tokens: List[Tuple[Token, float]] = [
-                (token, score * sentiment_scores.get(token.norm_, default_score)[polarity],) for token, score in scored_sents]
-            total_sentimented_score = sum([r[1] for r in weighted_tokens])
-            sentiment_vector = sum(
-                [token.vector * score for token, score in weighted_tokens]) / total_sentimented_score
-            sentimemnt_weight = total_sentimented_score / total_score
+            polarity_sentiment_scores = deque()
+            polarity_score = 0.0
+            for scored_sent in scored_sents:
+                for token, score in scored_sent:
+                    sentiment_score = score * \
+                        sentiment_scores.get(token.norm_, default_score)[
+                            polarity]
+                    polarity_sentiment_scores.append(sentiment_score)
+                    polarity_score += sentiment_score
+            sentiment_vector = np.sum(
+                (scored_vectors * polarity_sentiment_scores).T / (polarity_score or 1.0), axis=0)
             setattr(sentiment_vectors, polarity, sentiment_vector)
-            setattr(sentiment_weights, polarity, sentimemnt_weight)
+            polarity_scores[polarity] = polarity_score
+            if polarity != "neutral":
+                total_polarty_score += polarity_score
+        negaposi_score = []
+        for polarity, polarity_score in polarity_scores.items():
+            if polarity != "neutral":
+                weight = polarity_score / total_polarty_score
+                setattr(sentiment_weights, polarity, weight)
+                negaposi_score.append(weight)
+        sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
         return document_vector, sentiment_result
@@ -147,6 +163,7 @@ class BasicVectoraizer:
             token_steps.append((token, step_count, ))
             last_step_count = step_count
         total_step_count -= last_step_count
+        total_step_count = total_step_count or 1.0
         position = 0.0
         result = deque()
         total_score = 0.0

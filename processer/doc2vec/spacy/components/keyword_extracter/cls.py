@@ -52,6 +52,7 @@ class BasicKeywordExtratcer:
 
         distances = np.absolute(vectors_array).sum(axis=1)
         avg_distace = np.average(distances)
+        std_distance = np.
 
         count = 0
         for index in np.argsort(distances):
