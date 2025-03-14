@@ -76,6 +76,8 @@ def example(i):
                     token.dep_,
                     token.head.i,
                     token.vector_norm,
+                    list(token.ancestors),
+                    list(token.children)
                     # list(token.subtree)
                 )
 
