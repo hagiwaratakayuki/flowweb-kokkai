@@ -1,6 +1,6 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 
-from typing import Callable, Dict, List, Set
+from typing import Any, Callable, DefaultDict, Deque, Dict, FrozenSet, List, Optional, Set, Tuple
 
 import numpy as np
 from regex import T
@@ -41,51 +41,42 @@ class Rule(KeywordExtractRule):
         faces = set()
         sahen_dict = {}
         popular_noun_dict = {}
-
+        keywords: Dict[Tuple[str, str],
+                       Deque[Tuple[Token, Optional[Token]]]] = defaultdict(deque)
         for noun_chunk in doc.noun_chunks:
 
             for token in noun_chunk:
 
                 if token.pos_ == "NOUN":
-                    count = 0
-                    is_popular_noun_flag, is_sahen_flag = self._check_noun_type(
-                        token=token, popular_noun_dict=popular_noun_dict, sahen_dict=sahen_dict)
-                    if token.pos_ == "NOUN" and is_popular_noun_flag == True or is_sahen_flag == True:
-                        path_tokens = []
 
-                        is_token_add = False
-
-                        is_include_popular = is_popular_noun_flag
+                    is_popular_noun_flag = is_popular_noun.check(token=token)
+                    if is_popular_noun_flag == True:
                         for ancester in token.ancestors:
                             if ancester.pos_ == "NOUN":
-                                is_ancester_populer_noun_flag, is_ancester_sahen_flag = self._check_noun_type(
+                                is_popular_noun_flag, is_sahen_flag = self._check_noun_type(
                                     token=ancester, popular_noun_dict=popular_noun_dict, sahen_dict=sahen_dict)
-                                if is_ancester_populer_noun_flag == True:
-                                    is_include_popular = True
-                                is_sahen_flag = is_sahen.check(token=ancester)
-                                if is_ancester_populer_noun_flag or is_ancester_sahen_flag == True:
-                                    if is_token_add == False and ancester.i > token.i:
-                                        is_token_add = True
-                                        path_tokens.append(token.i)
-                                        count += 1
-                                count += 1
-                                path_tokens.append(ancester.i)
-                        if is_token_add == False:
-                            path_tokens.append(token.i)
-                            count += 1
-                        if count <= 1 or not is_include_popular:
-                            continue
-                        """
-                        noun_data = noun_datas[token.norm_]
-                        noun_data.faces.add(token.orth_)
-                        noun_data.faces.add(token.lemma_)
-                        noun_data.faces.add(token.norm_)
-                        faces |= noun_data.faces
-                        noun_data.source_ids.add(token.i)
-                        noun_data.is_force = False
-                        noun_vectors[token.norm_] = token.vector
-                        noun_datas[token.norm_] = noun_data"
-                        """
+                                if (is_popular_noun_flag == True or is_sahen_flag == True) and ancester.vector_norm < token.vector_norm:
+                                    headword = token
+                                    if is_sahen_flag == True:
+                                        subword = ancester
+                                        key = (headword.norm_, ancester.norm_,)
+                                    else:
+                                        subword = None
+                                        key = (headword.norm_, None)
+                                keywords[key].append((headword, subword,))
+                                break
+
+                """
+                    noun_data = noun_datas[token.norm_]
+                    noun_data.faces.add(token.orth_)
+                    noun_data.faces.add(token.lemma_)
+                    noun_data.faces.add(token.norm_)
+                    faces |= noun_data.faces
+                    noun_data.source_ids.add(token.i)
+                    noun_data.is_force = False
+                    noun_vectors[token.norm_] = token.vector
+                    noun_datas[token.norm_] = noun_data"
+                """
         projected_noun_vectors = projecter(noun_vectors)
         removed_words = set(remove_stopwords(list(faces)))
 
