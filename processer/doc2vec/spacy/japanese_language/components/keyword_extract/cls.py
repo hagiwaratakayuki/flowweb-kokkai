@@ -1,9 +1,10 @@
 from doc2vec.spacy.components.keyword_extracter.cls import BasicKeywordExtratcer
-from doc2vec.spacy.japanese_language.components.keyword_extract.rule import complex_word, subword
+from doc2vec.spacy.japanese_language.components.keyword_extract.rule import complex_word
+from processer.doc2vec.spacy.japanese_language.components.keyword_extract.rule import subwordable
 
 
 BASIC_RULES = [complex_word.Rule()]
-SUBWORD_RULES = [subword.Rule()]
+SUBWORD_RULES = [subwordable.Rule()]
 
 
 class JapaneseLanguageKeywordExtracter(BasicKeywordExtratcer):

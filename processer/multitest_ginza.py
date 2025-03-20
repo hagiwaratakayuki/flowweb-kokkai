@@ -35,6 +35,10 @@ def example(i):
     text = """だいぶ時間がおそくなっていますから、間口を広げないでやりたいのですが、あとでこの機構改革に伴った通産省の行政の基本的な姿勢については幾つかお聞きしたいと思うのです。
 　      最初に、通産省の扱うことで具体的な問題で一つお聞きしたいのですが、四十六年の三月の衆議院の地方行政委員会で問題になった問題です。当時、幸世物産という会社が韓国から空気散弾銃を大量に輸入していたということが問題になりまして、鋭和Ｂ３という空気散弾銃ですね。この議会で問題になった当時は、すでに二千五百丁輸入されていまして、さらに一万五千丁輸入の申請が出ていたという問題ですが、この問題では、この委員会の中で、当時の後藤田警察庁長官も、この銃は好ましくない、狩猟用としても、また競技用としても認められないということで、その後輸入が禁止されたという事実があるわけですが、この点については、その後この鋭和Ｂ３という空気散弾銃は輸入されていないということで間違いありませんか。
         """
+
+    # text = """金商法改正の議論の前進に向けて、議論したいと思います"""
+    # text = "夜も遅いので手短に。教育基本法11条の設置基準について"
+    # ginza.set_split_mode(nlp=nlp, mode="A")
     docs = nlp.pipe(
         [convert(text, None)])
     # docs = nlp.pipe(
@@ -51,13 +55,15 @@ def example(i):
         for chunk in doc.noun_chunks:
             print(chunk.vector_norm)
             print(chunk.text)
-            print(list(chunk.noun_chunks))
+
+            # print(list(chunk.noun_chunks))
         print(nlp.batch_size)
         print(doc.sentiment)
-        print(doc.user_data)
+        # print(dir(doc.user_data["sub_tokens"][0][0][0]))
         for sent in doc.sents:
 
             for token in sent:
+
                 if token.vector_norm != 0:
                     if token.pos_ in MAIN_POS:
                         main_tokens_norms.append(token.vector_norm)
@@ -77,7 +83,8 @@ def example(i):
                     token.head.i,
                     token.vector_norm,
                     list(token.ancestors),
-                    list(token.children)
+                    list(token.children),
+
                     # list(token.subtree)
                 )
 

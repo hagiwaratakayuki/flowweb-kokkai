@@ -1,4 +1,4 @@
-from typing import FrozenSet, Iterator, List, Optional, Union, Tuple, Set
+from typing import Any, FrozenSet, Iterator, List, Optional, Union, Tuple, Set
 
 from httpx import head
 import numpy as np
@@ -25,7 +25,7 @@ class SpecifiedKeyword:
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
     _id: Optional[FrozenSet]
-    source_ids: set[int]
+    source_ids: set[Any]
     vector: np.ndarray
 
     def __init__(self, headword, vector, subwords=[], is_force=False, target_words=None, source_ids: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
@@ -101,6 +101,9 @@ class SpecifiedKeyword:
 
         return self._tuple
 
+    def to_paires(self):
+        return [self.to_tuple()]
+
     def _flatten(self, target, init: list):
         if isinstance(target, str):
             init.append(target)
@@ -150,6 +153,12 @@ class BindSpecifiedKeyword(SpecifiedKeyword):
             subwords = tuple(self._flatten(self.subwords, []))
             ret += [headtuple + subwords for headtuple in ret]
         return ret
+
+    def to_paires(self):
+        if len(self.subwords) != 0:
+            subwords = tuple(self._flatten(self.subwords, []))
+            return [(headword, ) + subwords for headword in self._headwords]
+        return [(headword, ) for headword in self._headwords]
 
     def clone(self):
         ret = super().clone()

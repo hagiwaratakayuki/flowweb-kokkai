@@ -1,5 +1,6 @@
 
 
+import ginza
 from doc2vec.spacy.components.doc2vec import SpacyDoc2Vec
 from doc2vec.spacy.japanese_language.components.const import MODEL_NAME
 from doc2vec.spacy.japanese_language.components.keyword_extract.cls import JapaneseLanguageKeywordExtracter
@@ -18,3 +19,4 @@ class BasicJapaneseLanguageDoc2Vec(SpacyDoc2Vec):
 
         super().__init__(name=name, keyword_extracter=keyword_extracter, vectoraizer=vectoraizer, sentiment=sentiment, delimiter=delimiter, n_process=n_processes, batch_size=batch_size,
                          spacy_cofing=spacy_cofing)
+        ginza.set_split_mode(nlp=self.nlp, mode="A")

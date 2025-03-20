@@ -109,8 +109,8 @@ class Rule(KeywordExtractRule):
 
             for token in canditate_tokens:
                 noun_vectors[token.norm_] = token.vector
-                key += token.orth_
-                source_ids.add(token.i)
+                key += token.norm_
+                source_ids.add(token)
 
             data = complex_word_tokens[key]
             data.is_force |= is_force

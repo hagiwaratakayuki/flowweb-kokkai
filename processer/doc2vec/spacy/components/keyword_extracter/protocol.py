@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Union
+from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Set, Union
 from spacy.tokens import Doc, Token
 import numpy as np
 
@@ -38,8 +38,20 @@ class ExtractResultDTO:
                 self.token_id_2_keyword[source_id][keyword.id] = keyword
 
     def get_keywords(self):
-        # refaernce shortcut
+        # refarence shortcut
         return [keyword for keyword in self.keywords.values() if keyword.source_ids != EMPTY_SET]
+
+    def get_by_source_ids(self, source_ids: Iterable[Any]):
+        ret: Dict[Any, SpecifiedKeyword] = {}
+        for source_id in source_ids:
+            ret.update(self.token_id_2_keyword.get(source_id, {}))
+        return ret
+
+    def check_by_source_ids(self, source_ids):
+        return {source_id for source_id in source_ids if source_id in self.token_id_2_keyword}
+
+    def substruct_sorce_id(self, keyword: SpecifiedKeyword, source_ids: Set[Any]):
+        self.keywords[keyword.id].source_ids -= source_ids
 
     def remove_keyword(self, keyword: SpecifiedKeyword):
         for source_id in keyword.source_ids:
@@ -51,6 +63,11 @@ class ExtractResultDTO:
         for target in targets:
             self.keywords[target.id].source_ids -= keyword.source_ids
         self.keywords[keyword.id] = keyword
+
+    def add_tokens(self, keyword: SpecifiedKeyword, tokens):
+        keyword.source_ids &= tokens
+        for token in tokens:
+            self.token_id_2_keyword[token][keyword.id] = keyword
 
 
 class KeywordExtractRule:
