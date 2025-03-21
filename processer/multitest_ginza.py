@@ -50,6 +50,7 @@ def example(i):
     sub_tokens_norms = []
 
     for doc in docs:
+
         for sent in doc.sents:
             print(sent.vector_norm)
         for chunk in doc.noun_chunks:

@@ -23,14 +23,14 @@ from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 class SubwordedWordDTO:
 
-    tokens: Dict[Token, Iterable[Token]]
+    tokens: Dict[Token, List[Token]]
     sub_detail: Optional[str]
 
     def __init__(self):
         self.tokens = {}
         self.sub_detail = None
 
-    def append(self, head_token: Token, sub_tokens: Iterable[Token], sub_detail):
+    def append(self, head_token: Token, sub_tokens: List[Token], sub_detail):
         self.tokens[head_token] = sub_tokens
         self.sub_detail = sub_detail
 
@@ -53,7 +53,7 @@ class Rule(KeywordExtractRule):
                 if token.pos_ != "PROPN" and token.pos_ != "NOUN" and is_popular_noun.check(token=token) == False:
                     continue
                 has_subword = False
-                subwords: Deque[Token] = deque()
+                subwords: List[Token] = []
                 sub_detail = None
 
                 headword = ''
@@ -79,45 +79,85 @@ class Rule(KeywordExtractRule):
                 for subword in subwords:
                     sub_nouns += (subword.norm_,)
                 wordtuple_2_token_dict[(
+
                     headword, sub_detail, sub_nouns,)].append(head_token=token, sub_tokens=subwords, sub_detail=sub_detail)
-        sub_tokens: Set[Token] = set()
+        # 型推論が効かないので型定義
+        sub_tokens_set: Set[Token] = set()
         for wordtuple, swdto in wordtuple_2_token_dict.items():
 
-            head_sub_paires = set()
             head_tokens = set(swdto.token_dict.keys())
+            keyword_id_to_head_tokens = defaultdict(deque)
+            is_linked_head_exist = False
+            is_not_linked_head_exist = False
+            not_linked_heads = deque()
+            for head_token in head_tokens:
+                linked_keywords = results.token_id_2_keyword.get(
+                    head_token, None)
+                if linked_keywords == None:
+                    not_linked_heads.append(head_token)
+                    is_not_linked_head_exist = True
+                    continue
+                is_linked_head_exist = True
+                for linked_keyword_id in linked_keywords.keys():
+                    keyword_id_to_head_tokens[linked_keyword_id].append(
+                        head_token)
+
+            if is_linked_head_exist == True:
+                for keyword_id, head_tokens in keyword_id_to_head_tokens.items():
+                    keyword = results.keywords[keyword_id]
+                    is_extend_tokens_exist = False
+                    extend_tokens = {}
+
+                    for head_token in head_tokens:
+                        sub_tokens_set = set(swdto.tokens[head_token])
+                        least_sub_token = sub_tokens_set - keyword.source_ids
+                        if least_sub_token == EMPTY_SET:
+                            continue
+                        is_extend_tokens_exist = True
+                        extend_tokens[head_token] = least_sub_token
+                    if is_extend_tokens_exist == False:
+                        continue
+                    # パスを作って回す、に変更
+                    # ここから下を共通化
+                    all_link_paths = []
+
+                    for head_token, least_sub_token in extend_tokens.items():
+                        link_paths = [(least_sub_token, ())]
+                        for sub_token in swdto.tokens[head_token]:
+                            next_link_path = []
+                            for path_least_sub_token, nodes in link_paths:
+                                if sub_token not in path_least_sub_token:
+                                    next_link_path.append(
+                                        (path_least_sub_token, nodes,))
+                                    continue
+                                # パスごとの追加作業　tokenはnorm_に変換
+                                is_linked_sub_keywords_exist = False
+                                is_first = True
+                                for linked_sub_keywords in results.token_id_2_keyword.get(sub_token, []):
+                                    is_linked_sub_keywords_exist = True
+
+                                least_sub_token -= sub_token
+                            link_paths = next_link_path
+                        # nodeのみ追加するように
+                        all_link_paths.extend(link_paths)
+
             head_keywords = results.get_by_source_ids(head_tokens)
+            remove_keywords = deque()
             for keyword in head_keywords.values():
                 target_head_tokens = head_tokens & keyword.source_ids
 
                 for target_head_token in target_head_tokens:
-                    subkey = frozenset()
-                    sub_tokens = set(swdto.tokens[target_head_token])
-                    included_tokens = keyword.source_ids & sub_tokens
-                    for sub_token in included_tokens:
-                        subkey &= frozenset([sub_token.norm_])
+                    all_tokens = {target_head_token} | set(
+                        swdto.tokens[target_head_token])
 
-                    key = (keyword.id, subkey,)
-                    if key in head_sub_paires:
+                    if keyword.source_ids >= all_tokens:
                         continue
-                    head_sub_paires.add(key)
-
-                    if swdto.sub_detail != None:
-                        if swdto.sub_detail in keyword.headword:
-                            keyword.headword = wordtuple[0]
-                            if swdto.sub_detail not in keyword.subwords:
-                                keyword.add_subword(swdto.sub_detail)
-                    if included_tokens == sub_tokens:
-                        continue
-                    add_tokens = set()
+                    target
                     for sub_token in swdto.tokens[target_head_token]:
-                        if sub_token in included_tokens:
-                            continue
-                        add_tokens.add(sub_token)
-                        keyword.add_subword(sub_token.norm_)
-                    results.add_tokens(keyword=keyword, tokens=add_tokens)
-            # 既存キーワード中にサ変が含まれるケース
-            for head_token, sub_tokens in swdto.tokens.items():
-                for keyword in results.get_by_source_ids(sub_tokens).values():
+
+                        # 既存キーワード中にサ変が含まれるケース
+            for head_token, sub_tokens_set in swdto.tokens.items():
+                for keyword in results.get_by_source_ids(sub_tokens_set).values():
                     if head_token in keyword.source_ids:
                         continue
                     for paires in keyword.to_paires():
