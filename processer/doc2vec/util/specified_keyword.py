@@ -27,13 +27,14 @@ class SpecifiedKeyword:
     _id: Optional[FrozenSet]
     source_ids: set[Any]
     vector: np.ndarray
+    vectors: Optional[List[np.ndarray]]
 
-    def __init__(self, headword, vector, subwords=[], is_force=False, target_words=None, source_ids: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headword, vectors, subwords=[], is_force=False, target_words=None, source_ids: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.source_ids = set(source_ids)
         self.is_allow_add_multiple_subword = is_allow_add_multiple_subword
-        self.vector = vector
+        self.vectors = vectors
         self._tuple = None
         self._id = None
 
@@ -46,17 +47,15 @@ class SpecifiedKeyword:
                 target_words = [target_words]
             self._target_words = [EqIn(tw) for tw in target_words]
 
+    @property
+    def vector(self):
+        return np.average(self.vectors, axis=0)
+
+    def set_headword(self, headword):
+        self.headword = headword
+
     def get_headword_length(self):
         return len(self.headword)
-
-    @property
-    def id(self) -> FrozenSet:
-        if self._id == None:
-            idset: Set = self.source_ids | {self.headword}
-            if len(self.subwords) != 0:
-                idset.update(self.subwords)
-            self._id = frozenset(idset)
-        return self._id
 
     def clone(self):
         ret = self._clone_class()
@@ -67,11 +66,12 @@ class SpecifiedKeyword:
         ret._target_words = self._target_words
 
         ret.source_ids = self.source_ids.copy()
+
         return ret
 
     def _clone_class(self):
         return self.__class__(
-            headword=self.headword)
+            headword=self.headword, vectors=(self.vectors or [])[:])
 
     def __eq__(self, __value: object) -> bool:
         ret = False

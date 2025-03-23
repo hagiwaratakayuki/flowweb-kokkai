@@ -35,9 +35,9 @@ class ComplexWordDTO:
         self.is_complex_noun = False
         self.source_ids = set()
 
-    def get_vector(self, complessed_noun_vectors) -> np.ndarray:
+    def get_vector(self, complessed_noun_vectors) -> List[np.ndarray]:
 
-        return np.average([complessed_noun_vectors[token.norm_] for token in self.tokens], axis=0)
+        return [complessed_noun_vectors[token.norm_] for token in self.tokens]
 
 
 class Rule(KeywordExtractRule):
