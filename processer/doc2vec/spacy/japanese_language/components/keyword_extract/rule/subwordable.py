@@ -10,15 +10,15 @@ import numpy as np
 
 from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
-from processer.doc2vec.tokenaizer.japanese_language.extracter.basic import sahen
+from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpecifiedKeyword
+
 
 from ..stopwords import remove_stopwords
 from ..util.tag_check import is_sahen, is_adverbable, is_tail, is_numeral, is_popular_noun
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
 from spacy.tokens import Doc, Token
 
-from doc2vec.util.specified_keyword import SpecifiedKeyword
-from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
+from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction
 from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
@@ -45,7 +45,8 @@ class Rule(KeywordExtractRule):
         self._subword_remover = subword_remover
 
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpecifiedKeyword]:
-        paire_to_keyword: Dict[] = {}
+        doc_i_limit = len(doc) - 1
+        paire_to_keyword: Dict[FrozenSet, SpecifiedKeyword] = {}
         for noun_chunk in doc.noun_chunks:
 
             for token in noun_chunk:
@@ -116,7 +117,26 @@ class Rule(KeywordExtractRule):
                     token_keyword_paths = next_token_keyword_paths
                 norm_to_vectors = projecter(norm_to_vectors)
                 min_i = token.i
-                max_i = sub_words[-1].i
+
+                target_i = token.i - 1
+                while target_i >= 0:
+                    target_token = doc[target_i]
+                    if target_token.dep_ != 'compound':
+                        break
+                    min_i = target_i
+                    target_i -= 1
+                tail_word = sub_words[-1]
+                max_i = tail_word.i
+
+                if tail_word.dep_ == 'compound':
+                    target_i = max_i + 1
+                    while target_i <= doc_i_limit:
+                        target_token = doc[target_i]
+                        if target_token.POS_ != 'NOUN':
+                            break
+                        max_i = target_i
+                        target_i += 1
+
                 for head_keyword, path_steps, least_tokens_set in token_keyword_paths:
                     head_keywords: Deque[Tuple[SpecifiedKeyword, List]] = deque(
                     )
@@ -130,7 +150,7 @@ class Rule(KeywordExtractRule):
                         head_keywords.append((head_keyword, [],))
                     else:
                         source_ids = {
-                            token for token in head_keyword.source_ids if min_i <= token.i <= max_i}
+                            source_token for source_token in head_keyword.source_ids if min_i <= source_token.i <= max_i}
                         if head_keyword.source_ids > source_ids:
                             head_keyword_ = head_keyword.clone()
                             head_keyword.source_ids -= source_ids
@@ -148,39 +168,40 @@ class Rule(KeywordExtractRule):
                                     norm_to_vectors[path_step.norm_])
                         else:
                             source_ids = {
-                                token for token in path_step.source_ids if min_i <= token.i <= max_i}
+                                step for step in path_step.source_ids if min_i <= step.i <= max_i}
                             path_step.source_ids -= source_ids
                             next_head_keywords = deque()
-                            is_first = True
-                            # 　ここ修正
-                            for head_keyword, vectors in head_keywords:
-                                for paire in keyword.to_paires():
-                                    if is_first:
 
-                                        head_keyword.add_subword(paire)
-                                        head_keyword.source_ids += source_ids
-                                        vectors.extend(path_step.vectors)
-                                        next_head_keywords.append(
-                                            (head_keyword, vectors,))
-                                        is_first == False
+                            for head_keyword, vectors in head_keywords:
+                                paires = keyword.to_paires()
+                                len_paire = len(paires)
+                                for paire in paires:
+
+                                    if len_paire <= 1:
+                                        _head_keyword = head_keyword
+                                        _vectors = vectors
+
                                     else:
-                                        for head_keyword, vectors in head_keywords:
-                                            head_keyword_ = head_keyword.clone()
-                                            vectors_ = vectors[:].extend(
-                                                path_step.vectors)
-                                            next_head_keywords.append(
-                                                (head_keyword_, vectors_,))
-                                    head_keywords = next_head_keywords
+
+                                        _head_keyword = head_keyword.clone()
+                                        _vectors = vectors[:]
+                                    len_paire -= 1
+                                    _head_keyword.add_subword(paire)
+                                    _head_keyword.source_ids += source_ids
+                                    _vectors.extend(path_step.vectors)
+                                    next_head_keywords.append(
+                                        (_head_keyword, _vectors,))
+
+                            head_keywords = next_head_keywords
                     for head_keyword, vectors in head_keywords:
                         head_keyword.vectors.extend(vectors)
 
-                        for paire in keyword.to_paires():
-                            if paire in paire_to_keyword:
-
-                                head_keyword.source_ids -= paire_to_keyword[paire]
-                            else:
-                                paire_to_keyword[paire] = head_keyword
-                        if head_keyword.source_ids == EMPTY_SET:
+                        paire_set = frozenset(keyword.to_paires())
+                        if paire_set in paire_to_keyword:
+                            paire_to_keyword[paire_set].source_ids += head_keyword.source_ids
                             continue
 
+                        paire_to_keyword[paire_set] = keyword
+
                         results.add_keyword(head_keyword, False)
+        return results

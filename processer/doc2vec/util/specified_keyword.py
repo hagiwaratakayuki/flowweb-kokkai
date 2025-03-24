@@ -1,6 +1,4 @@
-from typing import Any, FrozenSet, Iterator, List, Optional, Union, Tuple, Set
-
-from httpx import head
+from typing import Any, FrozenSet, Iterator, List, Optional, Union, Tuple, Set, TypeVar, Generic
 import numpy as np
 
 
@@ -15,7 +13,10 @@ class EqIn:
 empty_set = set()
 
 
-class SpecifiedKeyword:
+SourceIDType = TypeVar('SourceIDType')
+
+
+class SpecifiedKeyword(Generic[SourceIDType]):
     is_force: bool
     headword: str
     subwords: List[str]
@@ -25,7 +26,7 @@ class SpecifiedKeyword:
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
     _id: Optional[FrozenSet]
-    source_ids: set[Any]
+    source_ids: Set[SourceIDType]
     vector: np.ndarray
     vectors: Optional[List[np.ndarray]]
 
