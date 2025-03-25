@@ -39,6 +39,8 @@ def example(i):
     # text = """金商法改正の議論の前進に向けて、議論したいと思います"""
     # text = "夜も遅いので手短に。教育基本法11条の設置基準について"
     # ginza.set_split_mode(nlp=nlp, mode="A")
+    text = "令和4年4月1日に起きた事件について質問します"
+
     docs = nlp.pipe(
         [convert(text, None)])
     # docs = nlp.pipe(

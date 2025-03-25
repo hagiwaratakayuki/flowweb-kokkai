@@ -22,21 +22,8 @@ from doc2vec.spacy.components.commons.projections_protocol import ProjectFunctio
 from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
-class SubwordedWordDTO:
-
-    tokens: Dict[Token, List[Token]]
-    sub_detail: Optional[str]
-
-    def __init__(self):
-        self.tokens = {}
-        self.sub_detail = None
-
-    def append(self, head_token: Token, sub_tokens: List[Token], sub_detail):
-        self.tokens[head_token] = sub_tokens
-        self.sub_detail = sub_detail
-
-
 EMPTY_SET = set()
+年号 = {'明治', '大正', '昭和', '平成', '令和'}
 
 
 class Rule(KeywordExtractRule):
@@ -52,7 +39,7 @@ class Rule(KeywordExtractRule):
 
             for token in noun_chunk:
                 norm_to_vectors = {}
-                if token.dep_ == 'compound' or (token.pos_ != "PROPN" and not (token.pos_ == "NOUN" and is_popular_noun.check(token=token) == True)):
+                if self._check_is_target_token(doc=doc, token=token):
                     continue
                 _token = token
                 for child in token.children:
@@ -222,3 +209,16 @@ class Rule(KeywordExtractRule):
 
                     results.add_keyword(head_keyword, False)
         return results
+
+    def _check_is_target_token(self, doc: Doc, token: Token):
+
+        if token.pos_ == "NUM" and token.dep_ != 'compound':
+            if token.i > 0 and doc[token.i - 1].dep_ == 'compound':
+                return True
+            return False
+
+        if 年号.isdisjoint((token.orth_, token.lemma_, token.norm_, )) == False:
+            return False
+        if token.dep_ == 'compound' or (token.pos_ != "PROPN" and not (token.pos_ == "NOUN" and is_popular_noun.check(token=token) == True)):
+            return False
+        return True
