@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 
 
+import re
 from typing import Any, Deque, Dict, FrozenSet, List, Optional, Set, Tuple, Union
 
 
@@ -25,6 +26,7 @@ from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
 EMPTY_SET = set()
+WHITESPACE_PT = re.compile('^\s+$')
 
 
 class Rule(KeywordExtractRule):
@@ -39,6 +41,7 @@ class Rule(KeywordExtractRule):
         for noun_chunk in doc.noun_chunks:
 
             for token in noun_chunk:
+
                 norm_to_vectors = {}
                 if self._check_is_target_token(doc=doc, token=token) == False:
                     continue
@@ -68,7 +71,8 @@ class Rule(KeywordExtractRule):
                     sub_detail = tail_token.norm
                     for detailed_token in detailed_tokens[:-1]:
                         headword += detailed_token.norm
-
+            if not headword:
+                headword = token.norm_
             for ancester in token.ancestors:
                 if is_sahen.check(token=ancester) == False:
                     continue
