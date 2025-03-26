@@ -10,7 +10,7 @@ from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
 
 
-from ..util.tag_check import is_popular_noun
+from ..util.tag_check import is_popular_noun, is_tail, is_header, is_numeral, is_counter
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token
 
@@ -96,18 +96,35 @@ class Rule(KeywordExtractRule):
             return complex_word_tokens, noun_vectors
 
         is_complex_noun = False
+        is_tail_exist = False
+        is_header_exist = False
+        is_numeral_only = True
+        is_counter_tail_exist = False
         is_force = False
+        is_numeral_dict = {}
         for token in canditate_tokens:
             is_complex_noun |= is_popular_noun.check(token)
+            is_tail_exist |= is_tail.check(token=token)
+            is_header_exist |= is_header.check(token=token)
             is_force |= token.dep_ in MAIN_DEP
-            if is_complex_noun == True and is_force == True:
-                break
+            is_numeral_flag = is_numeral.check(token)
+            is_numeral_dict[token] = is_numeral_flag
+            is_numeral_only &= is_numeral_flag
+            is_counter_tail_exist = is_counter.check(token)
 
-        if is_complex_noun == True:
+        if is_complex_noun == True or (is_tail_exist == False and is_header_exist == False and is_numeral_only == False):
             key = ''
             source_ids = set()
-
+            is_first = True
             for token in canditate_tokens:
+                if is_first == False:
+                    if is_header.check(token=token) == True:
+                        break
+                    if is_counter_tail_exist == True and is_numeral_dict[token] == True:
+                        break
+
+                else:
+                    is_first = False
                 noun_vectors[token.norm_] = token.vector
                 key += token.norm_
                 source_ids.add(token)

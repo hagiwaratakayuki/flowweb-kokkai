@@ -1,13 +1,7 @@
-from collections import defaultdict, deque
-
-
-import re
+from collections import deque
 from typing import Any, Deque, Dict, FrozenSet, List, Optional, Set, Tuple, Union
-
-
-from ginza import norm
 import numpy as np
-
+from spacy.tokens import Doc, Token
 
 from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
@@ -15,18 +9,15 @@ from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpec
 from doc2vec.spacy.japanese_language.components.keyword_extract.util.keyword_match.is_nengou import 年号であるか否か
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 
-
 from ..stopwords import remove_stopwords
 from ..util.tag_check import is_sahen, is_tail, is_popular_noun
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
-from spacy.tokens import Doc, Token
 
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction
 from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
 EMPTY_SET = set()
-WHITESPACE_PT = re.compile('^\s+$')
 
 
 class Rule(KeywordExtractRule):
