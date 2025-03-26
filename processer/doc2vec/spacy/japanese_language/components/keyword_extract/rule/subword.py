@@ -1,7 +1,7 @@
 from collections import defaultdict, deque
 
 
-from typing import Any, Callable, DefaultDict, Deque, Dict, FrozenSet, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Deque, Dict, FrozenSet, List, Optional, Set, Tuple, Union
 
 
 from ginza import norm
@@ -10,12 +10,14 @@ import numpy as np
 
 from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
-from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpecifiedKeyword
+from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpecifiedKeywordType
+from doc2vec.spacy.japanese_language.components.keyword_extract.util.keyword_match.is_nengou import 年号であるか否か
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 
 
 from ..stopwords import remove_stopwords
-from ..util.tag_check import is_sahen, is_adverbable, is_tail, is_numeral, is_popular_noun
-from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
+from ..util.tag_check import is_sahen, is_tail, is_popular_noun
+from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token
 
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction
@@ -23,7 +25,6 @@ from doc2vec.spacy.components.commons.const import SPECIFIABLE_POS
 
 
 EMPTY_SET = set()
-年号 = {'明治', '大正', '昭和', '平成', '令和'}
 
 
 class Rule(KeywordExtractRule):
@@ -31,34 +32,33 @@ class Rule(KeywordExtractRule):
         self._noun_stopword_remover = noun_stopword_remover
         self._subword_remover = subword_remover
 
-    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpecifiedKeyword]:
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpacySpecifiedKeywordType]:
         doc_i_max = len(doc) - 1
-        paire_to_keyword: Dict[FrozenSet, SpecifiedKeyword] = {}
+        paire_to_keyword: Dict[FrozenSet, SpacySpecifiedKeywordType] = {}
         canditate_tokens: Set[Token] = set()
         for noun_chunk in doc.noun_chunks:
 
             for token in noun_chunk:
                 norm_to_vectors = {}
-                if self._check_is_target_token(doc=doc, token=token):
+                if self._check_is_target_token(doc=doc, token=token) == False:
                     continue
                 _token = token
                 for child in token.children:
-                    if child.dep_ == 'compound' or (child.pos_ != "PROPN" and not (child.pos_ == "NOUN" and is_popular_noun.check(token=child) == True)):
+                    if self._check_is_target_token(doc=doc, token=child) == False:
                         continue
                     if _token.i < child.i:
-                        continue
-                    ancesters_set = set(child.ancestors)
-                    if token not in ancesters_set:
                         continue
                     _token = child
 
                 canditate_tokens.add(_token)
+
         for token in canditate_tokens:
             has_subword = False
             sub_words: List[Token] = []
             sub_detail = None
 
             headword = ''
+
             for detailed_tokens in doc.user_data["sub_tokens"][token.i]:
                 if len(detailed_tokens) == 0:
                     continue
@@ -72,7 +72,7 @@ class Rule(KeywordExtractRule):
             for ancester in token.ancestors:
                 if is_sahen.check(token=ancester) == False:
                     continue
-                if ancester.i < doc_i_max and is_tail(doc[ancester.i + 1]) == True:
+                if ancester.i < doc_i_max and is_tail.check(doc[ancester.i + 1]) == True:
                     continue
                 sub_words.append(ancester)
                 has_subword = True
@@ -81,10 +81,10 @@ class Rule(KeywordExtractRule):
 
             subwords_set = set(sub_words)
 
-            token_keyword_paths: Deque[Tuple[Optional[SpecifiedKeyword],
-                                             Tuple[Union[Token, SpecifiedKeyword]], Set[Any]]] = deque()
+            token_keyword_paths: Deque[Tuple[Optional[SpacySpecifiedKeywordType],
+                                             Tuple[Union[Token, SpacySpecifiedKeywordType]], Set[Any]]] = deque()
 
-            if token in results.token_id_2_keyword:
+            if token in results.token_2_keyword:
                 has_subword = False
                 for keyword in results.get_by_source_ids([token]):
                     if keyword.source_ids >= subwords_set:
@@ -97,13 +97,13 @@ class Rule(KeywordExtractRule):
                         (keyword, (), subwords_set - keyword.source_ids,))
             else:
                 token_keyword_paths.append(
-                    (None, (), subwords_set - keyword.source_ids,))
+                    (None, (), subwords_set,))
             if not has_subword:
                 continue
             for sub_word in sub_words:
                 norm_to_vectors[sub_word.norm_] = sub_word.vector
                 next_token_keyword_paths = deque()
-                sub_keywords = results.token_id_2_keyword.get(
+                sub_keywords = results.token_2_keyword.get(
                     sub_word, None)
                 for head_keyword, path_steps, least_tokens_set in token_keyword_paths:
 
@@ -113,11 +113,11 @@ class Rule(KeywordExtractRule):
                     else:
                         if sub_keywords == None:
                             next_token_keyword_paths.append(
-                                head_keyword, path_steps + (token,), least_tokens_set)
+                                (head_keyword, path_steps + (sub_word,), least_tokens_set,))
                         else:
-                            for sub_keyword in sub_keywords.values():
+                            for sub_keyword in sub_keywords:
                                 next_token_keyword_paths.append(
-                                    head_keyword, path_steps + (sub_keyword,), least_tokens_set - sub_keyword.source_ids)
+                                    (head_keyword, path_steps + (sub_keyword,), least_tokens_set - sub_keyword.source_ids, ))
                 token_keyword_paths = next_token_keyword_paths
             norm_to_vectors = projecter(norm_to_vectors)
             min_i = token.i
@@ -142,7 +142,8 @@ class Rule(KeywordExtractRule):
                     target_i += 1
 
             for head_keyword, path_steps, least_tokens_set in token_keyword_paths:
-                head_keywords: Deque[Tuple[SpecifiedKeyword, List]] = deque(
+
+                head_keywords: Deque[Tuple[SpacySpecifiedKeywordType, List]] = deque(
                 )
                 if head_keyword == None:
                     if sub_detail != None:
@@ -191,7 +192,7 @@ class Rule(KeywordExtractRule):
                                     _vectors = vectors[:]
                                 len_paire -= 1
                                 _head_keyword.add_subword(paire)
-                                _head_keyword.source_ids += source_ids
+                                _head_keyword.source_ids |= source_ids
                                 _vectors.extend(path_step.vectors)
                                 next_head_keywords.append(
                                     (_head_keyword, _vectors,))
@@ -200,25 +201,28 @@ class Rule(KeywordExtractRule):
                 for head_keyword, vectors in head_keywords:
                     head_keyword.vectors.extend(vectors)
 
-                    paire_set = frozenset(keyword.to_paires())
+                    paire_set = frozenset(head_keyword.to_paires())
                     if paire_set in paire_to_keyword:
-                        paire_to_keyword[paire_set].source_ids += head_keyword.source_ids
+                        paire_to_keyword[paire_set].source_ids |= head_keyword.source_ids
                         continue
 
-                    paire_to_keyword[paire_set] = keyword
+                    paire_to_keyword[paire_set] = head_keyword
 
                     results.add_keyword(head_keyword, False)
         return results
 
     def _check_is_target_token(self, doc: Doc, token: Token):
-
-        if token.pos_ == "NUM" and token.dep_ != 'compound':
+        if token.dep_ == 'compound':
+            return False
+        if token.pos_ == "NUM":
             if token.i > 0 and doc[token.i - 1].dep_ == 'compound':
                 return True
             return False
 
-        if 年号.isdisjoint((token.orth_, token.lemma_, token.norm_, )) == False:
-            return False
-        if token.dep_ == 'compound' or (token.pos_ != "PROPN" and not (token.pos_ == "NOUN" and is_popular_noun.check(token=token) == True)):
-            return False
-        return True
+        if token.pos_ == "PROPN":
+            return 年号であるか否か(token, is_negative_match=True)
+
+        if token.pos_ == "NOUN" and is_popular_noun.check(token=token) == True:
+
+            return True
+        return False

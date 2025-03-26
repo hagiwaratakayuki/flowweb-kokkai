@@ -78,7 +78,21 @@ class Reducer:
         self.value += i
 
 
-check()
+# check()
+class T:
+    a: int
+
+    def __init__(self):
+        a = 0
+
+
+key = T()
+tdict = {}
+tdict[key] = 1
+key.a = 3
+print(tdict[T()])
+
+
 # main()
 """
 if __name__ == '__main__':

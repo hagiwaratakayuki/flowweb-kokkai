@@ -62,6 +62,7 @@ def example(i):
             # print(list(chunk.noun_chunks))
         print(nlp.batch_size)
         print(doc.sentiment)
+        print(doc.user_data["sub_tokens"])
         # print(dir(doc.user_data["sub_tokens"][0][0][0]))
         for sent in doc.sents:
 

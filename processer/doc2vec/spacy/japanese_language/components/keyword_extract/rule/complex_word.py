@@ -10,8 +10,8 @@ from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
 
 
-from ..util.tag_check import is_sahen, is_adverbable, is_tail, is_popular_noun
-from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule, TokenID2Keyword
+from ..util.tag_check import is_popular_noun
+from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword
@@ -82,7 +82,7 @@ class Rule(KeywordExtractRule):
 
             sk = SpecifiedKeyword(
                 headword=complex_word,
-                vector=data.get_vector(
+                vectors=data.get_vector(
                     complessed_noun_vectors=complessed_noun_vectors),
                 is_force=data.is_force,
                 source_ids=data.source_ids

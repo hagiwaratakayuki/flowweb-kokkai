@@ -1,4 +1,4 @@
-from typing import Any, FrozenSet, Iterator, List, Optional, Union, Tuple, Set, TypeVar, Generic
+from typing import Any, FrozenSet, Iterable, Iterator, List, Optional, Union, Tuple, Set, TypeVar, Generic
 import numpy as np
 
 
@@ -25,19 +25,18 @@ class SpecifiedKeyword(Generic[SourceIDType]):
     _subwords: List[EqIn]
     _tuple: Union[Tuple, None]
     _target_words: Union[Set, None]
-    _id: Optional[FrozenSet]
+
     source_ids: Set[SourceIDType]
     vector: np.ndarray
     vectors: Optional[List[np.ndarray]]
 
-    def __init__(self, headword, vectors, subwords=[], is_force=False, target_words=None, source_ids: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headword, vectors, subwords=[], is_force=False, target_words=None, source_ids: Iterable[SourceIDType] = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.source_ids = set(source_ids)
         self.is_allow_add_multiple_subword = is_allow_add_multiple_subword
         self.vectors = vectors
         self._tuple = None
-        self._id = None
 
         self.subwords = subwords[:]
         self.is_force = is_force
@@ -74,7 +73,12 @@ class SpecifiedKeyword(Generic[SourceIDType]):
         return self.__class__(
             headword=self.headword, vectors=(self.vectors or [])[:])
 
+    def __hash__(self):
+        return super().__hash__()
+
     def __eq__(self, __value: object) -> bool:
+        if __value == None:
+            return False
         ret = False
         if self._target_words is not None:
 
