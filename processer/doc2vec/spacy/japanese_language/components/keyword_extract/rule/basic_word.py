@@ -10,6 +10,7 @@ import numpy as np
 
 from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
+from mutitest import check
 
 
 from ..util.tag_check import is_popular_noun, is_tail, is_header, is_numeral, is_counter, is_form_tail, is_sahen, is_adverbable
@@ -51,15 +52,11 @@ class Rule(KeywordExtractRule):
                                   ComplexWordDTO] = defaultdict(ComplexWordDTO)
         noun_vectors: NounVectors = {}
         nouns: Nouns = defaultdict(set)
-        for noun_chunk in doc.noun_chunks:
-
-            if len(noun_chunk) == 1:
-
-                continue
+        for sent in doc.sents:
 
             is_canditate_exists = False
             canditate_tokens: List[Token] = []
-            for token in noun_chunk:
+            for token in sent:
 
                 if is_canditate_exists == True:
 
@@ -71,7 +68,7 @@ class Rule(KeywordExtractRule):
                         is_canditate_exists = False
 
                         complex_word_tokens, noun_vectors, nouns = self._update_section(canditate_tokens=canditate_tokens,
-                                                                                        complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors)
+                                                                                        complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors, nouns=nouns)
 
                         canditate_tokens = []
                     continue
@@ -90,10 +87,11 @@ class Rule(KeywordExtractRule):
                     if is_sahen.check(token=token):
                         nouns[token.norm_].add(token)
                         noun_vectors[token.norm_] = token.vector
+                        continue
 
             if is_canditate_exists == True:
                 complex_word_tokens, noun_vectors, nouns = self._update_section(canditate_tokens=canditate_tokens,
-                                                                                complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors)
+                                                                                complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors, nouns=nouns)
         complessed_noun_vectors = projecter(noun_vectors)
         for complex_word, data in complex_word_tokens.items():
 
@@ -105,10 +103,10 @@ class Rule(KeywordExtractRule):
                 source_ids=set(data.tokens)
             )
             results.add_keyword(sk)
-        for norm, tokens in nouns:
+        for norm, tokens in nouns.items():
             sk = SpecifiedKeyword(
-                headword=complex_word,
-                vectors=complessed_noun_vectors[norm],
+                headword=norm,
+                vectors=[complessed_noun_vectors[norm]],
                 is_force=False,
                 source_ids=tokens
             )
@@ -118,76 +116,72 @@ class Rule(KeywordExtractRule):
     def _update_section(self, canditate_tokens: List[Token], complex_word_tokens: Dict[str, ComplexWordDTO], noun_vectors: NounVectors, nouns: Nouns):
         canditate_tokens_len = len(canditate_tokens)
         if canditate_tokens_len <= 1:
-            return complex_word_tokens, noun_vectors
+            return complex_word_tokens, noun_vectors, nouns
         tail_token = canditate_tokens[-1]
-        if tail_token.dep_ == 'acl' or is_form_tail.check(token=token) == True:
+        if tail_token.dep_ == 'acl' or is_form_tail.check(token=tail_token):
             return complex_word_tokens, noun_vectors, nouns
 
-        if canditate_tokens_len == 2:
+        if canditate_tokens_len == 2 and is_sahen.check(token=tail_token) == True:
             head_token = canditate_tokens[0]
-            if is_sahen.check(token=tail_token) == True and is_sahen.check(head_token) == False:
-                nouns[head_token.norm_].add(token)
-                noun_vectors[head_token.norm_] = head_token.vector
-                nouns[tail_token.norm_].add(tail_token)
-                noun_vectors[tail_token.norm_] = tail_token.vector
+            if is_header.check(head_token):
                 return complex_word_tokens, noun_vectors, nouns
+            nouns[head_token.norm_].add(head_token)
+            noun_vectors[head_token.norm_] = head_token.vector
+            nouns[tail_token.norm_].add(tail_token)
+            noun_vectors[tail_token.norm_] = tail_token.vector
+            return complex_word_tokens, noun_vectors, nouns
 
         valid_results: List[Token] = []
+        valid_results_list: List[List[Token]] = [valid_results]
         under_inspections = []
         is_valid_result_exist = False
         is_after_header = False
         is_after_header_exist = False
-        is_numeral_only = False
+        is_numeral_only = True
         is_sahen_only = False
         is_under_inspection = False
-        is_adverbable_exist = False
+        is_firstadverbable_exist = False
         for token in canditate_tokens:
 
-            if is_after_header == False:
-                if is_header.check(token=token):
-                    is_after_header = True
-                    under_inspections.append(token)
-                    is_under_inspection = True
-                    is_numeral_only = True
-                    is_sahen_only = True
-                    is_after_header_exist = False
-                    continue
-            else:
-                if is_header.check(token=token):
+            if is_header.check(token=token):
+                if is_after_header == True:
                     if not (is_sahen_only or (is_numeral_only and is_counter.check(under_inspections[-1]))):
                         valid_results.extend(under_inspections)
-                    under_inspections = []
-                    under_inspections.append(token)
-                    is_numeral_only = True
-                    is_sahen_only = True
-                    is_after_header_exist = False
-                    is_adverbable_exist = False
-                    continue
-                is_after_header_exist = True
-                if is_sahen.check(token=token):
-                    is_adverbable_exist = False
-                    is_sahen_only &= True
-                    under_inspections.append(token)
-                    continue
+                    else:
+                        valid_results = []
+                        valid_results_list.append(valid_results)
                 else:
-                    is_sahen_only = False
+                    is_after_header = True
+                is_numeral_only = True
+                is_sahen_only = True
+                is_after_header_exist = False
+                under_inspections = []
+                under_inspections.append(token)
+                is_numeral_only = True
+
+                is_after_header_exist = False
+                is_firstadverbable_exist = False
+                continue
+            is_after_header_exist = True
+
             if is_adverbable.check(token=token):
                 is_under_inspection = True
-                is_adverbable_exist = True
+                is_firstadverbable_exist = True
                 under_inspections.append(token)
                 is_sahen_only = False
                 is_numeral_only = False
 
-            if is_tail.check(token) and is_adverbable_exist:
+            if is_tail.check(token) and is_firstadverbable_exist:
                 under_inspections = []
                 is_under_inspection = False
                 is_numeral_only = False
                 is_sahen_only = False
                 is_after_header_exist = False
                 is_after_header = False
-                is_adverbable_exist = False
+                is_firstadverbable_exist = False
                 continue
-
+            if is_sahen.check(token=token):
+                pass
             if is_numeral.check(token=token):
                 if is_under_inspection == False:
                     is_under_inspection = True
@@ -195,13 +189,23 @@ class Rule(KeywordExtractRule):
                 else:
                     is_numeral_only &= True
                 is_sahen_only = False
-                is_adverbable_exist = False
+                is_firstadverbable_exist = False
+                is_numeral_only
                 under_inspections.append(token)
                 continue
+
             if is_under_inspection == True:
+                if is_numeral_only:
+                    tail_token = under_inspections[-1]
+                    if not is_counter.check(tail_token) or is_tail.check(token=token):
+                        valid_results.extend(under_inspections)
+                        under_inspections = []
+                    else:
+
                 is_after_header = False
                 is_under_inspection = False
-                valid_results.extend(under_inspections)
+                is_numeral_only = False
+
                 under_inspections = []
             is_valid_result_exist = True
             valid_results.append(token)

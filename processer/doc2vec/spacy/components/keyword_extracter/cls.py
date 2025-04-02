@@ -58,7 +58,7 @@ class BasicKeywordExtratcer:
 
         for index in np.argsort(distances):
 
-            if count >= self.keyword_limit or distances[index] > avg_distance - std_distance:
+            if count >= self.keyword_limit:
                 if count == 0:
                     count += 1
                     keyword_objects.append(index2object[index])
