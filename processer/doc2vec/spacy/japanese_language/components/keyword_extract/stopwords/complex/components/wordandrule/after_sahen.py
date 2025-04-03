@@ -10,4 +10,6 @@ class Check(BaseCheck):
         if index >= len(doc) - 1:
             return False, 0
         target = doc[index]
-        if is_sahen.check(token=target)
+        if is_sahen.check(token=target):
+            return True, slide + 1
+        return False, slide

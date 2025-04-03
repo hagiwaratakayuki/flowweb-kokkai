@@ -23,26 +23,33 @@ def check(token: Token, word: str, target_faces: FaceTypes = DEFAULT_FACETYPES):
 def check_with_slidecount(token: Token, word: str, target_faces: FaceTypes = DEFAULT_FACETYPES, permission_level=0):
 
     doc = token.doc
-    index_limit = len(doc)
+    cursor_limit = len(doc)
     for target_face in target_faces:
         token_target_face: str = getattr(token, target_face)
+        if token_target_face == word:
+            return True, 0
         if word in token_target_face:
 
-            if token_target_face == word:
-                return True, 0
             if permission_level == ALLOW_BOTH or permission_level == ALLOW_LEFTHAND:
                 return True, 0
             if permission_level == ALLOW_RIGHTHAND and token_target_face.startswith(word):
                 return True, 0
             continue
-        if word.startswith(token_target_face) == False:
-            continue
+        if (permission_level == ALLOW_RIGHTHAND or permission_level == STRICT):
+            if word.startswith(token_target_face) == False:
+                continue
         else:
-            if permission_level == ALLOW_RIGHTHAND or permission_level == ALLOW_BOTH:
-                return True, 0
+            head_word = word[0]
+            lefthand_index = token_target_face.find(head_word)
+            if lefthand_index == -1:
+                continue
+            lefthand_token_face = token_target_face[lefthand_index:]
+            if lefthand_token_face not in word:
+                continue
+
         count_ = 1
         cursor = token.i + count_
-        while cursor < index_limit:
+        while cursor < cursor_limit:
             tok = doc[cursor]
             token_target_face += getattr(tok, target_face)
             if token_target_face in word:
@@ -51,8 +58,14 @@ def check_with_slidecount(token: Token, word: str, target_faces: FaceTypes = DEF
                 count_ += 1
                 cursor = token.i + count_
                 continue
+
             if word in token_target_face:
-                return permission_level == ALLOW_RIGHTHAND or permission_level == ALLOW_BOTH, count_
+                return permission_level != STRICT, count_
+            if permission_level == ALLOW_LEFTHAND:
+
+                lefthand_token_face += getattr(tok, target_face)
+                if lefthand_token_face in word:
+                    continue
             break
 
     return False, 0
