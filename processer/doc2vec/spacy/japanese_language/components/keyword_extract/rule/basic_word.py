@@ -1,24 +1,16 @@
 
 from collections import defaultdict, deque
-
-
-import re
 from typing import DefaultDict, Dict, Iterator, List, Optional, Set
-from unittest import result
-
 import numpy as np
-
 from data_loader.dto import DTO
 from doc2vec.protocol.sentiment import SentimentResult
-from mutitest import check
-
-
 from ..util.tag_check import is_popular_noun, is_tail, is_header, is_numeral, is_counter, is_form_tail, is_sahen, is_adverbable
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token
-
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
+from ..stopwords import complex_token
+
 
 CONPOUND_DEP = 'compound'
 KEEP_DEP = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT', 'acl'}
@@ -135,105 +127,85 @@ class Rule(KeywordExtractRule):
         valid_results_list: List[List[Token]] = [valid_results]
         under_inspections = []
         is_valid_result_exist = False
-        is_after_header = False
-        is_after_header_exist = False
+        約の後の続きである = False
+        約に続いてトークンが存在している = False
         is_numeral_only = True
-        is_sahen_only = False
-        is_under_inspection = False
-        is_firstadverbable_exist = False
-        for token in canditate_tokens:
 
-            if is_header.check(token=token):
-                if is_after_header == True:
-                    if not (is_sahen_only or (is_numeral_only and is_counter.check(under_inspections[-1]))):
+        is_under_inspection = False
+
+        limit = len(canditate_tokens)
+        index = 0
+        while index < limit:
+            token = canditate_tokens[index]
+            index += 1
+
+            is_blockword, slide = complex_token.check(token=token)
+            if is_blockword:
+                index += slide
+                continue
+
+            if token.norm_ == '約':
+                if 約の後の続きである:
+                    if not is_numeral_only:
+
                         valid_results.extend(under_inspections)
                     else:
                         valid_results = []
                         valid_results_list.append(valid_results)
                 else:
-                    is_after_header = True
-                is_numeral_only = True
-                is_sahen_only = True
-                is_after_header_exist = False
+                    約の後の続きである = True
+
+                約に続いてトークンが存在している = False
                 under_inspections = []
                 under_inspections.append(token)
                 is_numeral_only = True
 
-                is_after_header_exist = False
-                is_firstadverbable_exist = False
                 continue
-            is_after_header_exist = True
+            約に続いてトークンが存在している = True
 
-            if is_adverbable.check(token=token):
-                is_under_inspection = True
-                is_firstadverbable_exist = True
-                under_inspections.append(token)
-                is_sahen_only = False
-                is_numeral_only = False
-
-            if is_tail.check(token) and is_firstadverbable_exist:
-                under_inspections = []
-                is_under_inspection = False
-                is_numeral_only = False
-                is_sahen_only = False
-                is_after_header_exist = False
-                is_after_header = False
-                is_firstadverbable_exist = False
-                continue
-            if is_sahen.check(token=token):
-                pass
             if is_numeral.check(token=token):
                 if is_under_inspection == False:
                     is_under_inspection = True
                     is_numeral_only = True
                 else:
                     is_numeral_only &= True
-                is_sahen_only = False
-                is_firstadverbable_exist = False
-                is_numeral_only
+
                 under_inspections.append(token)
                 continue
 
             if is_under_inspection == True:
-                if is_numeral_only:
-                    tail_token = under_inspections[-1]
-                    if not is_counter.check(tail_token) or is_tail.check(token=token):
-                        valid_results.extend(under_inspections)
-                        under_inspections = []
-                    else:
+                if is_numeral_only and 約の後の続きである and not is_tail.check(token):
 
-                is_after_header = False
+                    valid_results = []
+                    valid_results_list.append(valid_results)
+                else:
+                    valid_results.extend(under_inspections)
+
+                約の後の続きである = False
                 is_under_inspection = False
                 is_numeral_only = False
-
                 under_inspections = []
-            is_valid_result_exist = True
+
             valid_results.append(token)
         if is_under_inspection:
 
-            if is_after_header:
+            if 約の後の続きである:
 
-                if (is_after_header_exist == False) or (is_numeral_only == False and is_sahen_only == False):
-                    is_valid_result_exist = True
+                if (約に続いてトークンが存在している == False) or (is_numeral_only == False):
+
                     valid_results.extend(under_inspections)
             else:
                 if is_numeral_only == False:
-                    is_valid_result_exist = True
                     valid_results.extend(under_inspections)
-                else:
-                    if not is_counter.check(under_inspections[-1]):
-                        is_valid_result_exist = True
-                        valid_results.extend(under_inspections)
 
-        if not is_valid_result_exist:
-            return complex_word_tokens, noun_vectors, nouns
-
-        key = ''
-        for token in valid_results:
-            key += token.norm_
-            noun_vectors[token.norm_] = token.vector
-        data = complex_word_tokens[key]
-
-        data.tokens += valid_results
+        for valid_results in valid_results_list
+          key = ''
+           for token in valid_results:
+                key += token.lemma_
+                noun_vectors[token.norm_] = token.vector
+            if not key:
+                continue
+            data = complex_word_tokens[key]
+            data.tokens += valid_results
 
         return complex_word_tokens, noun_vectors, nouns
