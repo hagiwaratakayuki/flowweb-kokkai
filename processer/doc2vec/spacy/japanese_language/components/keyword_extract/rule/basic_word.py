@@ -31,11 +31,18 @@ class ComplexWordDTO:
         self.source_ids = set()
 
     def get_vector(self, complessed_noun_vectors) -> List[np.ndarray]:
-
-        return [complessed_noun_vectors[token.norm_] for token in self.tokens]
+        exist_tokens = set()
+        result = []
+        for token in self.tokens:
+            if token.norm_ in exist_tokens:
+                continue
+            exist_tokens.add(token.norm_)
+            result.append(complessed_noun_vectors[token.norm_])
+        return result
 
 
 type Nouns = DefaultDict[str, Set[Token]]
+形容的な接尾語 = {'用', '中', '前', '後', '上', '下'}
 
 
 class Rule(KeywordExtractRule):
@@ -64,19 +71,27 @@ class Rule(KeywordExtractRule):
 
                         canditate_tokens = []
                     continue
+
                 if token.pos_ == "NOUN":
 
-                    if is_popular_noun.check(token=token) and len(list(token.children)) == 0:
-
-                        if token.dep_ == CONPOUND_DEP:
-                            is_canditate_exists = True
-                            canditate_tokens.append(token)
+                    if is_counter.check(token=token):
+                        if token.i > 0 and is_numeral.check(doc[token.i - 1]):
                             continue
-
-                        nouns[token.norm_].add(token)
-                        noun_vectors[token.norm_] = token.vector
+                    if len(list(token.children)) != 0:
                         continue
-                    if is_sahen.check(token=token):
+                    is_alone = True
+                    for ancester in token.ancestors:
+                        if ancester.pos_ == "NOUN":
+                            is_alone = False
+                            break
+                    if is_alone:
+                        continue
+                    if token.dep_ == CONPOUND_DEP:
+                        is_canditate_exists = True
+                        canditate_tokens.append(token)
+                        continue
+
+                    if is_sahen.check(token=token) or is_popular_noun.check(token=token):
                         nouns[token.norm_].add(token)
                         noun_vectors[token.norm_] = token.vector
                         continue
@@ -106,27 +121,32 @@ class Rule(KeywordExtractRule):
         return results
 
     def _update_section(self, canditate_tokens: List[Token], complex_word_tokens: Dict[str, ComplexWordDTO], noun_vectors: NounVectors, nouns: Nouns):
+        print(canditate_tokens)
         canditate_tokens_len = len(canditate_tokens)
         if canditate_tokens_len <= 1:
             return complex_word_tokens, noun_vectors, nouns
         tail_token = canditate_tokens[-1]
         if tail_token.dep_ == 'acl' or is_form_tail.check(token=tail_token):
+
             return complex_word_tokens, noun_vectors, nouns
 
-        if canditate_tokens_len == 2 and is_sahen.check(token=tail_token) == True:
-            head_token = canditate_tokens[0]
-            if is_header.check(head_token):
+        if canditate_tokens_len == 2:
+            if is_sahen.check(token=tail_token) == True:
+                head_token = canditate_tokens[0]
+                if is_header.check(head_token):
+                    return complex_word_tokens, noun_vectors, nouns
+                nouns[head_token.norm_].add(head_token)
+                noun_vectors[head_token.norm_] = head_token.vector
+                nouns[tail_token.norm_].add(tail_token)
+                noun_vectors[tail_token.norm_] = tail_token.vector
                 return complex_word_tokens, noun_vectors, nouns
-            nouns[head_token.norm_].add(head_token)
-            noun_vectors[head_token.norm_] = head_token.vector
-            nouns[tail_token.norm_].add(tail_token)
-            noun_vectors[tail_token.norm_] = tail_token.vector
-            return complex_word_tokens, noun_vectors, nouns
+            if tail_token.norm_ in 形容的な接尾語:
+                return complex_word_tokens, noun_vectors, nouns
 
         valid_results: List[Token] = []
         valid_results_list: List[List[Token]] = [valid_results]
         under_inspections = []
-        is_valid_result_exist = False
+
         約の後の続きである = False
         約に続いてトークンが存在している = False
         is_numeral_only = True
@@ -174,7 +194,7 @@ class Rule(KeywordExtractRule):
                 continue
 
             if is_under_inspection == True:
-                if is_numeral_only and 約の後の続きである and not is_tail.check(token):
+                if is_numeral_only and not is_tail.check(token):
 
                     valid_results = []
                     valid_results_list.append(valid_results)
@@ -195,16 +215,17 @@ class Rule(KeywordExtractRule):
 
                     valid_results.extend(under_inspections)
             else:
-                if is_numeral_only == False:
+                if is_numeral_only == False or not is_counter.check(under_inspections[-1]):
                     valid_results.extend(under_inspections)
 
-        for valid_results in valid_results_list
-          key = ''
-           for token in valid_results:
+        for valid_results in valid_results_list:
+            key = ''
+            for token in valid_results:
                 key += token.lemma_
                 noun_vectors[token.norm_] = token.vector
             if not key:
                 continue
+            print(key)
             data = complex_word_tokens[key]
             data.tokens += valid_results
 

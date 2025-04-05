@@ -4,8 +4,8 @@ from typing import Iterable, List, Literal
 from spacy.tokens import Token
 
 type FaceType = Literal["norm_", "lemma_", "orth_"]
-type FaceTypes = List[FaceType]
-DEFAULT_FACETYPES: FaceTypes = ["norm_"]
+type TargetFaces = List[FaceType]
+DEFAULT_TARGET_FACES: TargetFaces = ["norm_"]
 
 type PermissionLevel = Literal[0, 1, 2, 3]
 STRICT: PermissionLevel = 0
@@ -14,13 +14,13 @@ ALLOW_RIGHTHAND: PermissionLevel = 2
 ALLOW_BOTH: PermissionLevel = 3
 
 
-def check(token: Token, word: str, target_faces: FaceTypes = DEFAULT_FACETYPES):
+def check(token: Token, word: str, target_faces: TargetFaces = DEFAULT_TARGET_FACES):
     res = check_with_slidecount(
         token=token, word=word, target_faces=target_faces)
     return res[0]
 
 
-def check_with_slidecount(token: Token, word: str, target_faces: FaceTypes = DEFAULT_FACETYPES, permission_level: PermissionLevel = STRICT):
+def check_with_slidecount(token: Token, word: str, target_faces: TargetFaces = DEFAULT_TARGET_FACES, permission_level: PermissionLevel = STRICT):
 
     doc = token.doc
     cursor_limit = len(doc)
