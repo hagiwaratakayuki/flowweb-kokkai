@@ -10,7 +10,7 @@ from spacy.tokens import Doc, Token
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
 from ..stopwords import complex_token
-
+from ginza import DetailedToken
 
 CONPOUND_DEP = 'compound'
 KEEP_DEP = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT', 'acl'}
@@ -51,6 +51,7 @@ class Rule(KeywordExtractRule):
                                   ComplexWordDTO] = defaultdict(ComplexWordDTO)
         noun_vectors: NounVectors = {}
         nouns: Nouns = defaultdict(set)
+        is_overwrites = {}
         for sent in doc.sents:
 
             is_canditate_exists = False
@@ -72,7 +73,7 @@ class Rule(KeywordExtractRule):
                         canditate_tokens = []
                     continue
 
-                if token.pos_ == "NOUN":
+                if token.pos_ == "NOUN" or token.pos_ == "PROPN":
                     if len(tuple(token.children)) != 0:
                         continue
                     if is_counter.check(token=token):
@@ -91,10 +92,31 @@ class Rule(KeywordExtractRule):
                         canditate_tokens.append(token)
                         continue
 
-                    if is_sahen.check(token=token) or is_popular_noun.check(token=token):
+                    if token.dep_ == "PROPN" or is_sahen.check(token=token):
                         nouns[token.norm_].add(token)
 
                         continue
+                    if is_popular_noun.check(token=token):
+                        is_sahen_exist = False
+                        split_results: List[List[DetailedToken]
+                                            ] = doc.user_data["sub_tokens"][token.i]
+                        for detailed_tokens in split_results:
+                            if len(detailed_tokens) != 2:
+                                continue
+                            tail_token = detailed_tokens[-1]
+                            if 'サ変' in tail_token.tag:
+                                is_sahen_exist = True
+                                nouns[tail_token.norm].add(token)
+                                is_overwrites[tail_token.norm] = False
+                                head_key = ''
+                                for head_token in detailed_tokens[:-1]:
+                                    head_key += head_token.norm
+                                nouns[head_key].add(token)
+                                is_overwrites[head_key] = False
+                                break
+                        if is_sahen_exist == True:
+                            continue
+                        nouns[token.norm_].add(token)
 
             if is_canditate_exists == True:
                 complex_word_tokens, noun_vectors, nouns = self._update_section(canditate_tokens=canditate_tokens,
@@ -116,7 +138,8 @@ class Rule(KeywordExtractRule):
                 is_force=False,
                 source_ids=tokens
             )
-            results.add_keyword(sk)
+            results.add_keyword(
+                sk, is_overwrite_token=is_overwrites.get(norm, True))
         return results
 
     def _update_section(self, canditate_tokens: List[Token], complex_word_tokens: Dict[str, ComplexWordDTO], noun_vectors: NounVectors, nouns: Nouns):
