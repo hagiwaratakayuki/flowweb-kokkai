@@ -73,12 +73,12 @@ class Rule(KeywordExtractRule):
                     continue
 
                 if token.pos_ == "NOUN":
-
+                    if len(tuple(token.children)) != 0:
+                        continue
                     if is_counter.check(token=token):
                         if token.i > 0 and is_numeral.check(doc[token.i - 1]):
                             continue
-                    if len(list(token.children)) != 0:
-                        continue
+
                     is_alone = True
                     for ancester in token.ancestors:
                         if ancester.pos_ == "NOUN":
@@ -93,19 +93,18 @@ class Rule(KeywordExtractRule):
 
                     if is_sahen.check(token=token) or is_popular_noun.check(token=token):
                         nouns[token.norm_].add(token)
-                        noun_vectors[token.norm_] = token.vector
+
                         continue
 
             if is_canditate_exists == True:
                 complex_word_tokens, noun_vectors, nouns = self._update_section(canditate_tokens=canditate_tokens,
                                                                                 complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors, nouns=nouns)
-        complessed_noun_vectors = projecter(noun_vectors)
+
         for complex_word, data in complex_word_tokens.items():
 
             sk = SpecifiedKeyword(
                 headword=complex_word,
-                vectors=data.get_vector(
-                    complessed_noun_vectors=complessed_noun_vectors),
+                vectors=[],
                 is_force=data.is_force,
                 source_ids=set(data.tokens)
             )
@@ -113,7 +112,7 @@ class Rule(KeywordExtractRule):
         for norm, tokens in nouns.items():
             sk = SpecifiedKeyword(
                 headword=norm,
-                vectors=[complessed_noun_vectors[norm]],
+                vectors=[],
                 is_force=False,
                 source_ids=tokens
             )

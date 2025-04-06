@@ -34,10 +34,11 @@ class SpacyDoc2Vec:
 
         for doc, context in doc_tuples:
             data = id2data[context["text_id"]]
-            vector, sentiment_results = self.vectoraizer.exec(doc, data)
+            vector, sentiment_results, token_2_score = self.vectoraizer.exec(
+                doc, data)
 
             keywords = self.keyword_extracter.exec(
-                doc, vector, sentiment_results, data)
+                doc, vector, sentiment_results, data, token_2_score)
             ret.append((vector, sentiment_results, keywords, data,))
 
         return ret

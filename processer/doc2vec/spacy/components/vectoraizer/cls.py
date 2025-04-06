@@ -110,11 +110,13 @@ class BasicVectoraizer:
         sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
 
         scored_vectors_deque = deque()
-
+        token_to_score = {}
         for scored_sent in scored_sents:
             for token, score in scored_sent:
+                reguraized_score = score / total_score
                 token_vector = projected_vecter_dict[token.norm_] * \
-                    score / total_score
+                    reguraized_score
+                token_to_score[token] = reguraized_score
 
                 scored_vectors_deque.append(token_vector)
         scored_vectors = np.vstack(scored_vectors_deque).T
@@ -151,7 +153,7 @@ class BasicVectoraizer:
         sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
-        return document_vector, sentiment_result
+        return document_vector, sentiment_result, token_to_score
 
     def _get_sentence_score(self, sent: Span, specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0

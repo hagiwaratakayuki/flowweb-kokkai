@@ -27,7 +27,7 @@ class SpecifiedKeyword(Generic[SourceIDType]):
     _target_words: Union[Set, None]
 
     source_ids: Set[SourceIDType]
-    vector: np.ndarray
+
     vectors: Optional[List[np.ndarray]]
 
     def __init__(self, headword, vectors, subwords=[], is_force=False, target_words=None, source_ids: Iterable[SourceIDType] = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
@@ -48,7 +48,7 @@ class SpecifiedKeyword(Generic[SourceIDType]):
             self._target_words = [EqIn(tw) for tw in target_words]
 
     @property
-    def vector(self):
+    def vector(self) -> np.ndarray:
         return np.average(self.vectors, axis=0)
 
     def set_headword(self, headword):

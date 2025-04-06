@@ -1,12 +1,15 @@
 from collections import defaultdict
+from operator import itemgetter
 from typing import Callable, Dict, List
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Token
 import numpy as np
 
 from doc2vec.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule, ExtractResultDTO
 from doc2vec.util.specified_keyword import SpecifiedKeyword
+
+SCORE_KEY = itemgetter(1)
 
 
 class BasicKeywordExtratcer:
@@ -17,7 +20,7 @@ class BasicKeywordExtratcer:
     def initialize(self, projeccter: Callable):
         self.projecter = projeccter
 
-    def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO):
+    def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
 
         results = ExtractResultDTO()
         for rule in self.rules:
@@ -36,37 +39,22 @@ class BasicKeywordExtratcer:
         keyword_objects = [
             result for result in result_keywords if result.is_force == True]
 
-        index2object = {}
-        index = -1
-        vectors = []
+        keyword_scores = []
         for result_keywords in result_keywords:
 
             if result_keywords.is_force:
                 continue
-            index += 1
-            index2object[index] = result_keywords
-            vectors.append(result_keywords.vector)
-
-        vectors_array = np.array(vectors)
-        vectors_array -= vector
-
-        distances = np.absolute(vectors_array).sum(axis=1)
-        avg_distance = np.average(distances)
-        std_distance = np.std(distances)
-
+            score = 0.0
+            for source_id in result_keywords.source_ids:
+                score += token_2_score[source_id]
+            keyword_scores.append((result_keywords, score, ))
+        keyword_scores.sort(key=SCORE_KEY, reverse=True)
         count = 0
-
-        for index in np.argsort(distances):
-
-            if count >= self.keyword_limit:
-                if count == 0:
-                    count += 1
-                    keyword_objects.append(index2object[index])
-                break
-
+        for keyword, score in keyword_scores:
+            keyword_objects.append(keyword)
             count += 1
-            keyword_objects.append(index2object[index])
-
+            if count >= 5:
+                break
         keywords = sum([['/'.join(tuples) for tuples in keyword_object.to_extender()]
                        for keyword_object in keyword_objects], [])
         return keywords
