@@ -29,6 +29,7 @@ class DTO(Base):
     comittie: str
     weight: float
     group: Optional[str]
+    discussion_id: Optional[str]
 
 
 SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
@@ -145,6 +146,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.meeting_id = meeting['id']
         dto.comittie = meeting['name']
         dto.group = speechData.get('group')
+        dto.discussion_id = speechData.get('discussion_id')
 
         yield dto
         speechData['speaker_id'] = dto.author_id

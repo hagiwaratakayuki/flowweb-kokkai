@@ -17,9 +17,6 @@ class BasicKeywordExtratcer:
         self.rules = rules
         self.keyword_limit = keyword_limit
 
-    def initialize(self, projeccter: Callable):
-        self.projecter = projeccter
-
     def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
 
         results = ExtractResultDTO()
@@ -30,7 +27,7 @@ class BasicKeywordExtratcer:
                 sentiment_results=sentiment_results,
                 dto=dto,
                 results=results,
-                projecter=self.projecter
+
             )
 
         if len(results.keywords) == 0:

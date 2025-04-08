@@ -30,7 +30,7 @@ class SpecifiedKeyword(Generic[SourceIDType]):
 
     vectors: Optional[List[np.ndarray]]
 
-    def __init__(self, headword, vectors, subwords=[], is_force=False, target_words=None, source_ids: Iterable[SourceIDType] = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headword, vectors=[], subwords=[], is_force=False, target_words=None, source_ids: Iterable[SourceIDType] = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self.is_fixed_headword = is_fixed_headword
         self.headword = headword
         self.source_ids = set(source_ids)

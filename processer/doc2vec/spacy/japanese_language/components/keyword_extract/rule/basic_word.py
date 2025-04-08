@@ -104,7 +104,8 @@ class Rule(KeywordExtractRule):
                             if len(detailed_tokens) != 2:
                                 continue
                             tail_token = detailed_tokens[-1]
-                            if 'サ変' in tail_token.tag:
+                            head_token = detailed_tokens[0]
+                            if ('サ変' in tail_token.tag) and ('普通名詞' in head_token.tag):
                                 is_sahen_exist = True
                                 nouns[tail_token.norm].add(token)
                                 is_overwrites[tail_token.norm] = False

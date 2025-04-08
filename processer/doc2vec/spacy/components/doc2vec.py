@@ -21,7 +21,7 @@ class SpacyDoc2Vec:
         sentiment.initialize(nlp=self.nlp, projecter=projecter)
         self.vectoraizer.initialize(sentiment=sentiment, projecter=projecter)
         self.keyword_extracter = keyword_extracter
-        self.keyword_extracter.initialize(projeccter=projecter)
+
         self.batch_size = batch_size
         self.n_process = n_process
 
