@@ -19,7 +19,7 @@ KEEP_DEP = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT', 'acl'}
 MAIN_DEP = {'nsubj', 'ROOT'}
 EMPTY_SET = set()
 
-地名扱いの可能性がある漢数字に加えて漢字一文字のパターン = re.compile('^[零一二三四五六七八九十百千万憶兆]+\p{Han}$')
+地名扱いの可能性がある漢数字に加えて漢字一文字のパターン = re.compile(r'^[零一二三四五六七八九十百千万憶兆]+\p{Han}$')
 
 
 class ComplexWordDTO:
@@ -138,6 +138,7 @@ class Rule(KeywordExtractRule):
             )
             results.add_keyword(sk)
         for norm, tokens in nouns.items():
+
             sk = SpecifiedKeyword(
                 headword=norm,
                 vectors=[],

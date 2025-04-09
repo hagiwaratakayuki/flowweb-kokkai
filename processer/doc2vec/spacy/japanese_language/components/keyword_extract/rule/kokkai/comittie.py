@@ -27,7 +27,7 @@ class Rule(KeywordExtractRule):
         before_chunks_len = 0
         committies = defaultdict(set)
         for noun_chunk in doc.noun_chunks:
-            is_ignore_start = False
+
             if not 会で終わるパターン.search(noun_chunk.text):
                 before_chunks.append(noun_chunk)
                 before_chunks_len += 1
@@ -54,14 +54,14 @@ class Rule(KeywordExtractRule):
                 header = doc[target.start]
                 if (header.pos_ == 'CCONJ' or header.dep_ == 'cc'):
                     if before_chunks_len == 0:
-                        is_ignore_start = True
+
                         break
 
                     is_cc_exist = True
                     target_ = before_chunks.pop()
                     before_chunks_len -= 1
                     if target_.end + 1 != target.start:
-                        is_ignore_start = True
+
                         break
                     chunks.appendleft(target_)
                     target = target_
@@ -73,14 +73,18 @@ class Rule(KeywordExtractRule):
 
             committie_name = ''
             tokens = deque()
+            is_check_noun = True
             for chunk in chunks:
-                if is_ignore_start:
-                    for token in chunk:
-                        if is_ignore_start:
-                            is_ignore_start = False
-                            continue
-                        tokens.append(token)
-                        committie_name += token.lemma_
+                if is_check_noun:
+                    if is_check_noun:
+
+                        for token in chunk:
+                            if is_check_noun and token.pos_ != 'NOUN':
+
+                                continue
+                            is_check_noun = False
+                            tokens.append(token)
+                            committie_name += token.lemma_
                 else:
                     committie_name += chunk.text
                     tokens.extend(chunk)
