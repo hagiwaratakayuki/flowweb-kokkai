@@ -46,7 +46,7 @@ class ComplexWordDTO:
 
 
 type Nouns = DefaultDict[str, Set[Token]]
-形容的な接尾語 = {'用', '中', '前', '後', '上', '下'}
+形容的な接尾語 = {'用', '中', '前', '後', '上', '下', '性'}
 年号 = {'明治', '大正', '昭和', '平成', '令和'}
 
 
@@ -149,7 +149,7 @@ class Rule(KeywordExtractRule):
         return results
 
     def _update_section(self, canditate_tokens: List[Token], complex_word_tokens: Dict[str, ComplexWordDTO], noun_vectors: NounVectors, nouns: Nouns):
-        print(canditate_tokens)
+        # print(canditate_tokens)
         canditate_tokens_len = len(canditate_tokens)
         if canditate_tokens_len <= 1:
             return complex_word_tokens, noun_vectors, nouns
@@ -253,7 +253,7 @@ class Rule(KeywordExtractRule):
                 noun_vectors[token.norm_] = token.vector
             if not key:
                 continue
-            print(key)
+            # print(key)
             data = complex_word_tokens[key]
             data.tokens += valid_results
 
