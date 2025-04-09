@@ -1,14 +1,14 @@
 from collections import defaultdict, deque
-from email import header
+
 import re
 from typing import List
 import numpy as np
-from api_server.routing.query import comittie
-from processer.data_loader.kokkai import DTO
-from processer.doc2vec.protocol.sentiment import SentimentResult
-from processer.doc2vec.spacy.japanese_language.components.keyword_extract.util.tag_check import is_popular_noun
-from processer.doc2vec.util.specified_keyword import SpecifiedKeyword
-from spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
+
+from data_loader.kokkai import DTO
+from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.spacy.japanese_language.components.keyword_extract.util.tag_check import is_popular_noun
+from doc2vec.util.specified_keyword import SpecifiedKeyword
+from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token, Span
 from .discussion_context import DiscussionContext
 
@@ -32,7 +32,7 @@ class Rule(KeywordExtractRule):
                 before_chunks.append(noun_chunk)
                 before_chunks_len += 1
                 continue
-            if doc[chunk.end].norm_ is 委員会:
+            if doc[noun_chunk.end].norm_ is 委員会:
                 is_popular_noun_exist = False
                 for token in chunk:
                     if token.i == chunk.end:
@@ -44,7 +44,7 @@ class Rule(KeywordExtractRule):
                     is_exist_context, data = self.context.get_data(dto=dto)
                     if is_exist_context:
                         committies[data].add(doc[chunk.end])
-                continue
+                    continue
 
             chunks = deque([noun_chunk])
             target: Span = noun_chunk
@@ -90,3 +90,4 @@ class Rule(KeywordExtractRule):
             sk = SpecifiedKeyword(headword=committie_name,
                                   source_ids=tokens, is_force=True)
             results.add_keyword(sk)
+        return results

@@ -38,7 +38,7 @@ class SpacyDoc2Vec:
                 doc, data)
 
             keywords = self.keyword_extracter.exec(
-                doc, vector, sentiment_results, data, token_2_score)
+                doc=doc, vector=vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score)
             ret.append((vector, sentiment_results, keywords, data,))
 
         return ret

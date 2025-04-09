@@ -11,11 +11,15 @@ from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.commons.projections_protocol import ProjectFunction, NounVectors
 from ..stopwords import complex_token
 from ginza import DetailedToken
+import regex as re
+
 
 CONPOUND_DEP = 'compound'
 KEEP_DEP = {'compound', 'nmod', 'obl', 'obj', 'nsubj', 'ROOT', 'acl'}
 MAIN_DEP = {'nsubj', 'ROOT'}
 EMPTY_SET = set()
+
+地名扱いの可能性がある漢数字に加えて漢字一文字のパターン = re.compile('^[零一二三四五六七八九十百千万憶兆]+\p{Han}$')
 
 
 class ComplexWordDTO:
@@ -43,10 +47,11 @@ class ComplexWordDTO:
 
 type Nouns = DefaultDict[str, Set[Token]]
 形容的な接尾語 = {'用', '中', '前', '後', '上', '下'}
+年号 = {'明治', '大正', '昭和', '平成', '令和'}
 
 
 class Rule(KeywordExtractRule):
-    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, projecter: ProjectFunction) -> List[SpecifiedKeyword]:
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO) -> List[SpecifiedKeyword]:
         complex_word_tokens: Dict[str,
                                   ComplexWordDTO] = defaultdict(ComplexWordDTO)
         noun_vectors: NounVectors = {}
@@ -206,7 +211,7 @@ class Rule(KeywordExtractRule):
                 continue
             約に続いてトークンが存在している = True
 
-            if is_numeral.check(token=token):
+            if is_numeral.check(token=token) or token.norm_ in 年号 or 地名扱いの可能性がある漢数字に加えて漢字一文字のパターン.search(token.norm_) is not None:
                 if is_under_inspection == False:
                     is_under_inspection = True
                     is_numeral_only = True
