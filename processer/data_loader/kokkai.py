@@ -1,6 +1,8 @@
 
 from collections.abc import Iterable
 from operator import itemgetter
+
+
 from db.memo import Memo
 
 from storage.meeting import Meeting
@@ -29,6 +31,7 @@ class DTO(Base):
     comittie: str
     weight: float
     group: Optional[str]
+    session: int
     discussion_id: Optional[str]
 
 
@@ -147,6 +150,7 @@ def processDownlod(comittie_map: kokkai_comittie.ComittieMapType, session_comitt
         dto.comittie = meeting['name']
         dto.group = speechData.get('group')
         dto.discussion_id = speechData.get('discussion_id')
+        dto.session = session
 
         yield dto
         speechData['speaker_id'] = dto.author_id

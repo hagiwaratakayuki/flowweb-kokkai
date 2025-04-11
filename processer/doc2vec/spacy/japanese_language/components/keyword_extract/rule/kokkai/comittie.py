@@ -14,6 +14,11 @@ from .discussion_context import DiscussionContext
 
 会で終わるパターン = re.compile('会$')
 委員会 = "委員会"
+委員会の略称のパターン = [
+    (re.compile('地.?こ.?デジ特.?委(員会)?'), '地域活性化・こども政策・デジタル社会形成に関する特別委員会', ),
+    (re.compile('地デジ特.?委(員会)?'), '地方創生及びデジタル社会の形成等に関する特別委員会', ),
+    (re.compile('拉致(問題)?特?別?委(員会)?'), '')
+]
 
 
 class Rule(KeywordExtractRule):
