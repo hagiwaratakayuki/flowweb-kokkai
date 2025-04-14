@@ -30,12 +30,12 @@ def check_with_slidecount(token: Token, word: str, target_faces: TargetFaces = D
             return True, 0
         if word in token_target_face:
 
-            if permission_level == ALLOW_BOTH or permission_level == ALLOW_LEFTHAND:
+            if permission_level == ALLOW_BOTH or (permission_level == ALLOW_LEFTHAND and len(word) + token_target_face.index(word) == len(token_target_face)):
                 return True, 0
             if permission_level == ALLOW_RIGHTHAND and token_target_face.startswith(word):
                 return True, 0
             continue
-        is_lefthand_exists = False
+
         if (permission_level == ALLOW_RIGHTHAND or permission_level == STRICT):
             if word.startswith(token_target_face) == False:
                 continue
