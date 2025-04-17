@@ -1,9 +1,11 @@
 
 
-from typing import Deque, Iterator, List, Tuple
+from typing import Deque, Iterator, List, Optional, Tuple
 from unittest import result
 
+from networkx import reverse
 import numpy as np
+from typer import Option
 
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword, EqIn
@@ -20,7 +22,7 @@ from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 
 
-sortkey = itemgetter(1)
+positionkey = itemgetter(1)
 
 section_text = r"編章条項節款目"
 section_pt = re.compile(r'(?<!ス.パ.)\d+([' + section_text + r'])(?!委員会)')
@@ -61,6 +63,50 @@ class EqInShorter:
         return __value in self.value
 
 
+class RankedPath:
+    def __init__(self):
+        self.clear()
+
+    def _reverse_search(self, needle_rank):
+        reverse_index = -1
+        limit = self.len * -1
+        while limit <= reverse_index:
+            rank = self.path[reverse_index][1]
+            if (rank is not None and needle_rank is not None and rank < needle_rank) or (needle_rank is None and rank != None):
+
+                return reverse_index + 1, limit
+            if needle_rank == rank:
+                break
+            reverse_index = -1
+        return reverse_index, limit
+
+    def clear(self):
+        self.path = []
+        self.len = 0
+
+
+class WaitingSections(RankedPath):
+    def clear(self):
+        super().clear()
+        self.paths = [self.path]
+        self.is_none_rank_exist = False
+
+    def add(self, face, rank):
+        if self.len == 0:
+            self.path.append((face, rank,))
+        reverse_index, limit = self._reverse_search(needle_rank=rank)
+        if reverse_index == 0:
+            self.path.append((face, rank,))
+        elif reverse_index < limit:
+            for path in self.paths:
+                path.insert(0, (face, rank,))
+        else:
+            next_path = self.path[:reverse_index]
+            next_path.append((face, rank,))
+            self.path = next_path
+            self.paths.append(next_path)
+
+
 class Rule(KeywordExtractRule):
     context: DiscussionContext
 
@@ -70,13 +116,14 @@ class Rule(KeywordExtractRule):
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO):
 
         target_law = []
+
         waiting_sections = []
-        waiting_line_numbers = set()
+        waiting_sections_list = [waiting_sections]
+        waiting_sent_numbers = set()
 
         tail_rank = None
         law_index = defaultdict(set)
 
-        lawword_set = set()
         reverse_dict = defaultdict(set)
         sent_number = -1
         all_text = doc.text
@@ -100,8 +147,7 @@ class Rule(KeywordExtractRule):
         if law_count == standard_phrase_count:
             return results
         商売の方法または金商法の略称の一部としての商法である = False
-        # TODO　トークンの探索処理を追加する
-        # TODO　探査処理の結果を保存できるようにする
+
         law_2_tokens = defaultdict(set)
         law_2_overwrite = {}
         for sent in doc.sents:
@@ -118,7 +164,7 @@ class Rule(KeywordExtractRule):
                     アイヌ新法の正式名称 = "アイヌの人々の誇りが尊重される社会を実現するための施策の推進に関する法律"
                 else:
                     アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
-                lawword_set.add(アイヌ新法)
+
                 reverse_dict[アイヌ新法の正式名称].add(アイヌ新法)
                 line_laws.append((アイヌ新法の正式名称, sent.find(アイヌ新法), 0,))
                 law_2_tokens[アイヌ新法の正式名称].update(
@@ -133,7 +179,7 @@ class Rule(KeywordExtractRule):
                     活火山法の正式名称 = 改正後の活火山法の正式名称
                 else:
                     活火山法の正式名称 = 改正前の活火山法の正式名称
-                lawword_set.add(活火山法の略称)
+
                 reverse_dict[活火山法の正式名称].add(活火山法の略称)
                 line_laws.append((活火山法の正式名称, sent.find(活火山法の略称), 0,))
                 law_2_tokens[活火山法の正式名称].update(
@@ -179,30 +225,31 @@ class Rule(KeywordExtractRule):
                 商売の方法または金商法の略称の一部としての商法である |= 商売の方法または金商法の略称の一部としての商法を表すパターン.search(
                     sent) is not None
 
-            lawword_set.update(not_ryakusyous)
+            line_laws.extend((canditate, sent.find(canditate), 0,)
+                             for canditate in not_ryakusyous)
 
-            lawword_set.update(ryakusyous)
+            line_laws.extend((ryakusyou_dict[ryakusyou], sent.find(
+                ryakusyou), 0, ) for ryakusyou in ryakusyous)
 
-            line_laws.extend([(canditate, sent.find(canditate), 0,)
-                              for canditate in not_ryakusyous])
+            line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
+                             for m in section_pt.finditer(sent))
 
-            line_laws.extend([(ryakusyou_dict[ryakusyou], sent.find(
-                ryakusyou), 0, ) for ryakusyou in ryakusyous])
+            position = 0
+            for token in sent:
+                if token.pos_ == 'NUM' and token.dep_ != 'compound' and token.head.pos_ != "NOUN":
+                    line_laws.append((token.norm_, position, None,))
+                position += len(token)
 
-            section_words = [(m.group(0), m.start(), section_rank[m.group(1)], )
-                             for m in section_pt.finditer(sent)]
-
-            line_laws.extend(section_words)
-
-            lawword_set.update([r[0] for r in section_words])
-
-            line_laws.sort(key=sortkey)
+            line_laws.sort(key=positionkey)
+            # TODO　法律名　条→項→目(1,2,3)の順番に並ぶように
 
             for face, position, rank in line_laws:
-                tokens = self._get_hittokens(sent=sent, word=face)
+                # tokens = self._get_hittokens(sent=sent, word=face) ここは略称処理に持っていく
                 if tail_rank is None:
-                    waiting_line_numbers.add(sent_number)
-                    if rank > 0:
+
+                    waiting_sent_numbers.add(sent_number)
+                    if rank == None or rank > 0:
+                        # ここに分岐処理入れる
 
                         waiting_sections.append((face, rank,))
                         continue
@@ -212,9 +259,10 @@ class Rule(KeywordExtractRule):
                     target_law.append((face, 0,))
                     waiting_length = len(waiting_sections)
                     if waiting_length > 0:
-                        waiting_sections.sort(key=sortkey)
+                        waiting_sections.sort(key=positionkey)
                         target_law.extend(waiting_sections)
                         tail_rank = waiting_sections[waiting_length - 1][1]
+                        waiting_sections = []
                     continue
 
                 if rank <= tail_rank:
@@ -222,7 +270,7 @@ class Rule(KeywordExtractRule):
                     if (tail_rank != None) and (len(target_law) != 0):
                         k = tuple(r[0] for r in target_law)
                         law_index[k].add(sent_number)
-                        law_index[k].update(waiting_line_numbers)
+                        law_index[k].update(waiting_sent_numbers)
                     target_law = [
                         (r, target_rank, ) for r, target_rank in target_law if target_rank < rank]
                     target_law.append((face, rank, ))
@@ -231,7 +279,7 @@ class Rule(KeywordExtractRule):
 
                     if rank == 0:
                         waiting_sections = []
-                        waiting_line_numbers = set()
+                        waiting_sent_numbers = set()
                     continue
                 tail_rank = rank
                 target_law.append((face, rank, ))
@@ -240,10 +288,8 @@ class Rule(KeywordExtractRule):
 
                 k = tuple(r[0] for r in target_law)
                 law_index[k].add(sent_number)
-                law_index[k].update(waiting_line_numbers)
-
-        kws = []
-
+                law_index[k].update(waiting_sent_numbers)
+            # ここに照応処理
         for law_tupple, line_numbers in law_index.items():
             if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
                 continue
@@ -281,3 +327,14 @@ class Rule(KeywordExtractRule):
             tokens.append(token)
 
         return tokens
+
+    def _split_waiting(self, sent, waitings: List[Tuple[str, Option[int]]]):
+        _rank = 1
+        result = []
+        results = [result]
+
+        for face, rank in waitings:
+            if rank == None:
+                rank = _rank
+            else:
+                _rank = rank
