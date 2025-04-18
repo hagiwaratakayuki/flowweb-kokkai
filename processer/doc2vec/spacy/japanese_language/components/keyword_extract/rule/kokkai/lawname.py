@@ -117,8 +117,7 @@ class Rule(KeywordExtractRule):
 
         target_law = []
 
-        waiting_sections = []
-        waiting_sections_list = [waiting_sections]
+        waiting_sections = WaitingSections()
         waiting_sent_numbers = set()
 
         tail_rank = None
@@ -249,20 +248,26 @@ class Rule(KeywordExtractRule):
 
                     waiting_sent_numbers.add(sent_number)
                     if rank == None or rank > 0:
-                        # ここに分岐処理入れる
 
-                        waiting_sections.append((face, rank,))
+                        waiting_sections.add((face, rank,))
                         continue
 
                     tail_rank = 0
 
                     target_law.append((face, 0,))
-                    waiting_length = len(waiting_sections)
-                    if waiting_length > 0:
-                        waiting_sections.sort(key=positionkey)
-                        target_law.extend(waiting_sections)
-                        tail_rank = waiting_sections[waiting_length - 1][1]
-                        waiting_sections = []
+                    last_index = len(waiting_sections.paths)
+                    index = 0
+                    while index < last_index:
+                        waiting_path = waiting_sections.paths[index]
+                        index += 1
+                        if index == last_index:
+                            target_law.extend(waiting_path)
+                            tail_rank = waiting_sections[-1][1]
+                        else:
+                            k = tuple(r[0] for r in waiting_path)
+                            law_index[k].add(sent_number)
+                            law_index[k].update(waiting_sent_numbers)
+                    waiting_sections.clear()
                     continue
 
                 if rank <= tail_rank:
@@ -278,7 +283,7 @@ class Rule(KeywordExtractRule):
                     tail_rank = rank
 
                     if rank == 0:
-                        waiting_sections = []
+                        waiting_sections.clear()
                         waiting_sent_numbers = set()
                     continue
                 tail_rank = rank
