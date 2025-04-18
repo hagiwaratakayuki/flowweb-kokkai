@@ -1,11 +1,9 @@
 
 
-from typing import Deque, Iterator, List, Optional, Tuple
-from unittest import result
+from typing import Deque, Iterator, List, Optional, Tuple, Option
 
-from networkx import reverse
+
 import numpy as np
-from typer import Option
 
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword, EqIn
