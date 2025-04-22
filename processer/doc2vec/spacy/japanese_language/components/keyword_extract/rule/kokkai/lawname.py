@@ -247,16 +247,9 @@ class Rule(KeywordExtractRule):
                 law_list.append((法律の正式名称, position, 法律名の略称,))
         sections = []
         for m in section_pt.finditer(doc.text):
-            start = m.start
 
-            if start >= 5 and スーパー301条対策のパターン.search(doc.text[start - 5:start]):
-                continue
-            if doc.text[start]
-
-            match_text = m.group(0)
-
-        # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
-        #                 )
+            # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
+            #                 )
 
         position = 0
 
