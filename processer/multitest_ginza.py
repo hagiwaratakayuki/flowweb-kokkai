@@ -53,7 +53,7 @@ def example(i):
 　改めて聞きますけれども、解散命令請求の根拠として文化庁が悪質性や継続性を認めた民事判決三十二件のうち、既に大半の二十七件もの判決が出ていたにもかかわらず、なぜ二〇一五年八月には名称変更を認めたんですか。次長、お答えいただけますか。
         """
     text = "地方行政・警察委員会について"
-    text = "1、または2ですね、9条の、これについてですが"
+    text = "1の3、それと2ですね、9条の、これについてですが"
     docs = nlp.pipe(
         [convert(text, None)])
     # docs = nlp.pipe(
@@ -111,7 +111,7 @@ def example(i):
                     list(token.children),
 
 
-                    # list(token.subtree)
+                    list(token.subtree)
                 )
 
             print('EOS')
