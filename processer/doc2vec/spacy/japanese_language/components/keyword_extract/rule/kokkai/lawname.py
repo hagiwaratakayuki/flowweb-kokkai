@@ -248,11 +248,12 @@ class Rule(KeywordExtractRule):
         sections = []
         for m in section_pt.finditer(doc.text):
             start = m.start
-            match_text = m.group(0)
 
             if start >= 5 and スーパー301条対策のパターン.search(doc.text[start - 5:start]):
                 continue
-            if doc.text[start:len(match_text) + ]
+            if doc.text[start]
+
+            match_text = m.group(0)
 
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #                 )
