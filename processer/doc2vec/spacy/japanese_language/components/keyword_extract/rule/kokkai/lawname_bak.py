@@ -78,15 +78,55 @@ class EqInShorter:
         return __value in self.value
 
 
-class 章区分:
-    区分表現: List[Tuple[str, int]]
-    段階表現が未解決か: bool
-    開始位置: int
+class RelativeRank:
+    fluctuation: int
 
-    def __init__(self, 開始位置):
-        self.区分表現 = []
-        self.段階表現が未解決か = False
-        self.開始位置 = 開始位置
+    def __init__(self, fluctuation=0):
+        self.fluctuation = fluctuation
+
+
+class RankedPath:
+    def __init__(self):
+        self.clear()
+
+    def _reverse_search(self, needle_rank):
+        reverse_index = -1
+        limit = self.len * -1
+        while limit <= reverse_index:
+            rank = self.path[reverse_index][1]
+            if (rank is not None and needle_rank is not None and rank < needle_rank) or (needle_rank is None and rank != None):
+
+                return reverse_index + 1, limit
+            if needle_rank == rank:
+                break
+            reverse_index = -1
+        return reverse_index, limit
+
+    def clear(self):
+        self.path = []
+        self.len = 0
+
+
+class WaitingSections(RankedPath):
+    def clear(self):
+        super().clear()
+        self.paths = [self.path]
+        self.is_none_rank_exist = False
+
+    def add(self, face, rank):
+        if self.len == 0:
+            self.path.append((face, rank,))
+        reverse_index, limit = self._reverse_search(needle_rank=rank)
+        if reverse_index == 0:
+            self.path.append((face, rank,))
+        elif reverse_index < limit:
+            for path in self.paths:
+                path.insert(0, (face, rank,))
+        else:
+            next_path = self.path[:reverse_index]
+            next_path.append((face, rank,))
+            self.path = next_path
+            self.paths.append(next_path)
 
 
 class Rule(KeywordExtractRule):
@@ -203,11 +243,11 @@ class Rule(KeywordExtractRule):
             商売の方法または金商法の略称の一部としての商法である |= 商売の方法または金商法の略称の一部としての商法を表すパターン.search(
                 doc.text) is not None
 
-        for 法律名 in 発見された正式名称のリスト:
-            positions = self._get_positions(doc, 法律名)
+        for lawname in 発見された正式名称のリスト:
+            positions = self._get_positions(doc, lawname)
 
             for position in positions:
-                law_list.append((法律名, position, 法律名, ))
+                law_list.append((lawname, position, lawname, ))
         for 法律名の略称 in 法律名の略称のリスト:
             positions = self._get_positions(doc, 法律名の略称)
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
@@ -230,25 +270,22 @@ class Rule(KeywordExtractRule):
         law_list_len = len(law_list)
 
         is_wait = False
-        法律名 = None
+        lawname = None
         if law_list_len == 0:
-            is_context_exist, 法律名 = self.context.get_data(dto=dto)
+            is_context_exist, lawname = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
 
             next_law_position = doc_len
         else:
-            法律名 = law_list[0][0]
+            lawname = law_list[0][0]
             next_law_position = law_list[1][1]
         if not is_wait:
-            self.context.set_data(data=法律名, dto=dto)
+            self.context.set_data(data=lawname, dto=dto)
 
         区分の深度 = 0
-        相対区分深度 = 0
-        確定した条文表現 = []
-        確定した条文表現のリスト = [確定した条文表現]
-        未確定の条文表現 = []
-        未確定の条文表現のリスト = [未確定の条文表現]
+        waiting_path = []
+        waiting_path_list = [waiting_path]
 
         index = 0
         数値の後である = False
@@ -258,28 +295,29 @@ class Rule(KeywordExtractRule):
 
         law_expressions = set()
         章としての区分を表す単語の後か = False
-        数値が登場した直後か = False
+        未決定の区分が存在するか = False
+        未決定の区分のリスト: List[List] = []
+        数値のみの表記の後か = False
         while index < doc_len:
             token = doc[index]
             token_len = len(token)
             index += 1
             if next_law_position <= position or position + token_len > next_law_position:
                 章としての区分を表す単語の後か = False
-                数値が登場した直後か = False
-                区分の深度 = 0
-                相対区分深度 = 0
-
+                未決定の区分が存在するか = False
+                数値のみの表記の後か = False
+                段階表現で変化した区分の深さ = 0
+                段階表現の最初の部分である = True
+                未決定の区分のリスト = []
                 target_tokens.append(token)
 
-                limit_position = len(法律名) + next_law_position
+                limit_position = len(lawname) + next_law_position
 
                 position += token_len
                 self._add_law_expressions(
-                    法律名=法律名, 確定した条文表現のリスト=確定した条文表現のリスト, lawexpessions=law_expressions)
-                確定した条文表現 = []
-                確定した条文表現のリスト = [確定した条文表現]
-                未確定の条文表現 = []
-                未確定の条文表現のリスト = [未確定の条文表現]
+                    lawname=lawname, waiting_path_list=waiting_path_list, lawexpessions=law_expressions)
+                waiting_path = []
+                waiting_path_list = [waiting_path]
                 while index < doc_len and position < limit_position:
                     token = doc[index]
                     target_tokens.append(token)
@@ -290,23 +328,111 @@ class Rule(KeywordExtractRule):
                 if diff <= 0:
                     next_law_position = doc_len
                 if diff == 1:
-                    法律名 = law_list[target_law_index][0]
+                    lawname = law_list[target_law_index][0]
                     next_law_position = doc_len
                 else:
-                    法律名 = law_list[target_law_index][0]
+                    lawname = law_list[target_law_index][0]
                     next_law_position = law_list[target_law_index + 1][1]
                 continue
+
             position += token_len
             if token.dep_ == 'NUM':
-                数値が登場した直後か = True
+                candiate_token = token
+                数値の後である = True
                 continue
-            elif 数値が登場した直後か:
-                if token.norm_ in 章の区分と数値の変換表:
+            if 数値の後である:
+                if token.norm_ == 'の':
+                    数値のみの表記の後か = False
+                    if 章としての区分を表す単語の後か:
+                        if 段階表現の最初の部分である and 段階表現で変化した区分の深さ > 0:
+                            カットすべき区分の深度 = 区分の深度 - 段階表現で変化した区分の深さ
+                            next_waiting_path = [
+                                r for r in waiting_path if r[1] < カットすべき区分の深度]
+                            waiting_path_list.append(next_waiting_path)
+                            waiting_path = next_waiting_path
+
+                        waiting_path.append(
+                            (candiate_token.norm_ + 章としての区分を表す単語[区分の深度], 区分の深度))
+                    else:
+                        未決定の区分が存在するか = True
+                        if 段階表現の最初の部分である and 段階表現で変化した区分の深さ > 0:
+
+                            waiting_path = []
+                            waiting_path_list.append(waiting_path)
+                            未決定の区分のリスト.append(waiting_path)
+
+                        waiting_path.append((candiate_token.norm_, -1))
+                    if 段階表現の最初の部分である:
+                        段階表現の最初の部分である = False
+                        区分の深度 -= 段階表現で変化した区分の深さ
+                        段階表現で変化した区分の深さ = 2
+                    else:
+                        段階表現で変化した区分の深さ += 1
+                    区分の深度 += 1
+                    区分の深度 = min(max(区分の深度, 2),
+                                区分の最大深さ)
+
+                elif token.norm_ in 章の区分と数値の変換表:
                     章としての区分を表す単語の後か = True
-                    対象の区分の深度 = 章の区分と数値の変換表[token.norm_]
-                    if 区分の深度 > 対象の区分の深度:
-                        次の確定した条文表現のリスト = [(条文表現, 深度, )
-                                          for 条文表現, 深度 in 確定した条文表現 if 深度 > 対象の区分の深度]
+                    数値のみの表記の後か = False
+
+                    段階表現で変化した区分の深さ = 0
+                    段階表現の最初の部分である = True
+                    対象の区分 = 章の区分と数値の変換表[token.norm_]
+                    if 未決定の区分が存在するか:
+                        index_ = index
+
+                        挿入する区分の候補のリスト = [
+                            (candiate_token.norm_ + token.norm_, 対象の区分,)]
+                        倒置表現において章表現が連続しているか = False
+                        倒置表現の項目番号 = -1
+
+                        position
+                        while index_ <=:
+                            target_token_ = doc[index_]
+                            index_ += 1
+                            if target_token_.dep_ == 'NUM':
+                                倒置表現において章表現が連続しているか = True
+                                倒置表現の項目番号 =
+
+                            if target_token_.norm_ in 連続章区分表現の接続語:
+                                continue
+
+                            if 記号を表すパターン.search(target_token_.norm_):
+                                break
+
+                        for 未決定の区分 in 未決定の区分のリスト:
+                            index = 0
+                            for 未決定の要素 in 未決定の区分:
+                                推定された区分の深さ = min(index + 1 + 対象の区分, 区分の最大深さ)
+                                推定された区分表現 = 章としての区分を表す単語[推定された区分の深さ]
+                                未決定の区分[index] = (推定された区分表現, 推定された区分の深さ,)
+                            if 対象の区分 > 1:
+                                未決定の区分.insert(0, 挿入する区分)
+
+                    else:
+                        if 区分の深度 >= 対象の区分:
+
+                            next_path = [
+                                (区分表現, この要素での区分の深さ,) for 区分表現, この要素での区分の深さ in waiting_sections if この要素での区分の深さ < 対象の区分]
+                            next_path.append(
+                                (candiate_token.norm_ + token.norm_, 対象の区分,))
+                            waiting_path_list.append(next_path)
+                            waiting_path = next_path
+                        区分の深度 = 対象の区分 + 1
+                        if 対象の区分 <= 1:  # 章と編は無視
+                            continue
+                        waiting_path.append(
+                            (candiate_token.norm_ + token.norm_, 対象の区分,))
+                elif 漢字でないパターン.search(token.norm_):
+                    # 並列のパターンならば分岐
+                    # 　章としての区分の後ならば推定
+                    if 数値のみの表記の後か:
+                        next_path = waiting_path[:-1]
+                        if 章としての区分を表す単語の後か:
+                            next_path.append()
+                        else:
+                            pass
 
         for law_tupple, line_numbers in law_index.items():
             if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
@@ -359,9 +485,9 @@ class Rule(KeywordExtractRule):
             position += needle_len
         return positions
 
-    def _add_law_expressions(self, 法律名, 確定した条文表現のリスト, lawexpessions: Set):
+    def _add_law_expressions(self, lawname, waiting_path_list, lawexpessions: Set):
 
-        for waiting_path in 確定した条文表現のリスト:
+        for waiting_path in waiting_path_list:
             is_path_exist = True
-            lawexpession = (法律名, ) + tuple(r[1] for r in waiting_path)
+            lawexpession = (lawname, ) + tuple(r[1] for r in waiting_path)
             lawexpessions.add(lawexpession)
