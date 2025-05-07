@@ -53,7 +53,7 @@ def example(i):
 　改めて聞きますけれども、解散命令請求の根拠として文化庁が悪質性や継続性を認めた民事判決三十二件のうち、既に大半の二十七件もの判決が出ていたにもかかわらず、なぜ二〇一五年八月には名称変更を認めたんですか。次長、お答えいただけますか。
         """
     text = "地方行政・警察委員会について"
-    text = "1と3、それと2ですね、9条の、これについてですが"
+    text = "4条の1の2と3、それと2の6ですね、これは憲法9条ですが、そして5条の7"
     docs = nlp.pipe(
         [convert(text, None)])
     # docs = nlp.pipe(
@@ -85,6 +85,27 @@ def example(i):
         print(doc.sentiment)
         # print(doc.user_data["sub_tokens"])
         # print(dir(doc.user_data["sub_tokens"][1][0][0]))
+        processed = set()
+        """"
+        for token in doc:
+            if token in processed:
+                continue
+
+            subtree_set = set()
+            subtree_list = list()
+            is_subtree_exist = not not subtree_list 
+            while is_subtree_exist:
+
+                for subtoken in token.subtree:
+                    if subtoken.head not in subtree_set:
+                        for subtoken.head.subtree:
+                            
+                        subtree_list.extend(
+                            t for t in subtoken.head.subtree if t not in subtree_set)
+                        subtree_set.update(subtoken.head.subtree)
+
+            print(token, subtree_list)
+        """
         for sent in doc.sents:
 
             for token in sent:

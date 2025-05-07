@@ -20,6 +20,7 @@ from data_loader.kokkai import DTO
 from doc2vec.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
+from mutitest import check
 from processer.doc2vec.tokenaizer.japanese_language.extracter.kokkai_specificword import lawname
 
 
@@ -27,7 +28,11 @@ positionkey = itemgetter(1)
 
 章としての区分を表す単語 = "編章条項節款目"
 区分の最大深さ = len(章としての区分を表す単語) - 1
-section_pt = re.compile(r'\d+.')
+章区分を表すパターンとデリミタのペアのリスト = [
+    (re.compile(r'(\d+[' + 章としての区分を表す単語 + r'第の]*)+'),
+     re.compile(r'((\d+)([' + 章としての区分を表す単語 + '])?'),),
+
+]
 章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
 スーパー301条対策のパターン = re.compile('ス.パ.')
 委員会 = "委員会"
@@ -78,15 +83,43 @@ class EqInShorter:
         return __value in self.value
 
 
-class 章区分:
+class 条文表現:
     区分表現: List[Tuple[str, int]]
-    段階表現が未解決か: bool
-    開始位置: int
 
-    def __init__(self, 開始位置):
+    def __init__(self):
         self.区分表現 = []
-        self.段階表現が未解決か = False
-        self.開始位置 = 開始位置
+
+    def append(self, 区分, 深さ):
+        self.区分表現.append((区分, 深さ, ))
+
+
+class Cursor:
+    def __init__(self, doc: Doc):
+        self.doc_len = len(doc)
+        self.index = -1
+        self.limit = self.doc_len - 1
+        self.doc = doc
+        self.token_len = 0
+        self._check_next()
+        self.position = 0
+
+    def _check_next(self):
+        self.has_next = self.index < self.limit
+
+    def get_next(self):
+        if self.has_next == True:
+            return self.doc[self.index + 1]
+        return False
+
+    def step(self):
+        if self.has_next:
+            self.index += 1
+            self.position += len(self.token_len)
+            self.now = self.doc[self.index]
+            self.token_len = len(self.now)
+            self._check_next()
+            return True
+        return False
 
 
 class Rule(KeywordExtractRule):
@@ -98,9 +131,6 @@ class Rule(KeywordExtractRule):
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO):
         doc_len = len(doc)
         doc_limit = doc_len - 1
-        target_law = []
-
-        waiting_sections = WaitingSections()
 
         law_index = defaultdict(set)
         reverse_dict = defaultdict(set)
@@ -218,8 +248,6 @@ class Rule(KeywordExtractRule):
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
 
-        position = 0
-
         #  条項目抽出と一体化する
         # 　法律名の結合処理とも一体化する
         # 『の』でつながっている限りrankは上がる
@@ -229,28 +257,33 @@ class Rule(KeywordExtractRule):
         target_law_index = 0
         law_list_len = len(law_list)
 
-        is_wait = False
-        法律名 = None
+        リンクする可能性のある法律のリスト = []
         if law_list_len == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-
+            law_list.append((法律名, -1,))
             next_law_position = doc_len
+            リンクする可能性のある法律のリスト = [0]
         else:
-            法律名 = law_list[0][0]
+            法律名, 文中の位置 = law_list[0]
             next_law_position = law_list[1][1]
-        if not is_wait:
             self.context.set_data(data=法律名, dto=dto)
+            if law_list_len == 1:
+                リンクする可能性のある法律のリスト = [0]
+            else:
+                if law_list[0][1] == 0:
+                    リンクする可能性のある法律のリスト = [0, 1]  # 最初または二番目
+                else:
+                    リンクする可能性のある法律のリスト = [0]
 
         区分の深度 = 0
         相対区分深度 = 0
-        確定した条文表現 = []
-        確定した条文表現のリスト = [確定した条文表現]
-        未確定の条文表現 = []
+        確定した条文表現: 条文表現 = None
+        確定した条文表現のリスト: List[条文表現] = []
+        未確定の条文表現: 条文表現 = None
         未確定の条文表現のリスト = [未確定の条文表現]
 
-        index = 0
         数値の後である = False
         # 段階表現　3条の1の2、みたいな表現のこと
         段階表現の最初の部分である = True
@@ -259,10 +292,19 @@ class Rule(KeywordExtractRule):
         law_expressions = set()
         章としての区分を表す単語の後か = False
         数値が登場した直後か = False
-        while index < doc_len:
-            token = doc[index]
-            token_len = len(token)
-            index += 1
+        token_len = 0
+        cursor = Cursor(doc)
+        区分表現のリスト = []
+        for パターン, デリミタ in 章区分を表すパターンとデリミタのペアのリスト:
+            for match in パターン.finditer(doc.text):
+                区分表現のリスト.append((match.start(), デリミタ.findall(match.group(0))))
+
+        while cursor.step():
+
+            token = cursor.now
+            token_len = cursor.token_len
+            position = cursor.position
+
             if next_law_position <= position or position + token_len > next_law_position:
                 章としての区分を表す単語の後か = False
                 数値が登場した直後か = False
@@ -289,24 +331,31 @@ class Rule(KeywordExtractRule):
                 diff = law_list_len - target_law_index
                 if diff <= 0:
                     next_law_position = doc_len
+                    リンクする可能性のある法律のリスト = [target_law_index]
                 if diff == 1:
                     法律名 = law_list[target_law_index][0]
                     next_law_position = doc_len
+                    リンクする可能性のある法律のリスト = [target_law_index]
                 else:
                     法律名 = law_list[target_law_index][0]
                     next_law_position = law_list[target_law_index + 1][1]
+                    リンクする可能性のある法律のリスト = [
+                        target_law_index, target_law_index + 1]
                 continue
-            position += token_len
+
             if token.dep_ == 'NUM':
                 数値が登場した直後か = True
                 continue
             elif 数値が登場した直後か:
+                数値が登場した直後か = False
+
                 if token.norm_ in 章の区分と数値の変換表:
                     章としての区分を表す単語の後か = True
                     対象の区分の深度 = 章の区分と数値の変換表[token.norm_]
                     if 区分の深度 > 対象の区分の深度:
                         次の確定した条文表現のリスト = [(条文表現, 深度, )
                                           for 条文表現, 深度 in 確定した条文表現 if 深度 > 対象の区分の深度]
+                if token.norm_ == 'の':
 
         for law_tupple, line_numbers in law_index.items():
             if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
