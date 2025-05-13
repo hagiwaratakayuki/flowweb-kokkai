@@ -1,6 +1,7 @@
 
 
 from multiprocessing import context
+from turtle import position
 from typing import Deque, Iterator, List, Optional, Set, Tuple, Option
 
 
@@ -14,7 +15,7 @@ import regex as re
 from spacy.tokens import Token, Doc, Span
 import os
 import json
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 from collections import Counter, defaultdict, deque
 from data_loader.kokkai import DTO
 from doc2vec.protocol.sentiment import SentimentResult
@@ -22,17 +23,18 @@ from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from mutitest import check
 from processer.doc2vec.tokenaizer.japanese_language.extracter.kokkai_specificword import lawname
+import re2
 
-
-positionkey = itemgetter(1)
+positionkey = attrgetter('position')
 
 章としての区分を表す単語 = "編章条項節款目"
 区分の最大深さ = len(章としての区分を表す単語) - 1
-章区分を表すパターンとデリミタのペアのリスト = [
+章区分を表すパターンと分割パターンのペアのリスト = [
     (re.compile(r'(\d+[' + 章としての区分を表す単語 + r'第の]*)+'),
      re.compile(r'((\d+)([' + 章としての区分を表す単語 + '])?'),),
 
 ]
+
 章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
 スーパー301条対策のパターン = re.compile('ス.パ.')
 委員会 = "委員会"
@@ -64,9 +66,9 @@ law_standard_phrases = ['法の下の平等', '法の支配']
 商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}+商法')
 漢字でないパターン = re.compile(r'^[^\p{Han}]')
 
-連続章区分表現の接続語 = {'の', '第'}
+連続章段階表現の接続語 = {'の', '第'}
 記号を表すパターン = re.compile(r'^\W+$')
-
+数字と第を表すパターン = re.compile(r'\d|第')
 
 並列を表す日本語のパターン = [
     re.compile('と$'),
@@ -84,13 +86,30 @@ class EqInShorter:
 
 
 class 条文表現:
-    区分表現: List[Tuple[str, int]]
+    段階表現: List[Tuple[str, int]]
 
     def __init__(self):
-        self.区分表現 = []
+        self.段階表現 = []
 
     def append(self, 区分, 深さ):
-        self.区分表現.append((区分, 深さ, ))
+        self.段階表現.append((区分, 深さ, ))
+
+
+class LawDTO:
+    position: int
+    is_reverse: bool
+    face: str
+    name: str
+
+    def __init__(self, name, position, face=''):
+        self.name = name
+        self.position = position
+        self.face = face
+        self.is_reverse = False
+        self.len = len(self.get_face())
+
+    def get_face(self):
+        return self.face or self.name
 
 
 class Cursor:
@@ -129,8 +148,6 @@ class Rule(KeywordExtractRule):
         self.context = DiscussionContext()
 
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO):
-        doc_len = len(doc)
-        doc_limit = doc_len - 1
 
         law_index = defaultdict(set)
         reverse_dict = defaultdict(set)
@@ -165,7 +182,7 @@ class Rule(KeywordExtractRule):
 
         canditates_set = set()
         ryakusyou_canditates_set = set()
-        law_list = []
+        law_list: List[LawDTO] = []
         アイヌ新法が含まれるか = アイヌ新法 in doc.text
 
         if アイヌ新法が含まれるか is True:
@@ -174,7 +191,7 @@ class Rule(KeywordExtractRule):
             else:
                 アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
 
-            law_list.append((アイヌ新法の正式名称, doc.text.find(アイヌ新法),))
+            self._set_law_positions(doc, アイヌ新法の正式名称, アイヌ新法)
             self._get_hittokens(doc=doc, word=アイヌ新法, tokens=target_tokens)
 
         活火山法の検索結果 = 活火山法の略称候補.search(doc.text)
@@ -186,8 +203,8 @@ class Rule(KeywordExtractRule):
                 活火山法の正式名称 = 改正後の活火山法の正式名称
             else:
                 活火山法の正式名称 = 改正前の活火山法の正式名称
-
-            law_list.append((活火山法の正式名称, doc.text.find(活火山法の略称), 0,))
+            self._set_law_positions(
+                doc, law_list=law_list, lawname=活火山法の正式名称, face=活火山法の略称)
 
             self._get_hittokens(doc=doc, word=活火山法の略称, tokens=target_tokens)
         改正前の活火山法の正式名称が存在する = 改正前の活火山法の正式名称 in doc.text
@@ -202,7 +219,6 @@ class Rule(KeywordExtractRule):
 
                 self._get_hittokens(
                     doc=doc, word=改正後の活火山法の正式名称, tokens=target_tokens)
-            law_2_overwrite[活火山法] = False
 
         for i in range(len(doc.text) - 1):
             gram = doc.text[i:i + 2]
@@ -234,16 +250,12 @@ class Rule(KeywordExtractRule):
                 doc.text) is not None
 
         for 法律名 in 発見された正式名称のリスト:
-            positions = self._get_positions(doc, 法律名)
+            self._set_law_positions(doc, law_list=law_list, lawname=法律名)
 
-            for position in positions:
-                law_list.append((法律名, position, 法律名, ))
         for 法律名の略称 in 法律名の略称のリスト:
-            positions = self._get_positions(doc, 法律名の略称)
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
-
-            for position in self._get_positions(doc, 法律名の略称):
-                law_list.append((法律の正式名称, position, 法律名の略称,))
+            self._set_law_positions(
+                doc=doc, law_list=law_list, lawname=法律の正式名称, face=法律名の略称)
 
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
@@ -262,13 +274,13 @@ class Rule(KeywordExtractRule):
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_list.append((法律名, -1,))
+            law_list.append(LawDTO(name=法律名, position=-1))
             next_law_position = doc_len
             リンクする可能性のある法律のリスト = [0]
         else:
-            法律名, 文中の位置 = law_list[0]
-            next_law_position = law_list[1][1]
-            self.context.set_data(data=法律名, dto=dto)
+            law_dto = law_list[0]
+            next_law_position = law_list[1].position
+            self.context.set_data(data=law_dto.name, dto=dto)
             if law_list_len == 1:
                 リンクする可能性のある法律のリスト = [0]
             else:
@@ -277,7 +289,7 @@ class Rule(KeywordExtractRule):
                 else:
                     リンクする可能性のある法律のリスト = [0]
 
-        区分の深度 = 0
+        # 区分の深度 = -
         相対区分深度 = 0
         確定した条文表現: 条文表現 = None
         確定した条文表現のリスト: List[条文表現] = []
@@ -294,10 +306,59 @@ class Rule(KeywordExtractRule):
         数値が登場した直後か = False
         token_len = 0
         cursor = Cursor(doc)
-        区分表現のリスト = []
-        for パターン, デリミタ in 章区分を表すパターンとデリミタのペアのリスト:
+        段階表現のリスト = []
+
+        # 法律表現をループして倒置かチェックしてフラグを追加
+        # 段階表現も倒置かチェックしてフラグを追加
+        #    最後がのであるか?
+        #
+        #
+        # 法律表現と変更境界を設定
+        #  一つだけならば最初から最後まで
+        # 　二つ以上の場合
+        #   　最初の一つが冒頭にあるならば最初から候補は2つ
+        # 　　　そうでない場合は最初は一つ
+
+        # 段階表現をループ
+        # 　位置からリンクする法律名を決定
+        #  位置から階層を推定
+        # 　法律名とリンク
+        段階表現と位置のインデックス = {}
+        法律と段階表現表現のリンク = defaultdict(set)
+
+        index = 0
+        倒置表現の可能性がある限界 = len(doc.text) - 2
+
+        for パターン, 分割パターン in 章区分を表すパターンと分割パターンのペアのリスト:
             for match in パターン.finditer(doc.text):
-                区分表現のリスト.append((match.start(), デリミタ.findall(match.group(0))))
+                all_text = match.group(0)
+                倒置表現である = False
+                if all_text[-1] == 'の':
+                    match_end = match.exnd()
+                    if match.end() <= 倒置表現の可能性がある限界 and (all_text[match_end] != '、' or 数字と第を表すパターン.search(all_text[match_end + 1]) == None):
+                        倒置表現である = False
+                    else:
+                        倒置表現である = True
+                段階表現のリスト.append(
+                    (match.start(), 分割パターン.findall(all_text), 倒置表現である, ))
+                段階表現と位置のインデックス[match.start()] = index
+        法律名のインデックス = -1
+        for law_dto in law_list:
+            法律名のインデックス += 1
+            next_position = law_dto.position + law_dto.len
+            リンクしている段階表現のID = 段階表現と位置のインデックス.get(next_position)
+            if リンクしている段階表現のID is not None:
+
+                law_dto.is_reverse = 段階表現のリスト[リンクしている段階表現のID][2]
+
+            elif doc.text[next_position] in 連続章段階表現の接続語:  # 『憲法の、第9条』と『9条ですね、憲法の』、みたいな倒置表現
+                リンクしている段階表現のID = 段階表現と位置のインデックス.get(
+                    next_position + 1) or 段階表現と位置のインデックス.get(next_position + 2) or 段階表現と位置のインデックス.get(next_position + 3)
+                if リンクしている段階表現のID is not None:
+                    law_dto.is_reverse = 段階表現のリスト[リンクしている段階表現のID][2]
+                else:
+
+                    law_dto.is_reverse = doc.text[next_position] == 'の'
 
         while cursor.step():
 
@@ -382,6 +443,16 @@ class Rule(KeywordExtractRule):
 
         return results
 
+    def _set_law_positions(self, doc: Doc, law_list: List, lawname, face=''):
+
+        text = doc.text
+        _face = face or lawname
+        position = text.find(_face)
+
+        while position != -1:
+            law_list.append(LawDTO(lawname, position=position, face=face))
+            position = text.find(_face, position + 1)
+
     def _get_hittokens(self, doc: Doc, word: str, tokens: Option[List] = None):
         if tokens is None:
             tokens = []
@@ -396,17 +467,6 @@ class Rule(KeywordExtractRule):
             tokens.append(token)
 
         return tokens
-
-    def _get_positions(self, doc: Doc, needle):
-        splited = doc.text.split(needle)
-        position = 0
-        needle_len = len(needle)
-        positions = deque()
-        for row in splited:
-            position += len(row)
-            positions.append(position)
-            position += needle_len
-        return positions
 
     def _add_law_expressions(self, 法律名, 確定した条文表現のリスト, lawexpessions: Set):
 
