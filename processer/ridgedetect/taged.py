@@ -91,21 +91,19 @@ class Taged(RidgeDitect):
                 next_step_tags_deque = deque()
 
                 is_link_tag_exist = False
-                step_member_check = defaultdict(frozenset)
+                step_member_check = {}
                 for step_tags, step_members, connecter_tag in step_tags_deque:
 
                     for link_tag in tag_paires.get(connecter_tag, EMPTY_SET) - step_tags:
 
-                        next_tags = step_tags | frozenset([link_tag])
+                        next_tags = step_tags | set([link_tag])
 
                         members_set = tag_member_map_frozen[link_tag] & step_members
 
-                        if members_set == EMPTY_FROZEN_SET or (members_set in sub_clusters):
-                            continue
-                        if step_member_check.get(members_set) == next_tags:
+                        if members_set == EMPTY_FROZEN_SET or (members_set in step_member_check) or (members_set in sub_clusters):
                             continue
 
-                        step_member_check[members_set] |= next_tags
+                        step_member_check[members_set] = next_tags
                         is_link_tag_exist = True
                         next_step_tags_deque.append(
                             (next_tags, members_set, link_tag,))
