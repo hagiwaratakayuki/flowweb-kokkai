@@ -268,26 +268,15 @@ class Rule(KeywordExtractRule):
         law_list.sort(key=positionkey)
         target_law_index = 0
         law_list_len = len(law_list)
-
-        リンクする可能性のある法律のリスト = []
+        doc_len = len(doc)
+        is_context_added = False
         if law_list_len == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_list.append(LawDTO(name=法律名, position=-1))
-            next_law_position = doc_len
-            リンクする可能性のある法律のリスト = [0]
-        else:
-            law_dto = law_list[0]
-            next_law_position = law_list[1].position
-            self.context.set_data(data=law_dto.name, dto=dto)
-            if law_list_len == 1:
-                リンクする可能性のある法律のリスト = [0]
-            else:
-                if law_list[0][1] == 0:
-                    リンクする可能性のある法律のリスト = [0, 1]  # 最初または二番目
-                else:
-                    リンクする可能性のある法律のリスト = [0]
+            law_list.append(LawDTO(name=法律名, position=0))
+            is_context_added = True
+            law_list_len = 1
 
         # 区分の深度 = -
         相対区分深度 = 0
@@ -335,13 +324,14 @@ class Rule(KeywordExtractRule):
                 倒置表現である = False
                 if all_text[-1] == 'の':
                     match_end = match.exnd()
-                    if match.end() <= 倒置表現の可能性がある限界 and (all_text[match_end] != '、' or 数字と第を表すパターン.search(all_text[match_end + 1]) == None):
+                    if match.end() > 倒置表現の可能性がある限界 or all_text[match_end] != '、' or 数字と第を表すパターン.search(all_text[match_end + 1]) == None:
                         倒置表現である = False
                     else:
                         倒置表現である = True
                 段階表現のリスト.append(
                     (match.start(), 分割パターン.findall(all_text), 倒置表現である, ))
                 段階表現と位置のインデックス[match.start()] = index
+
         法律名のインデックス = -1
         for law_dto in law_list:
             法律名のインデックス += 1
@@ -359,6 +349,29 @@ class Rule(KeywordExtractRule):
                 else:
 
                     law_dto.is_reverse = doc.text[next_position] == 'の'
+        リンクする可能性のある法律のリスト = []
+
+        next_law_position = doc_len
+
+        law_dto = law_list[0]
+        if not is_context_added:
+            is_context_exist, 法律名 = self.context.get_data(dto=dto)
+            if is_context_exist and law_dto.name != 法律名 and law_dto.position != 0:
+                law_dto = LawDTO(name=法律名, position=0)
+                law_list.insert(0, law_dto)
+                law_list_len += 1
+
+        self.context.set_data(data=law_dto.name, dto=dto)
+        リンクする法律 = law_list[0].name
+        倒置表現としてリンクする法律 = None
+        if law_list_len == 1:
+
+            next_law_position = doc_len
+
+        else:
+            next_law_position = law_list[1].position
+            if law_list[1].is_reverse:
+                倒置表現としてリンクする法律 = law_list[1].name
 
         while cursor.step():
 
@@ -367,10 +380,9 @@ class Rule(KeywordExtractRule):
             position = cursor.position
 
             if next_law_position <= position or position + token_len > next_law_position:
-                章としての区分を表す単語の後か = False
+
                 数値が登場した直後か = False
                 区分の深度 = 0
-                相対区分深度 = 0
 
                 target_tokens.append(token)
 
@@ -383,11 +395,11 @@ class Rule(KeywordExtractRule):
                 確定した条文表現のリスト = [確定した条文表現]
                 未確定の条文表現 = []
                 未確定の条文表現のリスト = [未確定の条文表現]
-                while index < doc_len and position < limit_position:
-                    token = doc[index]
+                while cursor.get_next() != False and cursor.position < limit_position:
+                    cursor.step()
+                    token = cursor.now
                     target_tokens.append(token)
-                    position += len(token)
-                    index += 1
+
                 target_law_index += 1
                 diff = law_list_len - target_law_index
                 if diff <= 0:
