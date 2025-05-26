@@ -96,11 +96,14 @@ class Taged(RidgeDitect):
 
                     for link_tag in tag_paires.get(connecter_tag, EMPTY_SET) - step_tags:
 
-                        next_tags = step_tags | set([link_tag])
+                        next_tags = step_tags | frozenset([link_tag])
 
                         members_set = tag_member_map_frozen[link_tag] & step_members
 
-                        if members_set == EMPTY_FROZEN_SET or (members_set in step_member_check) or (members_set in sub_clusters):
+                        if members_set == EMPTY_FROZEN_SET or (members_set in sub_clusters):
+                            continue
+
+                        if members_set in step_member_check:
                             continue
 
                         step_member_check[members_set] = next_tags
@@ -109,8 +112,8 @@ class Taged(RidgeDitect):
                             (next_tags, members_set, link_tag,))
                 step_sub_clusters.update(step_member_check)
                 step_tags_deque = next_step_tags_deque
-
-            sub_clusters.update(step_sub_clusters)
+            for members, tags in step_sub_clusters.items():
+                sub_clusters[members] |= tags
 
         tag2subclsuter = defaultdict(deque)
         for members, tags in sub_clusters.items():
