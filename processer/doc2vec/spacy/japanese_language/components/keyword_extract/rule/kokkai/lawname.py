@@ -21,17 +21,20 @@ from data_loader.kokkai import DTO
 from doc2vec.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
-from mutitest import check
-from processer.doc2vec.tokenaizer.japanese_language.extracter.kokkai_specificword import lawname
-import re2
+
 
 positionkey = attrgetter('position')
+zerogetter = itemgetter(0)
 
-章としての区分を表す単語 = "編章条項節款目"
+章としての区分を表す単語 = r"編章条項節款目"
+
+
 区分の最大深さ = len(章としての区分を表す単語) - 1
+
+
 章区分を表すパターンと分割パターンのペアのリスト = [
-    (re.compile(r'(\d+[' + 章としての区分を表す単語 + r'第の]*)+'),
-     re.compile(r'((\d+)([' + 章としての区分を表す単語 + '])?'),),
+    (re.compile(r'(\d[' + 章としての区分を表す単語 + r'第の、]*)+\p{Katakana}?'),
+     re.compile(r'([\d\p{Katakana}]+)([' + 章としての区分を表す単語 + '、]?)'),)
 
 ]
 
@@ -260,11 +263,6 @@ class Rule(KeywordExtractRule):
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
 
-        #  条項目抽出と一体化する
-        # 　法律名の結合処理とも一体化する
-        # 『の』でつながっている限りrankは上がる
-        # 　『の』以外があったら並列
-        #       その後で条項目法律名がなく『の』が出たらrankリセット
         law_list.sort(key=positionkey)
         target_law_index = 0
         law_list_len = len(law_list)
@@ -349,7 +347,6 @@ class Rule(KeywordExtractRule):
                 else:
 
                     law_dto.is_reverse = doc.text[next_position] == 'の'
-        リンクする可能性のある法律のリスト = []
 
         next_law_position = doc_len
 
@@ -360,7 +357,28 @@ class Rule(KeywordExtractRule):
                 law_dto = LawDTO(name=法律名, position=0)
                 law_list.insert(0, law_dto)
                 law_list_len += 1
+        段階表現リストの行番号 = 0
+        段階表現のリストの長さ = len(段階表現のリスト)
+        段階表現のスタート位置 = -1
+        law_list_index = 0
+        law_list_index_tail = law_list_len - 1
 
+        while law_list_index < law_list_len:
+            law_dto = law_list[law_list_index]
+            next_law_index = law_index + 1
+
+            if law_list_index == law_list_index_tail:
+                next_law = law_list[next_law_index]
+                next_law_position = next_law.position
+                if next_law.reverse == True:
+                    倒置表現としてリンクする法律 = next_law.name
+
+            else:
+                倒置表現としてリンクする法律 = None
+            リンクする法律 == law_list[1].name
+
+            while 段階表現リストの行番号 < 段階表現のリストの長さ and 段階表現のスタート位置 < next_law_position:
+                段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
         self.context.set_data(data=law_dto.name, dto=dto)
         リンクする法律 = law_list[0].name
         倒置表現としてリンクする法律 = None
@@ -373,6 +391,7 @@ class Rule(KeywordExtractRule):
             if law_list[1].is_reverse:
                 倒置表現としてリンクする法律 = law_list[1].name
 
+        # ここはトークンを探すだけ
         while cursor.step():
 
             token = cursor.now
@@ -415,20 +434,6 @@ class Rule(KeywordExtractRule):
                     リンクする可能性のある法律のリスト = [
                         target_law_index, target_law_index + 1]
                 continue
-
-            if token.dep_ == 'NUM':
-                数値が登場した直後か = True
-                continue
-            elif 数値が登場した直後か:
-                数値が登場した直後か = False
-
-                if token.norm_ in 章の区分と数値の変換表:
-                    章としての区分を表す単語の後か = True
-                    対象の区分の深度 = 章の区分と数値の変換表[token.norm_]
-                    if 区分の深度 > 対象の区分の深度:
-                        次の確定した条文表現のリスト = [(条文表現, 深度, )
-                                          for 条文表現, 深度 in 確定した条文表現 if 深度 > 対象の区分の深度]
-                if token.norm_ == 'の':
 
         for law_tupple, line_numbers in law_index.items():
             if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
