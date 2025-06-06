@@ -299,6 +299,42 @@ class Rule(KeywordExtractRule):
         # 　位置からリンクする法律名を決定
         #  位置から階層を推定
         # 　法律名とリンク
+        段階表現と位置のインデックス = {}
+
+        index = 0
+        倒置表現の可能性がある限界 = len(doc.text) - 2
+
+        for パターン, 分割パターン in 章区分を表すパターンと分割パターンのペアのリスト:
+            for match in パターン.finditer(doc.text):
+                all_text = match.group(0)
+                倒置表現である = False
+                if all_text[-1] == 'の':
+                    match_end = match.exnd()
+                    if match.end() > 倒置表現の可能性がある限界 or all_text[match_end] != '、' or 数字と第を表すパターン.search(all_text[match_end + 1]) == None:
+                        倒置表現である = False
+                    else:
+                        倒置表現である = True
+                段階表現のリスト.append(
+                    (match.start(), 分割パターン.findall(all_text), 倒置表現である, ))
+                段階表現と位置のインデックス[match.start()] = index
+
+        法律名のインデックス = -1
+        for law_dto in law_list:
+            法律名のインデックス += 1
+            next_position = law_dto.position + law_dto.len
+            リンクしている段階表現のID = 段階表現と位置のインデックス.get(next_position)
+            if リンクしている段階表現のID is not None:
+
+                law_dto.is_reverse = 段階表現のリスト[リンクしている段階表現のID][2]
+
+            elif doc.text[next_position] in 連続章段階表現の接続語:  # 『憲法の、第9条』と『9条ですね、憲法の』、みたいな倒置表現
+                リンクしている段階表現のID = 段階表現と位置のインデックス.get(
+                    next_position + 1) or 段階表現と位置のインデックス.get(next_position + 2) or 段階表現と位置のインデックス.get(next_position + 3)
+                if リンクしている段階表現のID is not None:
+                    law_dto.is_reverse = 段階表現のリスト[リンクしている段階表現のID][2]
+                else:
+
+                    law_dto.is_reverse = doc.text[next_position] == 'の'
 
         next_law_position = doc_len
 
@@ -309,6 +345,47 @@ class Rule(KeywordExtractRule):
                 law_dto = LawDTO(name=法律名, position=0)
                 law_list.insert(0, law_dto)
                 law_list_len += 1
+        段階表現リストの行番号 = 0
+        段階表現のリストの長さ = len(段階表現のリスト)
+
+        law_list_index = 0
+        law_list_index_tail = law_list_len - 1
+        段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
+        深さを推定中の段階表現 = []
+
+        while law_list_index < law_list_len:
+            law_dto = law_list[law_list_index]
+            段階表現のスタート位置 = -1
+            if law_list_index != law_list_index_tail:
+                next_law_index = law_index + 1
+                next_law = law_list[next_law_index]
+                next_law_position = next_law.position
+                if next_law.reverse == True:
+                    倒置表現としてリンクする法律 = next_law.name
+
+            else:
+                倒置表現としてリンクする法律 = None
+                next_law_position = doc_len
+            リンクする法律 == law_list[1].name
+
+            while 段階表現リストの行番号 < 段階表現のリストの長さ and 段階表現のスタート < next_law_position:
+                if 段階表現[0][1] in 章としての区分を表す単語:
+                    if
+
+                段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
+                段階表現リストの行番号 += 1
+
+        self.context.set_data(data=law_dto.name, dto=dto)
+        リンクする法律 = law_list[0].name
+        倒置表現としてリンクする法律 = None
+        if law_list_len == 1:
+
+            next_law_position = doc_len
+
+        else:
+            next_law_position = law_list[1].position
+            if law_list[1].is_reverse:
+                倒置表現としてリンクする法律 = law_list[1].name
 
         # ここはトークンを探すだけ
         while cursor.step():
