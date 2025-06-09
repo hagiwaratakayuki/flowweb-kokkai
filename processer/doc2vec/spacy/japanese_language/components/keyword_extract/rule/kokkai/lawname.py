@@ -3,6 +3,7 @@
 from multiprocessing import context
 from turtle import position
 from typing import Deque, Iterator, List, Optional, Set, Tuple, Option
+from unittest import result
 
 
 import numpy as np
@@ -27,8 +28,6 @@ positionkey = attrgetter('position')
 zerogetter = itemgetter(0)
 
 章としての区分を表す単語 = r"編章条項節款目"
-
-
 区分の最大深さ = len(章としての区分を表す単語) - 1
 
 
@@ -39,6 +38,8 @@ zerogetter = itemgetter(0)
 ]
 
 章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
+
+
 スーパー301条対策のパターン = re.compile('ス.パ.')
 委員会 = "委員会"
 
@@ -351,7 +352,6 @@ class Rule(KeywordExtractRule):
         law_list_index = 0
         law_list_index_tail = law_list_len - 1
         段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
-        深さを推定中の段階表現 = []
 
         while law_list_index < law_list_len:
             law_dto = law_list[law_list_index]
@@ -367,12 +367,23 @@ class Rule(KeywordExtractRule):
                 倒置表現としてリンクする法律 = None
                 next_law_position = doc_len
             リンクする法律 == law_list[1].name
+            深さを推定中の段階表現 = []
+            深さを推定中の段階表現が存在するか = False
+            while 段階表現のスタート < next_law_position:
+                if 段階表現[0][1] in 章の区分と数値の変換表:
+                    段階表現の深さ = 章の区分と数値の変換表[段階表現[0][1]]
 
-            while 段階表現リストの行番号 < 段階表現のリストの長さ and 段階表現のスタート < next_law_position:
-                if 段階表現[0][1] in 章としての区分を表す単語:
-                    if
+                    if 段階表現のスタート位置 == -1:
+                        if 段階表現の深さ > 2:
+                            深さを推定中の段階表現.append(段階表現)
+
+                    elif:
+
+                if 段階表現リストの行番号 >= 段階表現のリストの長さ:
+                    break
 
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
+
                 段階表現リストの行番号 += 1
 
         self.context.set_data(data=law_dto.name, dto=dto)
@@ -455,6 +466,32 @@ class Rule(KeywordExtractRule):
                 kw, is_overwrite_token=law_2_overwrite.get(headword, True))
 
         return results
+
+    def _infer_level(self, 段階表現のリスト: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
+        result = (現在の章表現 or [])[:]
+        is_success = False
+        一つ前の深さ = 現在の深さ
+        for 番号, 深さ in 段階表現のリスト:
+            if not 番号.isnumeric():
+                if len(番号) > 1:
+                    continue
+                if 末尾はカナ表現か == True:
+                    result.pop()
+                result.append(番号)
+                末尾はカナ表現か = True
+                is_success = True
+                continue
+            一つ前の深さ = 現在の深さ
+            現在の深さ = 章の区分と数値の変換表.get(深さ, 現在の深さ + 1)
+            if 現在の深さ < 2:
+                continue
+            if 現在の深さ - 一つ前の深さ > 1:
+                continue
+            if 現在の深さ < 一つ前の深さ:
+                result = result[:現在の深さ]
+            result.append(番号 + 現在の深さ)
+            is_success = True
+        return True, result, 現在の深さ
 
     def _set_law_positions(self, doc: Doc, law_list: List, lawname, face=''):
 
