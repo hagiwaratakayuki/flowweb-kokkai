@@ -469,7 +469,6 @@ class Rule(KeywordExtractRule):
 
     def _infer_level(self, 段階表現のリスト: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
         result = (現在の章表現 or [])[:]
-        is_success = False
         一つ前の深さ = 現在の深さ
         for 番号, 深さ in 段階表現のリスト:
             if not 番号.isnumeric():
@@ -479,18 +478,18 @@ class Rule(KeywordExtractRule):
                     result.pop()
                 result.append(番号)
                 末尾はカナ表現か = True
-                is_success = True
+
                 continue
             一つ前の深さ = 現在の深さ
             現在の深さ = 章の区分と数値の変換表.get(深さ, 現在の深さ + 1)
             if 現在の深さ < 2:
                 continue
             if 現在の深さ - 一つ前の深さ > 1:
-                continue
+                return False, False, False
             if 現在の深さ < 一つ前の深さ:
                 result = result[:現在の深さ]
             result.append(番号 + 現在の深さ)
-            is_success = True
+
         return True, result, 現在の深さ
 
     def _set_law_positions(self, doc: Doc, law_list: List, lawname, face=''):
