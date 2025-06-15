@@ -1,6 +1,7 @@
 
 
 from multiprocessing import context
+from tkinter import NO
 from turtle import position
 from typing import Deque, Iterator, List, Optional, Set, Tuple, Option
 from unittest import result
@@ -90,17 +91,18 @@ class EqInShorter:
 
 
 class LawDTO:
-    position: int
+    start: int
     is_reverse: bool
     face: str
     name: str
 
-    def __init__(self, name, position, face=''):
+    def __init__(self, name, start, face=''):
         self.name = name
-        self.position = position
+        self.start = start
         self.face = face
         self.is_reverse = False
         self.len = len(self.get_face())
+        self.end = self.start + self.len - 1
 
     def get_face(self):
         return self.face or self.name
@@ -263,16 +265,9 @@ class Rule(KeywordExtractRule):
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_list.append(LawDTO(name=法律名, position=0))
+            law_list.append(LawDTO(name=法律名, start=0))
             is_context_added = True
             law_list_len = 1
-
-        # 区分の深度 = -
-        相対区分深度 = 0
-        確定した条文表現: 条文表現 = None
-        確定した条文表現のリスト: List[条文表現] = []
-        未確定の条文表現: 条文表現 = None
-        未確定の条文表現のリスト = [未確定の条文表現]
 
         数値の後である = False
         # 段階表現　3条の1の2、みたいな表現のこと
@@ -322,7 +317,7 @@ class Rule(KeywordExtractRule):
         法律名のインデックス = -1
         for law_dto in law_list:
             法律名のインデックス += 1
-            next_position = law_dto.position + law_dto.len
+            next_position = law_dto.start + law_dto.len
             リンクしている段階表現のID = 段階表現と位置のインデックス.get(next_position)
             if リンクしている段階表現のID is not None:
 
@@ -342,49 +337,88 @@ class Rule(KeywordExtractRule):
         law_dto = law_list[0]
         if not is_context_added:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
-            if is_context_exist and law_dto.name != 法律名 and law_dto.position != 0:
-                law_dto = LawDTO(name=法律名, position=0)
+            if is_context_exist and law_dto.name != 法律名 and law_dto.start != 0:
+                law_dto = LawDTO(name=法律名, start=0)
                 law_list.insert(0, law_dto)
                 law_list_len += 1
-        段階表現リストの行番号 = 0
+
         段階表現のリストの長さ = len(段階表現のリスト)
+        段階表現リストの行番号 = 段階表現のリストの長さ - 1
 
-        law_list_index = 0
-        law_list_index_tail = law_list_len - 1
+        law_list_index = law_list_len - 1
+
         段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
+        prev_law_dto: LawDTO = None
+        law_dto = None
+        段階表現の基準深さ = -1
+        以前の段階表現の基準深さ = -1
+        末尾はカナ表現か = False
+        倒置の直後である = False
+        現在の章表現 = None
+        未判定の段階表現のdeque = deque()
+        法律名と段階表現の対応表 = defaultdict(set)
+        while law_list_index >= 0:
 
-        while law_list_index < law_list_len:
-            law_dto = law_list[law_list_index]
-            段階表現のスタート位置 = -1
-            if law_list_index != law_list_index_tail:
-                next_law_index = law_index + 1
-                next_law = law_list[next_law_index]
-                next_law_position = next_law.position
-                if next_law.reverse == True:
-                    倒置表現としてリンクする法律 = next_law.name
+            prev_law_dto = law_dto
+            以前の段階表現の基準深さ = 段階表現の基準深さ
+            段階表現の基準深さ = -1
+            law_dto = law_list[law_index]
+            law_list_index = 1
 
-            else:
-                倒置表現としてリンクする法律 = None
-                next_law_position = doc_len
-            リンクする法律 == law_list[1].name
-            深さを推定中の段階表現 = []
-            深さを推定中の段階表現が存在するか = False
-            while 段階表現のスタート < next_law_position:
-                if 段階表現[0][1] in 章の区分と数値の変換表:
-                    段階表現の深さ = 章の区分と数値の変換表[段階表現[0][1]]
+            is_tail = True
 
-                    if 段階表現のスタート位置 == -1:
-                        if 段階表現の深さ > 2:
-                            深さを推定中の段階表現.append(段階表現)
+            while 段階表現のスタート > next_law_position:
+                if is_tail == True:
+                    is_tail = False
+                    if prev_law_dto != None and prev_law_dto.is_reverse:
+                        target_law = prev_law_dto
+                        現在の段階表現の基準深さ = 以前の段階表現の基準深さ
+                        倒置の直後である = True
 
-                    elif:
+                    else:
+                        target_law = prev_law_dto
+                        倒置の直後である = False
+                        現在の段階表現の基準深さ = 段階表現の基準深さ
+                        末尾はカナ表現か = False
+                else:
+                    target_law = law_dto
+                    現在の段階表現の基準深さ = 段階表現の基準深さ
+                    if 倒置の直後である:
+                        倒置の直後である = False
+                        末尾はカナ表現か = False
 
-                if 段階表現リストの行番号 >= 段階表現のリストの長さ:
+                if 段階表現[0][1] not in 章の区分と数値の変換表:
+                    if 現在の段階表現の基準深さ == -1:
+                        未判定の段階表現のdeque.appendleft(段階表現)
+                    else:
+                        推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
+                            段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
+                        if not 推定は成功か:
+                            continue
+                        段階表現の基準深さ = 深さの推定結果
+                        法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
+                else:
+
+                    推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
+                        段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
+                    if not 推定は成功か:
+                        continue
+                    段階表現の基準深さ = 深さの推定結果
+                    法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
+                    for 未判定の段階表現 in 未判定の段階表現のdeque:
+                        推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
+                            段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
+                        if not 推定は成功か:
+                            continue
+                        段階表現の基準深さ = 深さの推定結果
+                        法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
+                    未判定の段階表現のdeque = deque()
+
+                段階表現リストの行番号 -= 1
+                if 段階表現リストの行番号 < 0:
                     break
 
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
-
-                段階表現リストの行番号 += 1
 
         self.context.set_data(data=law_dto.name, dto=dto)
         リンクする法律 = law_list[0].name
@@ -394,7 +428,7 @@ class Rule(KeywordExtractRule):
             next_law_position = doc_len
 
         else:
-            next_law_position = law_list[1].position
+            next_law_position = law_list[1].start
             if law_list[1].is_reverse:
                 倒置表現としてリンクする法律 = law_list[1].name
 
@@ -467,10 +501,10 @@ class Rule(KeywordExtractRule):
 
         return results
 
-    def _infer_level(self, 段階表現のリスト: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
+    def _infer_level(self, 段階表現: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
         result = (現在の章表現 or [])[:]
         一つ前の深さ = 現在の深さ
-        for 番号, 深さ in 段階表現のリスト:
+        for 番号, 深さ in 段階表現:
             if not 番号.isnumeric():
                 if len(番号) > 1:
                     continue
@@ -496,11 +530,11 @@ class Rule(KeywordExtractRule):
 
         text = doc.text
         _face = face or lawname
-        position = text.find(_face)
+        start = text.find(_face)
 
-        while position != -1:
-            law_list.append(LawDTO(lawname, position=position, face=face))
-            position = text.find(_face, position + 1)
+        while start != -1:
+            law_list.append(LawDTO(lawname, start=start, face=face))
+            start = text.find(_face, start + 1)
 
     def _get_hittokens(self, doc: Doc, word: str, tokens: Option[List] = None):
         if tokens is None:
