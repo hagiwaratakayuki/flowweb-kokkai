@@ -25,7 +25,7 @@ from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 
 
-positionkey = attrgetter('position')
+startkey = attrgetter('start')
 zerogetter = itemgetter(0)
 
 章としての区分を表す単語 = r"編章条項節款目"
@@ -106,6 +106,34 @@ class LawDTO:
 
     def get_face(self):
         return self.face or self.name
+
+
+class PositionList:
+    positions: List[Tuple[float, float]]
+    index: int
+    now_start: int
+    now_end: int
+
+    def __init__(self):
+        self.positions = []
+        self.index = -1
+
+    def append_position(self, start, end):
+        self.positions.append((start, end,))
+
+    def sort(self):
+        self.positions.sort(key=zerogetter)
+        self.limit = len(self.positions) - 1
+
+    def step(self):
+
+        self.index += 1
+        if self.limit < self.index:
+            return False
+        start, end = self.positions[self.index]
+        self.now_start = start
+        self.now_end = end
+        return True
 
 
 class Cursor:
@@ -256,23 +284,21 @@ class Rule(KeywordExtractRule):
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
 
-        law_list.sort(key=positionkey)
+        law_list.sort(key=startkey)
         target_law_index = 0
         law_list_len = len(law_list)
         doc_len = len(doc)
         is_context_added = False
+        position_list = PositionList()
         if law_list_len == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_list.append(LawDTO(name=法律名, start=0))
+            law_dto = LawDTO(name=法律名, start=0)
+            law_list.append(law_dto)
+            position_list.append_position(law_dto.start, law_dto.end)
             is_context_added = True
             law_list_len = 1
-
-        数値の後である = False
-        # 段階表現　3条の1の2、みたいな表現のこと
-
-        段階表現で変化した区分の深さ = 0
 
         law_expressions = set()
 
@@ -280,21 +306,6 @@ class Rule(KeywordExtractRule):
         cursor = Cursor(doc)
         段階表現のリスト = []
 
-        # 法律表現をループして倒置かチェックしてフラグを追加
-        # 段階表現も倒置かチェックしてフラグを追加
-        #    最後がのであるか?
-        #
-        #
-        # 法律表現と変更境界を設定
-        #  一つだけならば最初から最後まで
-        # 　二つ以上の場合
-        #   　最初の一つが冒頭にあるならば最初から候補は2つ
-        # 　　　そうでない場合は最初は一つ
-
-        # 段階表現をループ
-        # 　位置からリンクする法律名を決定
-        #  位置から階層を推定
-        # 　法律名とリンク
         段階表現と位置のインデックス = {}
 
         index = 0
@@ -313,6 +324,7 @@ class Rule(KeywordExtractRule):
                 段階表現のリスト.append(
                     (match.start(), 分割パターン.findall(all_text), 倒置表現である, ))
                 段階表現と位置のインデックス[match.start()] = index
+                position_list.append(match.start(), match.end())
 
         法律名のインデックス = -1
         for law_dto in law_list:
@@ -421,84 +433,26 @@ class Rule(KeywordExtractRule):
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
 
         self.context.set_data(data=law_dto.name, dto=dto)
-        リンクする法律 = law_list[0].name
-        倒置表現としてリンクする法律 = None
-        if law_list_len == 1:
 
-            next_law_position = doc_len
-
-        else:
-            next_law_position = law_list[1].start
-            if law_list[1].is_reverse:
-                倒置表現としてリンクする法律 = law_list[1].name
-
-        # ここはトークンを探すだけ
+        position_list.sort()
+        tokens = []
         while cursor.step():
 
-            token = cursor.now
-            token_len = cursor.token_len
-            position = cursor.position
-
-            if next_law_position <= position or position + token_len > next_law_position:
-
-                数値が登場した直後か = False
-                区分の深度 = 0
-
-                target_tokens.append(token)
-
-                limit_position = len(法律名) + next_law_position
-
-                position += token_len
-                self._add_law_expressions(
-                    法律名=法律名, 確定した条文表現のリスト=確定した条文表現のリスト, lawexpessions=law_expressions)
-                確定した条文表現 = []
-                確定した条文表現のリスト = [確定した条文表現]
-                未確定の条文表現 = []
-                未確定の条文表現のリスト = [未確定の条文表現]
-                while cursor.get_next() != False and cursor.position < limit_position:
-                    cursor.step()
-                    token = cursor.now
-                    target_tokens.append(token)
-
-                target_law_index += 1
-                diff = law_list_len - target_law_index
-                if diff <= 0:
-                    next_law_position = doc_len
-                    リンクする可能性のある法律のリスト = [target_law_index]
-                if diff == 1:
-                    法律名 = law_list[target_law_index][0]
-                    next_law_position = doc_len
-                    リンクする可能性のある法律のリスト = [target_law_index]
-                else:
-                    法律名 = law_list[target_law_index][0]
-                    next_law_position = law_list[target_law_index + 1][1]
-                    リンクする可能性のある法律のリスト = [
-                        target_law_index, target_law_index + 1]
-                continue
-
-        for law_tupple, line_numbers in law_index.items():
-            if law_tupple[0] == "商法" and 商売の方法または金商法の略称の一部としての商法である is True:
-                continue
-            headword = law_tupple[0]
-
-            subwords = list(law_tupple[1:])
-
-            # todo 効率よく
-            target_words = reverse_dict.get(headword, [])
-            tokens = set()
-            for word in target_words + law_tupple:
-                tokens.update(self._get_hittokens(doc=doc, word=word))
-
-            kw = SpecifiedKeyword(
-                headword=headword, subwords=subwords, is_force=True, source_ids=tokens, target_words=target_words, is_allow_add_multiple_subword=True)
-            results.add_keyword(
-                keyword=kw, is_overwrite_token=law_2_overwrite.get(headword, True))
-        for headword in additional_law_words:
-            kw = SpecifiedKeyword(
-                headword=headword, is_force=True, source_ids=target_tokens.get(headword, set()))
-            results.add_keyword(
-                kw, is_overwrite_token=law_2_overwrite.get(headword, True))
-
+            has_next = True
+            while position_list.now_start <= cursor.position <= position_list.now_end:
+                tokens.append(cursor.now)
+                has_next = cursor.step()
+                if not has_next:
+                    break
+            if not has_next:
+                break
+            if not position_list.step():
+                break
+        results.remove_kewywords(tokens)
+        for 法律, 段階表現 in 法律名と段階表現の対応表.items():
+            kw = SpecifiedKeyword(headword=法律, subwords=段階表現)
+            results.add_keyword(kw)
+        # todo 段階表現のない法律に対処
         return results
 
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):

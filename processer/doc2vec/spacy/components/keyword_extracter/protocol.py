@@ -35,6 +35,10 @@ class ExtractResultDTO:
         for source_id in keyword.source_ids:
             self.token_2_keyword[source_id].add(keyword)
 
+    def remove_kewywords(self, source_ids):
+        for kw in self.get_by_source_ids(source_ids=source_ids):
+            kw.source_ids -= source_ids
+
     def get_keywords(self):
         # refarence shortcut
         return [keyword for keyword in self.keywords if keyword.source_ids != EMPTY_SET]
