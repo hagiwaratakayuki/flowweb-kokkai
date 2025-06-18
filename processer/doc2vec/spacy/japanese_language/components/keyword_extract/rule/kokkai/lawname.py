@@ -369,12 +369,14 @@ class Rule(KeywordExtractRule):
         現在の章表現 = None
         未判定の段階表現のdeque = deque()
         法律名と段階表現の対応表 = defaultdict(set)
+        法律名の一覧 = set()
         while law_list_index >= 0:
 
             prev_law_dto = law_dto
             以前の段階表現の基準深さ = 段階表現の基準深さ
             段階表現の基準深さ = -1
-            law_dto = law_list[law_index]
+            law_dto = law_list[law_list_index]
+            法律名の一覧.add(law_dto.name)
             law_list_index = 1
 
             is_tail = True
@@ -449,10 +451,15 @@ class Rule(KeywordExtractRule):
             if not position_list.step():
                 break
         results.remove_kewywords(tokens)
-        for 法律, 段階表現 in 法律名と段階表現の対応表.items():
-            kw = SpecifiedKeyword(headword=法律, subwords=段階表現)
+        for 法律名, 段階表現 in 法律名と段階表現の対応表.items():
+            kw = SpecifiedKeyword(headword=法律名, subwords=段階表現, is_force=True)
             results.add_keyword(kw)
-        # todo 段階表現のない法律に対処
+        for 法律名 in 法律名の一覧:
+            if 法律名 not in 法律名と段階表現の対応表:
+                kw = SpecifiedKeyword(
+                    headword=法律名, subwords=段階表現, is_force=True)
+                results.add_keyword(kw)
+
         return results
 
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
