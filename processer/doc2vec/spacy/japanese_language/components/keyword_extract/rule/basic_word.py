@@ -129,7 +129,8 @@ class Rule(KeywordExtractRule):
                                                                                 complex_word_tokens=complex_word_tokens, noun_vectors=noun_vectors, nouns=nouns)
 
         for complex_word, data in complex_word_tokens.items():
-
+            if '法第' in complex_word:
+                continue
             sk = SpecifiedKeyword(
                 headword=complex_word,
                 vectors=[],

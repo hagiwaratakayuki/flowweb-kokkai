@@ -35,7 +35,7 @@ class BasicKeywordExtratcer:
         result_keywords = results.get_keywords()
         keyword_objects = [
             result for result in result_keywords if result.is_force == True]
-
+        print(keyword_objects)
         keyword_scores = []
         for result_keywords in result_keywords:
 

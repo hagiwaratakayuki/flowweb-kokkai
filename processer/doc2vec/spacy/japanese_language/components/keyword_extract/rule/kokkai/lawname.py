@@ -1,5 +1,6 @@
 
 
+from turtle import position
 from typing import Deque, Iterator, List, Optional, Set, Tuple
 
 
@@ -25,11 +26,11 @@ zerogetter = itemgetter(0)
 
 章としての区分を表す単語 = r"編章条項節款目"
 区分の最大深さ = len(章としての区分を表す単語) - 1
-
+カナ区分の深さ = 区分の最大深さ + 1
 
 章区分を表すパターンと分割パターンのペアのリスト = [
-    (re.compile(r'(\d[' + 章としての区分を表す単語 + r'第の、]*)+\p{Katakana}*'),
-     re.compile(r'(\d+|の、?\p{Katakana}+)([' + 章としての区分を表す単語 + '、]?)'),)
+    (re.compile(r'(第?\d[' + 章としての区分を表す単語 + r'の、]*)+\p{Katakana}*'),
+     re.compile(r'(\d+|の、?\p{Katakana}+)([' + 章としての区分を表す単語 + r'、]?)'),)
 
 ]
 
@@ -75,6 +76,7 @@ law_standard_phrases = ['法の下の平等', '法の支配']
     re.compile('並びに?$|ならびに?$'),
     re.compile('び$')
 ]
+DUMMY_SET = {0}
 
 
 class EqInShorter:
@@ -152,6 +154,7 @@ class Cursor:
         return False
 
     def step(self):
+
         if self.has_next:
             self.index += 1
             self.position += self.token_len
@@ -159,6 +162,7 @@ class Cursor:
             self.token_len = len(self.now)
             self._check_next()
             return True
+
         return False
 
 
@@ -197,7 +201,6 @@ class Rule(KeywordExtractRule):
         商売の方法または金商法の略称の一部としての商法である = False
 
         target_tokens = deque()
-        law_2_overwrite = {}
 
         sent_number += 1
 
@@ -297,6 +300,9 @@ class Rule(KeywordExtractRule):
             position_list.append_position(law_dto.start, law_dto.end)
             is_context_added = True
             law_list_len = 1
+        else:
+            for law_dto in law_list:
+                position_list.append_position(law_dto.start, law_dto.end)
 
         cursor = Cursor(doc)
         段階表現のリスト = []
@@ -309,7 +315,9 @@ class Rule(KeywordExtractRule):
         for パターン, 分割パターン in 章区分を表すパターンと分割パターンのペアのリスト:
             for match in パターン.finditer(doc.text):
                 all_match = match.group(0)
+
                 倒置表現である = False
+
                 if all_match[-1] == 'の':
 
                     match_end = match.end()
@@ -341,8 +349,6 @@ class Rule(KeywordExtractRule):
 
                     law_dto.is_reverse = doc.text[next_position] == 'の'
 
-        next_law_position = doc_len
-
         law_dto = law_list[0]
         if not is_context_added:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
@@ -351,41 +357,48 @@ class Rule(KeywordExtractRule):
                 law_list.insert(0, law_dto)
                 law_list_len += 1
         法律名と段階表現の対応表, 法律名の一覧 = self.段階表現の抽出(
-            段階表現のリスト=段階表現のリスト, law_list_len=law_list_len, law_list=law_list, next_law_position=next_law_position)
+            段階表現のリスト=段階表現のリスト, law_list_len=law_list_len, law_list=law_list)
 
         self.context.set_data(data=law_list[-1].name, dto=dto)
         is_positions_exist = position_list.prepare()
         if not is_positions_exist:
             return results
 
-        tokens = []
+        tokens = set()
+        is_in = False
+        position = 0
+        prev_token = ''
+        for token in doc:
 
-        while cursor.step():
+            position += len(prev_token)
+            prev_token = token
 
-            has_next = True
-            while position_list.now_start <= cursor.position <= position_list.now_end:
-                tokens.append(cursor.now)
-                has_next = cursor.step()
-                if not has_next:
+            if position_list.now_start <= position <= position_list.now_end:
+                is_in = True
+
+                tokens.add(token)
+            elif is_in:
+                is_in = False
+                if not position_list.step():
                     break
-            if not has_next:
-                break
-            if not position_list.step():
-                break
-        """
+
         results.remove_kewywords(tokens)
-        for 法律名, 段階表現 in 法律名と段階表現の対応表.items():
-            kw = SpecifiedKeyword(headword=法律名, subwords=段階表現, is_force=True)
+
+        for 法律名, 対応した段階表現のリスト in 法律名と段階表現の対応表.items():
+            for 対応した段階表現 in 対応した段階表現のリスト:
+                kw = SpecifiedKeyword(
+                    headword=法律名, subwords=対応した段階表現, source_ids=DUMMY_SET, is_force=True)
             results.add_keyword(kw)
         for 法律名 in 法律名の一覧:
             if 法律名 not in 法律名と段階表現の対応表:
                 kw = SpecifiedKeyword(
-                    headword=法律名, is_force=True)
+                    headword=法律名, source_ids=DUMMY_SET, is_force=True)
+
                 results.add_keyword(kw)
 
         return results
 
-    def 段階表現の抽出(self, 段階表現のリスト, law_list_len, law_list, next_law_position):
+    def 段階表現の抽出(self, 段階表現のリスト, law_list_len, law_list: List[LawDTO]):
         段階表現のリストの長さ = len(段階表現のリスト)
         if 段階表現のリストの長さ == 0:
             return {}, {law_dto.name for law_dto in law_list}
@@ -409,13 +422,14 @@ class Rule(KeywordExtractRule):
             prev_law_dto = law_dto
             以前の段階表現の基準深さ = 段階表現の基準深さ
             段階表現の基準深さ = -1
-            law_dto = law_list[law_list_index]
+            law_dto: LawDTO = law_list[law_list_index]
             法律名の一覧.add(law_dto.name)
             law_list_index -= 1
 
             is_tail = True
 
-            while 段階表現のスタート > next_law_position:
+            while 段階表現のスタート > law_dto.start:
+
                 if is_tail == True:
                     is_tail = False
                     if prev_law_dto != None and prev_law_dto.is_reverse:
@@ -424,7 +438,7 @@ class Rule(KeywordExtractRule):
                         倒置の直後である = True
 
                     else:
-                        target_law = prev_law_dto
+                        target_law = law_dto
                         倒置の直後である = False
                         現在の段階表現の基準深さ = 段階表現の基準深さ
                         末尾はカナ表現か = False
@@ -439,28 +453,27 @@ class Rule(KeywordExtractRule):
                     if 現在の段階表現の基準深さ == -1:
                         未判定の段階表現のdeque.appendleft(段階表現)
                     else:
-                        推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
-                            段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
-                        if not 推定は成功か:
-                            continue
-                        段階表現の基準深さ = 深さの推定結果
-                        法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
+                        推定は成功か, 推定される現在の章表現, 末尾はカナ表現か = self._infer_level(
+                            段階表現=段階表現, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現, 法律名と段階表現の対応表=法律名と段階表現の対応表, 現在の法律名=target_law.name)
+                        if 推定は成功か:
+                            現在の章表現 = 推定される現在の章表現
+
                 else:
 
-                    推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
-                        段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
-                    if not 推定は成功か:
-                        continue
-                    段階表現の基準深さ = 深さの推定結果
-                    法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
-                    for 未判定の段階表現 in 未判定の段階表現のdeque:
-                        推定は成功か, 推定結果, 深さの推定結果, = self._infer_level(
-                            段階表現=段階表現, 現在の深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現)
-                        if not 推定は成功か:
-                            continue
-                        段階表現の基準深さ = 深さの推定結果
-                        法律名と段階表現の対応表[target_law.name].add(tuple(推定結果))
-                    未判定の段階表現のdeque = deque()
+                    推定は成功か, 推定される現在の章表現, 末尾はカナ表現か = self._infer_level(
+                        段階表現=段階表現, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現, 法律名と段階表現の対応表=法律名と段階表現の対応表, 現在の法律名=target_law.name)
+                    if 推定は成功か:
+
+                        現在の章表現 = 推定される現在の章表現
+                        for 未判定の段階表現 in 未判定の段階表現のdeque:
+                            推定は成功か, 推定される現在の章表現, 末尾はカナ表現か = self._infer_level(
+                                段階表現=段階表現, 現在の数値深さ=現在の段階表現の基準深さ, 末尾はカナ表現か=末尾はカナ表現か, 現在の章表現=現在の章表現, 法律名と段階表現の対応表=法律名と段階表現の対応表, 現在の法律名=target_law.name)
+                            if not 推定は成功か:
+                                continue
+
+                            現在の章表現 = 推定される現在の章表現
+
+                        未判定の段階表現のdeque = deque()
 
                 段階表現リストの行番号 -= 1
                 if 段階表現リストの行番号 < 0:
@@ -469,30 +482,63 @@ class Rule(KeywordExtractRule):
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
         return 法律名と段階表現の対応表, 法律名の一覧
 
-    def _infer_level(self, 段階表現: List[Tuple[str, str]], 現在の深さ, 末尾はカナ表現か, 現在の章表現=None):
-        result = (現在の章表現 or [])[:]
-        一つ前の深さ = 現在の深さ
+    def _infer_level(self, 段階表現: List[Tuple[str, str]], 末尾はカナ表現か, 現在の章表現=None, 法律名と段階表現の対応表={}, 現在の法律名=''):
+
+        result = list(現在の章表現 or [])
+        # print(result)
+        if 現在の章表現 != None:
+            現在の数値深さ = result[-1][1]
+        else:
+            現在の数値深さ = -1
+
+        results = [result]
+        一つ前の深さ = 現在の数値深さ
+        is_first = True
         for 番号, 深さ in 段階表現:
+
             if not 番号.isnumeric():
                 if len(番号) > 1:
                     continue
                 if 末尾はカナ表現か == True:
                     result.pop()
-                result.append(番号)
+                result.append((番号, カナ区分の深さ,))
                 末尾はカナ表現か = True
 
                 continue
-            一つ前の深さ = 現在の深さ
-            現在の深さ = 章の区分と数値の変換表.get(深さ, 現在の深さ + 1)
-            if 現在の深さ < 2:
-                continue
-            if 現在の深さ - 一つ前の深さ > 1:
-                return False, False, False
-            if 現在の深さ < 一つ前の深さ:
-                result = result[:現在の深さ]
-            result.append(番号 + 現在の深さ)
+            一つ前の深さ = 現在の数値深さ
+            現在の数値深さ = 章の区分と数値の変換表.get(深さ, 現在の数値深さ + 1)
 
-        return True, result, 現在の深さ
+            if 現在の数値深さ < 2:
+                continue
+            if 一つ前の深さ > -1 and 現在の数値深さ - 一つ前の深さ > 1:
+
+                return False, False, 末尾はカナ表現か
+
+            if 現在の数値深さ <= 一つ前の深さ:
+
+                next_result = []
+
+                for 条文表現, 数値深さ in result:
+
+                    if 数値深さ < 現在の数値深さ:
+
+                        next_result.append((条文表現, 数値深さ,))
+
+                result = next_result
+                if is_first:
+                    results[0] = result
+                else:
+                    results.append(result)
+            if is_first:
+                is_first = False
+            result.append((番号 + 深さ, 現在の数値深さ,))
+        for result in results:
+            法律名と段階表現の対応表[現在の法律名].add(tuple([row[0] for row in result]))
+        if not results:
+            現在の章表現 = []
+        else:
+            現在の章表現 = results[-1]
+        return True, 現在の章表現, 末尾はカナ表現か
 
     def _set_law_positions(self, doc: Doc, law_list: List, lawname, face=''):
 
@@ -501,6 +547,7 @@ class Rule(KeywordExtractRule):
         start = text.find(_face)
 
         while start != -1:
+
             law_list.append(LawDTO(lawname, start=start, face=face))
             start = text.find(_face, start + 1)
 

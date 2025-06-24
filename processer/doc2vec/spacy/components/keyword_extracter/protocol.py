@@ -36,7 +36,9 @@ class ExtractResultDTO:
             self.token_2_keyword[source_id].add(keyword)
 
     def remove_kewywords(self, source_ids):
+
         for kw in self.get_by_source_ids(source_ids=source_ids):
+
             kw.source_ids -= source_ids
 
     def get_keywords(self):

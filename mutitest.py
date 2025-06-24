@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 import traceback
 import asyncio
+import time
 
 
 async def test():
@@ -86,12 +87,24 @@ class T:
         a = 0
 
 
-key = T()
-tdict = {}
-tdict[key] = 1
-key.a = 3
-print(tdict[T()])
+target = list(range(1000))
+start = time.perf_counter_ns()
+tuple([i for i in target])
+end = time.perf_counter_ns()
+print((end - start) / 10 ** 9)
 
+start = time.perf_counter_ns()
+tuple(i for i in target)
+end = time.perf_counter_ns()
+print((end - start) / 10 ** 9)
+
+start = time.perf_counter_ns()
+t = []
+for i in target:
+    t.append(i)
+tuple(t)
+end = time.perf_counter_ns()
+print((end - start) / 10 ** 9)
 
 # main()
 """
