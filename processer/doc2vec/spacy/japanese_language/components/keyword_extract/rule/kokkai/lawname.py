@@ -485,7 +485,7 @@ class Rule(KeywordExtractRule):
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 末尾はカナ表現か, 現在の章表現=None, 法律名と段階表現の対応表={}, 現在の法律名=''):
 
         result = list(現在の章表現 or [])
-        # print(result)
+
         if 現在の章表現 != None:
             現在の数値深さ = result[-1][1]
         else:
