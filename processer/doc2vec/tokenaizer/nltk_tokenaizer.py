@@ -1,7 +1,7 @@
 
-import nltk
+# import nltk
 import os
-
+nltk = object()
 
 _stopwords = {}
 with open(os.path.join(os.path.dirname(__file__), 'stopwords.txt'), mode='r', encoding='utf-8') as fp:

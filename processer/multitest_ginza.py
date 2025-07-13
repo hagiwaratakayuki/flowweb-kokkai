@@ -1,3 +1,4 @@
+import base64
 from multiprocessing import Pool
 import spacy
 import ginza
@@ -5,8 +6,9 @@ from data_loader.kokkai_reguraizer.kyujitai import convert
 
 import time
 
-from doc2vec.spacy.components.commons.const import MAIN_POS
-from doc2vec.tokenaizer.japanese_language.extracter.basic import sahen
+# from doc2vec.spacy.components.commons.const import MAIN_POS
+# from doc2vec.tokenaizer.japanese_language.extracter.basic import sahen
+
 
 nlp = spacy.load('ja_ginza')
 # ginza.set_split_mode(nlp=nlp, mode="A")
@@ -26,7 +28,7 @@ text = """
 
 
 def example(i):
-
+    texts = []
     # print(nlp.batch_size)
     # doc = nlp(convert("アリスは説明します。今日は昨日と決定的に違って駄菓子屋ではなくラーメン屋とスーパーに行きます、と", None))
 
@@ -41,6 +43,7 @@ def example(i):
     text = """だいぶ時間がおそくなっていますから、間口を広げないでやりたいのですが、あとでこの機構改革に伴った通産省の行政の基本的な姿勢については幾つかお聞きしたいと思うのです。
 　      最初に、通産省の扱うことで具体的な問題で一つお聞きしたいのですが、四十六年の三月の衆議院の地方行政委員会で問題になった問題です。当時、幸世物産という会社が韓国から空気散弾銃を大量に輸入していたということが問題になりまして、鋭和Ｂ３という空気散弾銃ですね。この議会で問題になった当時は、すでに二千五百丁輸入されていまして、さらに一万五千丁輸入の申請が出ていたという問題ですが、この問題では、この委員会の中で、当時の後藤田警察庁長官も、この銃は好ましくない、狩猟用としても、また競技用としても認められないということで、その後輸入が禁止されたという事実があるわけですが、この点については、その後この鋭和Ｂ３という空気散弾銃は輸入されていないということで間違いありませんか。
         """
+    texts.append((convert(text, None), {1: 2}))
     # text = "空気散弾銃千丁を輸入する、そういう表現がところどころに見受けられます"
     # text = "皆様ご指導ご鞭撻のほどよろしくお願いします"
     # text = "白米千枚田は石川県輪島市白米町にある棚田です"
@@ -52,10 +55,14 @@ def example(i):
 　前川喜平元文部科学事務次官は、一九九七年に僕が文化庁宗務課長だったとき、統一協会が名称変更を求めてきた、実体が変わらないのに名称を変えることはできないと言って断ったと発信をしております。
 　改めて聞きますけれども、解散命令請求の根拠として文化庁が悪質性や継続性を認めた民事判決三十二件のうち、既に大半の二十七件もの判決が出ていたにもかかわらず、なぜ二〇一五年八月には名称変更を認めたんですか。次長、お答えいただけますか。
         """
+    texts.append((convert(text, None), {1: 3}))
     text = "地方行政・警察委員会について"
     text = "4条の1の2と3、それと2の6ですね、これは憲法9条ですが、そして5条の7"
+    texts.append((convert(text, None), {1: 3}))
+    list(nlp.pipe(texts=texts, n_process=3, batch_size=1, as_tuples=True))
+    return
     docs = nlp.pipe(
-        [convert(text, None)])
+        [convert(text, None)], n_process=3, batch_size=10)
     # docs = nlp.pipe(
     #    [convert(text, None)])
 

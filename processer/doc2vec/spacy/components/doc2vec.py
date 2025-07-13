@@ -1,4 +1,5 @@
 from collections import deque
+from multiprocessing import cpu_count
 from typing import Dict, Iterable, List, Optional
 import spacy
 from spacy.tokens import Doc
@@ -22,31 +23,38 @@ class SpacyDoc2Vec:
         self.vectoraizer.initialize(sentiment=sentiment, projecter=projecter)
         self.keyword_extracter = keyword_extracter
 
-        self.batch_size = batch_size
-        self.n_process = n_process
+        self.batch_size = batch_size or 10
+        self.n_process = n_process or cpu_count()
 
     def exec(self, datas: Iterable[DTO]):
+
         ret = deque()
         id2data = {}
         iter = self._get_itr(datas=datas, id2data=id2data)
+
         doc_tuples = self.nlp.pipe(
-            iter, n_process=self.n_process, batch_size=self.batch_size, as_tuples=True)
+            [('テスト', {1: 2},)], n_process=2, as_tuples=True)
+        print(list(doc_tuples))
+        exit()
 
         for doc, context in doc_tuples:
             data = id2data[context["text_id"]]
+            continue
             vector, sentiment_results, token_2_score = self.vectoraizer.exec(
                 doc, data)
 
             keywords = self.keyword_extracter.exec(
                 doc=doc, vector=vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score)
             ret.append((vector, sentiment_results, keywords, data,))
-
+        exit()
         return ret
 
     def _get_itr(self, datas: List[DTO], id2data: Dict):
+        ret = []
         for data in datas:
             id2data[data.id] = data
-            yield self._get_text(data), {"text_id": data.id}
+            ret.append((self._get_text(data), {"text_id": data.id},))
+        return ret
 
     def _parse(self, dto: DTO):
         text = self._get_text(dto)

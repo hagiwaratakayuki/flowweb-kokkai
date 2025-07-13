@@ -1,6 +1,7 @@
 from typing import Iterable
 from doc2vec.indexer.cls import Indexer
-from doc2vec.tokenaizer.nltk_tokenaizer import NLTKTokenazer
+
+from doc2vec.tokenaizer.nltk_tokenaizer import NLTKTokenazer  # TODO: remove it after
 from multiprocessing.pool import Pool
 
 from doc2vec.vectaizer.gensim_fasttext import Vectaizer, MODEL_PATH

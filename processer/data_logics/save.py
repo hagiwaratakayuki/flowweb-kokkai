@@ -1,8 +1,7 @@
 
-import array
-from functools import reduce
+
 from hashlib import md5
-from emojis import count
+
 
 import numpy as np
 

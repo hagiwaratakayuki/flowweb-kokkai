@@ -9,7 +9,7 @@ from doc2vec.spacy.japanese_language.components.sentiment.cls import JapaneseLan
 
 
 class BasicJapaneseLanguageDoc2Vec(SpacyDoc2Vec):
-    def __init__(self, keyword_extracter=None, vectoraizer=None, sentiment=None, n_processes=None, batch_size=-1, spacy_cofing={}):
+    def __init__(self, keyword_extracter=None, vectoraizer=None, sentiment=None, n_processes=None, batch_size=None, spacy_cofing={}):
         name = MODEL_NAME
         delimiter = "\n\n"
         keyword_extracter = keyword_extracter or JapaneseLanguageKeywordExtracter()
