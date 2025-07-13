@@ -33,28 +33,25 @@ class SpacyDoc2Vec:
         iter = self._get_itr(datas=datas, id2data=id2data)
 
         doc_tuples = self.nlp.pipe(
-            [('テスト', {1: 2},)], n_process=2, as_tuples=True)
-        print(list(doc_tuples))
-        exit()
+            iter, n_process=2, as_tuples=True)
 
         for doc, context in doc_tuples:
             data = id2data[context["text_id"]]
-            continue
+
             vector, sentiment_results, token_2_score = self.vectoraizer.exec(
                 doc, data)
 
             keywords = self.keyword_extracter.exec(
                 doc=doc, vector=vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score)
             ret.append((vector, sentiment_results, keywords, data,))
-        exit()
+
         return ret
 
     def _get_itr(self, datas: List[DTO], id2data: Dict):
-        ret = []
+
         for data in datas:
             id2data[data.id] = data
-            ret.append((self._get_text(data), {"text_id": data.id},))
-        return ret
+            yield self._get_text(data), {"text_id": data.id}
 
     def _parse(self, dto: DTO):
         text = self._get_text(dto)

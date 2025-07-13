@@ -1,6 +1,11 @@
 import unittest
 from unittest.mock import patch, MagicMock
+
+from doc2vec.spacy.japanese_language.doc2vec.kokkai import updateConfig
 from .kokkai import execute
+
+updateConfig({'n_samples': 1})
+
 import numpy as np
 from storage.basic import set_project_id
 import os
