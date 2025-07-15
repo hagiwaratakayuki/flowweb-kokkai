@@ -60,9 +60,10 @@ class Logic:
         vector_dtype = None
         vector_dimention = None
         index2data = {}
+        is_data_exist = False
 
         for vector, sentimentResult, keywords, data in datas:
-
+            is_data_exist = True
             if vector is None or len(keywords) == 0:
                 continue
             if is_first == True:
@@ -77,7 +78,9 @@ class Logic:
             index2published[node_index] = data.published
             index2data[node_index] = data
             node_index += 1
-
+        if is_data_exist == False:
+            logging.info('no data')
+            return
         logging.info('create vectors')
         vectors = np.fromiter((index2vector[i] for i in range(node_index)), dtype=np.dtype(
             (vector_dtype, vector_dimention,)), count=node_index)

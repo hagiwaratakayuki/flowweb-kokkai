@@ -193,8 +193,8 @@ class Rule(KeywordExtractRule):
                 detected_phrases.add(phrase)
         for detected_phrase in detected_phrases:
 
-            results.append(SpecifiedKeyword(
-                headword=detected_phrase, is_force=True))
+            results.add_keyword(SpecifiedKeyword(
+                headword=detected_phrase, is_force=True, source_ids={1}))
 
         if law_count == standard_phrase_count:
             return results
@@ -352,7 +352,7 @@ class Rule(KeywordExtractRule):
         law_dto = law_list[0]
         if not is_context_added:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
-            if is_context_exist and law_dto.name != 法律名 and law_dto.start != 0:
+            if is_context_exist and 法律名 != None and law_dto.name != 法律名 and law_dto.start != 0:
                 law_dto = LawDTO(name=法律名, start=0)
                 law_list.insert(0, law_dto)
                 law_list_len += 1

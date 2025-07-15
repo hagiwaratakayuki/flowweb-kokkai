@@ -1,6 +1,7 @@
 from .cls import JapaneseLanguageKeywordExtracter
 from .rule.kokkai import comittie, lawname
 RULES = [comittie.Rule(), lawname.Rule()]
+RULES = [comittie.Rule()]
 
 
 class KokkaiKeywordExtracter(JapaneseLanguageKeywordExtracter):

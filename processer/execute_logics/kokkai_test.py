@@ -3,7 +3,10 @@ from unittest.mock import patch, MagicMock
 from .kokkai import execute
 import numpy as np
 from storage.basic import set_project_id
+from doc2vec.spacy.japanese_language.doc2vec.kokkai import updateConfig
 import os
+
+updateConfig({'n_process': 1})
 
 
 class MockKeyedVector:
@@ -34,12 +37,11 @@ class MyTestCase(unittest.TestCase):
             sideeffects = []
 
             with open(os.path.abspath('../testdata/kokkai/1-end.json'), "rb") as fp:
-                mockdata = [fp.read()]
-                sideeffects.append(mockdata)
-                sideeffects.append(mockdata)
+                sideeffects.append([fp.read()])
             chunk = []
             with open(os.path.abspath('../testdata/kokkai/212-end.json'), 'rb') as fp:
                 chunk.append(fp.read())
+
             with open(os.path.abspath('../testdata/kokkai/212-plane.json'), 'rb') as fp:
                 chunk.append(fp.read())
             sideeffects.append(chunk)

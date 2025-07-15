@@ -9,7 +9,7 @@ from doc2vec.spacy.japanese_language.components.sentiment.cls import JapaneseLan
 
 
 class BasicJapaneseLanguageDoc2Vec(SpacyDoc2Vec):
-    def __init__(self, keyword_extracter=None, vectoraizer=None, sentiment=None, n_processes=None, batch_size=None, spacy_cofing={}):
+    def __init__(self, keyword_extracter=None, vectoraizer=None, sentiment=None, n_process=None, batch_size=None, spacy_cofing={}):
         name = MODEL_NAME
         delimiter = "\n\n"
         keyword_extracter = keyword_extracter or JapaneseLanguageKeywordExtracter()
@@ -17,6 +17,6 @@ class BasicJapaneseLanguageDoc2Vec(SpacyDoc2Vec):
 
         sentiment = sentiment or JapaneseLanguageSentiment()
 
-        super().__init__(name=name, keyword_extracter=keyword_extracter, vectoraizer=vectoraizer, sentiment=sentiment, delimiter=delimiter, n_process=n_processes, batch_size=batch_size,
+        super().__init__(name=name, keyword_extracter=keyword_extracter, vectoraizer=vectoraizer, sentiment=sentiment, delimiter=delimiter, n_process=n_process, batch_size=batch_size,
                          spacy_cofing=spacy_cofing)
         # ginza.set_split_mode(nlp=self.nlp, mode="A")

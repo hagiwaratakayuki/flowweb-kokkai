@@ -8,7 +8,7 @@ from data_loader.kokkai import DTO
 
 from data_loader.kokkai_reguraizer import reguraizers
 
-doc2vec = KokkaiJapaneseLanguageDoc2Vec(batch_size=1, n_processes=1)
+doc2vec = KokkaiJapaneseLanguageDoc2Vec(batch_size=1, n_process=1)
 
 
 class TestDoc2vec(unittest.TestCase):

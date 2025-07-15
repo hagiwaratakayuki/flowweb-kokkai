@@ -16,7 +16,7 @@ class DiscussionContext:
         self.discussion_id = dto.discussion_id
 
     def get_data(self, dto: DTO):
-        if dto.discussion_id != self.discussion_id:
+        if dto.discussion_id != self.discussion_id or self.data == None:
             self.discussion_id = dto.discussion_id
             self.data = None
             return False, False

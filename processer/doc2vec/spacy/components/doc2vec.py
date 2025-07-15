@@ -33,7 +33,7 @@ class SpacyDoc2Vec:
         iter = self._get_itr(datas=datas, id2data=id2data)
 
         doc_tuples = self.nlp.pipe(
-            iter, n_process=2, as_tuples=True)
+            iter, n_process=self.n_process, as_tuples=True)
 
         for doc, context in doc_tuples:
             data = id2data[context["text_id"]]
