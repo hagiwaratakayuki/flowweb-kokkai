@@ -23,7 +23,7 @@ class SpacyDoc2Vec:
         self.vectoraizer.initialize(sentiment=sentiment, projecter=projecter)
         self.keyword_extracter = keyword_extracter
 
-        self.batch_size = batch_size or 10
+        self.batch_size = batch_size or 1000
         self.n_process = n_process or cpu_count()
 
     def exec(self, datas: Iterable[DTO]):
@@ -32,8 +32,8 @@ class SpacyDoc2Vec:
         id2data = {}
         iter = self._get_itr(datas=datas, id2data=id2data)
 
-        doc_tuples = self.nlp.pipe(
-            iter, n_process=self.n_process, as_tuples=True)
+        doc_tuples = list(self.nlp.pipe(
+            iter, n_process=self.n_process, batch_size=self.batch_size, as_tuples=True))
 
         for doc, context in doc_tuples:
             data = id2data[context["text_id"]]
@@ -48,15 +48,12 @@ class SpacyDoc2Vec:
         return ret
 
     def _get_itr(self, datas: List[DTO], id2data: Dict):
-
-        for data in datas:
-            id2data[data.id] = data
-            yield self._get_text(data), {"text_id": data.id}
-
-    def _parse(self, dto: DTO):
-        text = self._get_text(dto)
-        doc = self.nlp(text)
-        return doc
+        try:
+            for data in datas:
+                id2data[data.id] = data
+                yield self._get_text(data), {"text_id": data.id}
+        except RuntimeError:
+            pass
 
     def _get_text(self, dto: DTO):
         res = ''

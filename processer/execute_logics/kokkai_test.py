@@ -35,16 +35,18 @@ class MyTestCase(unittest.TestCase):
 
         with patch('db.kokkai_cluster_link.KokkaiClusterLink') as kokkai_cluster_link_mock:
             sideeffects = []
-
+            """
             with open(os.path.abspath('../testdata/kokkai/1-end.json'), "rb") as fp:
                 sideeffects.append([fp.read()])
+            """
             chunk = []
+
             with open(os.path.abspath('../testdata/kokkai/212-end.json'), 'rb') as fp:
                 chunk.append(fp.read())
 
             with open(os.path.abspath('../testdata/kokkai/212-plane.json'), 'rb') as fp:
                 chunk.append(fp.read())
             sideeffects.append(chunk)
-            sideeffects.append([])
+            # sideeffects.append([])
             meeting_download_mock.side_effect = sideeffects
             execute()

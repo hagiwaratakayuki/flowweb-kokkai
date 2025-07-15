@@ -69,7 +69,7 @@ class BasicVectoraizer:
         specifiable_tokens_distance_std = np.std(specifiable_tokens_distance)
 
         # sigmoid function,  avg - std to avge + std →　0 to 1, (tanh(ax/2) +1) / 2,  a = 4
-        if specifiable_token_to_weight != 0:
+        if specifiable_tokens_distance_std != 0:
             weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
                                         specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
         else:
