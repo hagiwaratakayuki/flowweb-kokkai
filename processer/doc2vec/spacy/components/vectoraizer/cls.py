@@ -66,12 +66,15 @@ class BasicVectoraizer:
             specifiable_token_vector - specifiable_tokens_center, axis=1)
         specifiable_tokens_distance_avg = np.average(
             specifiable_tokens_distance)
-        specifiable_tokens_distance_std = np.std(
-            specifiable_tokens_distance) or 1.0
+        specifiable_tokens_distance_std = np.std(specifiable_tokens_distance)
 
         # sigmoid function,  avg - std to avge + std →　0 to 1, (tanh(ax/2) +1) / 2,  a = 4
-        weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
-                                    specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
+        if specifiable_token_to_weight != 0:
+            weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
+                                        specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
+        else:
+            weights = (specifiable_tokens_distance -
+                       specifiable_tokens_distance / 2) / 2
         # 0.1 to 1.0
         weights *= 1.8
         weights += 0.1
