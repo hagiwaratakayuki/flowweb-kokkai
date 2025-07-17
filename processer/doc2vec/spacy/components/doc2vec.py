@@ -1,6 +1,7 @@
 from collections import deque
 from multiprocessing import cpu_count
 from typing import Dict, Iterable, List, Optional
+from unittest import result
 import spacy
 from spacy.tokens import Doc
 from data_loader.dto import DTO
@@ -48,12 +49,14 @@ class SpacyDoc2Vec:
         return ret
 
     def _get_itr(self, datas: List[DTO], id2data: Dict):
+        result = deque()
         try:
             for data in datas:
                 id2data[data.id] = data
-                yield self._get_text(data), {"text_id": data.id}
+                result.append((self._get_text(data), {"text_id": data.id}, ))
         except RuntimeError:
             pass
+        return result
 
     def _get_text(self, dto: DTO):
         res = ''

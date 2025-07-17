@@ -1,3 +1,4 @@
+from email.policy import default
 from typing import Union
 
 from gensim.models import KeyedVectors
@@ -14,24 +15,52 @@ projected = {}
 MODEL_PATH = 'model/cc.ja.300.vec'
 
 
-def loadVectors(filepath=MODEL_PATH, basepath=os.getcwd()) -> KeyedVectors:
-    global kv
-    if kv is None:
+class LoderFunctionClass:
+    kv: Union[KeyedVectors, None]
+    default_path: str
 
-        targetpath = os.path.join(basepath, filepath)
+    def __init__(self, default_path: str):
+        self.kv = None
+        self.default_path = default_path
 
-        kv = KeyedVectors.load_word2vec_format(targetpath)
-        logging.info('model load ' + targetpath)
+    def load(self, filepath=MODEL_PATH, basepath='') -> KeyedVectors:
 
-    return kv
+        if self.kv is None:
+            basepath = basepath or os.getcwd()
+            targetpath = os.path.join(basepath, filepath)
+
+            kv = self._load(targetpath)
+            logging.info('model load ' + targetpath)
+        return self.kv
+
+    def _load(self, targetpath):
+        pass
+
+
+class LoadWord2VecFormat(LoderFunctionClass):
+    def _load(self, targetpath):
+        return KeyedVectors.load_word2vec_format(targetpath)
+
+
+loadWord2VecFormat = LoadWord2VecFormat(MODEL_PATH)
+
+
+class LoadKeyedVectors(LoderFunctionClass):
+    def _load(self, targetpath):
+        return KeyedVectors.load(targetpath)
+
+
+loadKeyedVectors = LoadKeyedVectors()
 
 
 class Vectaizer:
     _kv: KeyedVectors
+    _loader: LoderFunctionClass
 
-    def __init__(self, filepath=MODEL_PATH, basepath=os.getcwd()) -> None:
+    def __init__(self, filepath=MODEL_PATH, basepath='', loader: LoderFunctionClass = loadKeyedVectors) -> None:
         self._filepath = filepath
         self._basepath = basepath
+        self._loader = loader
 
     def exec(self, word):
         if word in self._kv:
@@ -40,7 +69,8 @@ class Vectaizer:
 
     def exec_dict(self, words):
         global projected
-        kv = loadVectors(filepath=self._filepath, basepath=self._basepath)
+        kv = self._loader.load(filepath=self._filepath,
+                               basepath=self._basepath)
 
         ret = {}
         unprojected_vecs = deque()

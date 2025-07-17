@@ -6,7 +6,7 @@ from storage.basic import set_project_id
 from doc2vec.spacy.japanese_language.doc2vec.kokkai import updateConfig
 import os
 
-updateConfig({'n_process': 1})
+# updateConfig({'n_process': 1})
 
 
 class MockKeyedVector:
