@@ -11,7 +11,7 @@ from spacy.tokens import Doc, Token, Span
 
 from data_loader.dto import DTO
 
-from doc2vec.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
+from doc2vec.base.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
 from ..sentiment.cls import BasicSentiment
 
 from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS

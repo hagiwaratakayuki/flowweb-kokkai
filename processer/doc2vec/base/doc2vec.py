@@ -1,7 +1,8 @@
+from collections import deque
 from data_loader.dto import DTO
-from .indexer.cls import Indexer
-from .sentiment.nltk_analizer import NLTKAnalizer
-from .tokenaizer.nltk_tokenaizer import NLTKTokenazer
+from processer.doc2vec.base.protocol.indexer import IndexerCls
+from processer.doc2vec.base.protocol.tokenizer import TokenizerCls
+
 from .vectaizer.gensim import MODEL_PATH, Vectaizer
 
 
@@ -10,46 +11,31 @@ from typing import Iterable
 
 
 class Doc2Vec:
-    def __init__(self, is_use_title=True, modelfile: str = MODEL_PATH, chunksize=1000, TokenaizerClass=NLTKTokenazer, VectaizerClass=Vectaizer, AnalizerClass=NLTKAnalizer, IndexerClass=Indexer) -> None:
-        tokenaizer = TokenaizerClass()
-        vectaizer = VectaizerClass(modelfile)
-        analizer = AnalizerClass()
-        self._chunk_size = chunksize
+    def __init__(self, indexer: IndexerCls, tokenaizer: TokenizerCls, is_use_title=True, line_break=r'\n', chunksize=1000) -> None:
+        self._tokenaizer = tokenaizer
+        self._indexer = indexer
         self._is_use_title = is_use_title
+        self._line_break = line_break
 
-        self._vectaizer = vectaizer
-        self._indexer = IndexerClass(tokenaizer=tokenaizer,
-                                     sentimentAnalyzer=analizer,
-                                     is_use_title=is_use_title
-                                     )
+        self._chunk_size = chunksize
 
     def exec(self, pool: Pool, datas: Iterable[DTO]):
         dto_map = {}
         generater = self.get_data_itr(dtos=datas, data_map=dto_map)
 
-        """
-        parsed = pool.imap_unordered(
-            func=self._indexer.parse, iterable=generater, chunksize=self._chunk_size)
-        """
-        parsed = (self._indexer.parse(r) for r in generater)
-        return self.get_word_vector(parsed, dto_map=dto_map)
-
-        """
-        with_word_vector = self.get_word_vector(parsed)
-
-        compupteds = pool.imap_unordered(
-            func=self._indexer.compute, iterable=with_word_vector, chunksize=self._chunk_size)
-
-        for vector, sentimentResults, scored_keywords,  dataid in compupteds:
-
-            yield vector, sentimentResults, scored_keywords, data_dict[dataid]
-        """
+        for parse_result, data_id in pool.imap_unordered(func=self._tokenaizer.parse, iterable=generater, chunksize=self._chunk_size):
+            dto = dto_map[data_id]
+            yield self._indexer.exec(parse_result, dto)
 
     def get_data_itr(self, dtos: Iterable[DTO], data_map):
 
         for dto in dtos:
             data_map[dto.id] = dto
-            yield dto
+            if self._is_use_title:
+                text = dto.title + self._line_break + dto.body
+            else:
+                text = dto.body
+            yield text, dto.id
 
     def get_word_vector(self, parse_itr, dto_map):
 

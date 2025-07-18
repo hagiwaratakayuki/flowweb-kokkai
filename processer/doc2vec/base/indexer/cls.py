@@ -4,7 +4,10 @@ import math
 from typing import Dict
 import numpy as np
 
-from ..protocol.sentiment import SentimentVectors, SentimentWeights
+from processer.doc2vec.base.protocol.tokenizer import TokenizerCls
+from processer.doc2vec.base.protocol.vectorizer import Vectorizer
+
+from ..protocol.sentiment import SentimentAnarizer, SentimentVectors, SentimentWeights
 
 from ..protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
@@ -59,27 +62,11 @@ def WeightMap():
 
 
 class Indexer:
-    def __init__(self, tokenaizer, sentimentAnalyzer, is_use_title) -> None:
+    def __init__(self, tokenaizer: TokenizerCls, sentimentAnalyzer: SentimentAnarizer, vectorizer: Vectorizer) -> None:
         self._tokenaizer = tokenaizer
         self._sentimentAnalyzer = sentimentAnalyzer
-        self._is_use_title = is_use_title
 
-    def parse(self, dto: DTO):
-
-        if self._is_use_title == True:
-            text = dto.title + '\n' + dto.body
-        else:
-            text = dto.body
-
-        token_lines, specifickeywords, keyword_set = self._tokenaizer.exec(
-            text, dto)
-
-        token_map = {}
-        for verbs, line in token_lines:
-            for verb in verbs:
-                token_map[verb] = True
-
-        return token_lines, list(token_map.keys()), keyword_set, specifickeywords, dto.id
+        self._vectoraizer = vectorizer
 
     def compute(self, args):
 

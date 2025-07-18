@@ -28,6 +28,8 @@ get-metadata = "*"
 nltk = "*"
 scikit-learn = "*"
 ja-ginza = "*"
+sudachipy = "*"
+sudachidict-core = "*"
 
 [dev-packages]
 

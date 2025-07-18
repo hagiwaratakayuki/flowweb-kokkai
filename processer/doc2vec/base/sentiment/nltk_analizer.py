@@ -1,7 +1,7 @@
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
-class NLTKAnalizer:
+class SentimentNLTKAnalizer:
     def __init__(self) -> None:
         self._analyzer = SentimentIntensityAnalyzer()
 

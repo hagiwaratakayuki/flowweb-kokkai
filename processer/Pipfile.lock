@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e5bfdf2b492d348d7ba0642181a50d3e40a8e24b1d4b6667d5847b86a1bb8d29"
+            "sha256": "6565b3b05a1daa44399056afb633e23eef0cad6e5fcbf3814a677bfacb005b6e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1413,6 +1413,7 @@
                 "sha256:63be5499104f5cb5464c819739d9901bd886cb3c4b6ab59ae3f39e97a23f5603",
                 "sha256:bcf0056eecfa360a92cea1251a04eeb19a5d16938559ecf52b67d4fbfa1c249f"
             ],
+            "index": "pypi",
             "version": "==20250515"
         },
         "sudachipy": {
@@ -1436,6 +1437,7 @@
                 "sha256:efb43fb3b46696ca4510b7dd4c3e490de8dbb7950d7172140dc27a4e69cd5811",
                 "sha256:efd9c7584ed6dadf9f7d2f4ea616d06207b0d8a805861f9762072733b611b0db"
             ],
+            "index": "pypi",
             "version": "==0.6.10"
         },
         "thinc": {
