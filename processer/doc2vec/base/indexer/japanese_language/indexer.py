@@ -1,4 +1,4 @@
-from ..cls import Indexer
+from ..cls_old import Indexer
 from typing import Dict, Tuple, List, Union
 from collections import deque, OrderedDict
 from .stopwords import remove_stopwords

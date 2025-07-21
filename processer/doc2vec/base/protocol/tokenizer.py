@@ -1,10 +1,10 @@
 
 from ast import Tuple
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 
 class TokenDTO:
-    _faces: Optional[str]
+    _faces: Optional[Iterable[str]]
 
     def __init__(self):
         self._faces = None
@@ -12,6 +12,10 @@ class TokenDTO:
     def get_faces(self):
         if self._faces == None:
             self._faces = self.get_faces()
+        return self._faces
+
+    def get_sents(self) -> Iterable[Iterable[Any]]:
+        pass
 
     def _get_faces(self):
         pass

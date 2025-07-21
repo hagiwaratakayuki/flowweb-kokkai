@@ -1,191 +1,194 @@
+from ast import Dict, Tuple
 from collections import defaultdict, deque
-import keyword
 import math
-from typing import Dict
+from typing import Any, Deque, Iterable, Optional
+
 import numpy as np
-
-from processer.doc2vec.base.protocol.tokenizer import TokenizerCls
-from processer.doc2vec.base.protocol.vectorizer import Vectorizer
-
-from ..protocol.sentiment import SentimentAnarizer, SentimentVectors, SentimentWeights
-
-from ..protocol.sentiment import SentimentResult
-from data_loader.dto import DTO
-WORD_2_NORM = {}
-
-
-def get_norm_weight(filtered_map: Dict[str, Dict]):
-    global WORD_2_NORM
-    word_2_norm_map = {k: WORD_2_NORM[k]
-                       for k in filtered_map.keys() if k in WORD_2_NORM}
-    index = 0
-    index2word = {}
-    norms = []
-    for word, value in filtered_map.items():
-        if word in WORD_2_NORM:
-            continue
-        norms.append(value['vector'])
-        index2word[index] = word
-        index += 1
-    if index != 0:
-
-        vectors_array = np.array(norms)
-        vectors_norm = np.linalg.norm(vectors_array, axis=1)
-        index = 0
-        for norm in vectors_norm:
-            word = index2word[index]
-            word_2_norm_map[word] = norm
-            index += 1
-            WORD_2_NORM[word] = norm
-    index = 0
-    index2word = {}
-    norms = []
-    for word, norm in word_2_norm_map.items():
-        norms.append(norm)
-        index2word[index] = word
-        index += 1
-    norms_array = np.array(norms)
-    norm_avg = np.average(norms_array)
-    weight_array = np.power(norms_array / norm_avg, 2)
-    ret = {}
-    index = 0
-    for weight in weight_array:
-        word = index2word[index]
-        ret[word] = weight
-        index += 1
-
-    return ret
-
-
-def WeightMap():
-    return defaultdict(float)
+from doc2vec.base.protocol.vectorizer import Vectorizer, WordToVecDictType
+from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, SentimentVectors, SentimentWeights
+from processer.data_loader.dto import DTO
+from processer.doc2vec.base.protocol.tokenizer import TokenDTO
+from processer.doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
 
 
 class Indexer:
-    def __init__(self, tokenaizer: TokenizerCls, sentimentAnalyzer: SentimentAnarizer, vectorizer: Vectorizer) -> None:
-        self._tokenaizer = tokenaizer
-        self._sentimentAnalyzer = sentimentAnalyzer
+    def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer):
+        self._setiment_aanraizer = sentiment_anarizer
 
-        self._vectoraizer = vectorizer
+    def exec(self, parse_result: TokenDTO, data: DTO):
+        faces = parse_result.get_faces()
+        sent_count = len(faces)
+        if sent_count == 0:
 
-    def compute(self, args):
+            return None, None, None, data
 
-        token_lines, vector_map, keyword_set, specifickeywords, data_id = args
-        nodes = []
-        count = 0
-        for subnodes, line in token_lines:
+        specifiable_tokens = set()
 
-            subcount = len(subnodes)
+        word_to_vector = self._vectorizer.get_vectors(faces)
 
-            sublen = subcount - int(subcount > 1)
-            scored_subnodes = [(face, 1 - math.sin(math.pi * float(position) / float(sublen)) * 0.8 -
-                                0.1 * float(position) / float(sublen),) for position, face in enumerate(subnodes)]
-            nodes.append((scored_subnodes, count, line, ))
-            count += 1
-        if count == 0:
+        specifiable_tokens_vector_list = []
+        index2norm = {}
+        index = -1
+        sent_number = -1
+        sents_to_specifi_tokens = defaultdict(set)
 
-            return None, None, None, data_id
-        nodeslen = count - int(count > 1)
-        key_map = defaultdict(float)
-        sentimentWordMap = defaultdict(WeightMap)
-        sentimentRatio = defaultdict(float)
-        for subnodes, position, line in nodes:
+        for sent in parse_result.get_sents():
+            sent_number += 1
+            sent_to_specifi_tokens = sents_to_specifi_tokens[sent_number]
 
-            weights, positionWeight = self._computeWait(
-                subnodes, position, nodeslen)
-            self._processSentiment(line, weights, positionWeight,
-                                   sentimentRatio=sentimentRatio, sentimentWordMap=sentimentWordMap)
+            for token in sent:
+                token_vector = self._get_vector(
+                    word_to_vector=word_to_vector, token=token)
+                if token_vector is None or not self._check_specifiable_pos(token):
+                    continue
+                if (token.norm_ not in specifiable_tokens):
+                    index += 1
+                    specifiable_tokens_vector_list.append(token_vector)
+                    index2norm[index] = token.norm_
+                specifiable_tokens.add(token.norm_)
+                sent_to_specifi_tokens.add(token.norm_)
 
-            for k, v in weights.items():
-                key_map[k] += v
+        specifiable_token_vector = np.array(specifiable_tokens_vector_list)
+        specifiable_tokens_center = np.average(
+            specifiable_token_vector, axis=0)
+        specifiable_tokens_distance = np.linalg.norm(
+            specifiable_token_vector - specifiable_tokens_center, axis=1)
+        specifiable_tokens_distance_avg = np.average(
+            specifiable_tokens_distance)
+        specifiable_tokens_distance_std = np.std(specifiable_tokens_distance)
 
-        total = sum(key_map.values())
-        reguraised = {k: v / total for k, v in key_map.items()}
+        # sigmoid function,  avg - std to avge + std →　0 to 1, (tanh(ax/2) +1) / 2,  a = 4
+        if specifiable_tokens_distance_std != 0:
+            weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
+                                        specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
+        else:
+            weights = (specifiable_tokens_distance -
+                       specifiable_tokens_distance / 2) / 2
+        # 0.1 to 1.0
+        weights *= 1.8
+        weights += 0.1
+        index = -1
+        specifiable_token_to_weight = {}
+        for weight in weights:
+            index += 1
+            specifiable_token_to_weight[index2norm[index]] = weight
+        sent_to_weights = {}
+        all_sent_weight = 0.0
 
-        filtered_map = {k: {'vector': vector_map[k], 'weight': w} for k, w in reguraised.items(
-        ) if vector_map.get(k, False) is not False}
-        word_to_norm_weight = get_norm_weight(filtered_map)
-        vector = np.sum([v['vector'] * v['weight'] * word_to_norm_weight[k]
-                        for k, v in filtered_map.items()], 0)
+        for sent_number, sent_to_specifi_tokens in sents_to_specifi_tokens.items():
+            sent_total_weight = 0.0
+            count = 0.0
+            sent_count += 1
+            for norm in sent_to_specifi_tokens:
+                count += 1.0
+                sent_total_weight += specifiable_token_to_weight[norm]
+            sent_weight = sent_total_weight / count
+            sent_to_weights[sent_number] = sent_weight
+            all_sent_weight += sent_weight
+        all_sent_weight = all_sent_weight or 1.0
 
-        sentimentResults = self._process_senti_total(
-            vector_map, vector, sentimentWordMap=sentimentWordMap, sentimentRatio=sentimentRatio)
+        sent_number = -1
+        total_score = 0.0
+        scored_sents: Deque[Deque[Tuple[Any, float]]] = deque()
 
-        scored_keywords = self._extract_keywords(
-            filtered_map=filtered_map, vector=vector, keyword_set=keyword_set, specific_keywords=specifickeywords)
+        for sent in parse_result.get_sents():
+            sent_number += 1
+            scored_sent, sentence_total_score = self._get_sentence_score(
+                sent=sent, sent_weight=sent_to_weights[sent_number] / all_sent_weight, specifiable_token_to_weight=specifiable_token_to_weight)
+            scored_sents.append(scored_sent)
+            total_score += sentence_total_score
 
-        return vector, sentimentResults, scored_keywords, data_id
+        main_pos_to_vecters = {
+            self._get_norm(token): self._get_vector(token=token) for token in parse_result if self._check_main_pos(token)}
+        sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
 
-    def _extract_keywords(self, filtered_map, vector, keyword_set, specific_keywords):
-        word_index = dict(enumerate(filtered_map.keys()))
+        scored_vectors_deque = deque()
+        token_to_score = {}
+        for scored_sent in scored_sents:
+            for token, score in scored_sent:
+                reguraized_score = score / total_score
+                token_vector = self._get_vector(
+                    word_to_vector=word_to_vector, token=token)
+                if token_vector is None:
+                    token_vector = self._get_zero_array()
+                token_vector *= reguraized_score
+                token_to_score[token] = reguraized_score
 
-        word_length = len(filtered_map)
-        if word_length == 0:
-            return []
-        try:
-            word_vector_array = np.array(
-                [filtered_map[word_index[i]]["vector"] for i in range(word_length)])
+                scored_vectors_deque.append(token_vector)
+        scored_vectors = np.vstack(scored_vectors_deque).T
+        document_vector = np.sum(scored_vectors.T, axis=0)
 
-            norms_from_center = np.linalg.norm(
-                word_vector_array - vector, axis=1)
-            avg_from_center = np.average(norms_from_center)
-            std_from_center = np.std(norms_from_center)
-            sorted_array = np.argsort(norms_from_center)
-            limit = avg_from_center - std_from_center
+        default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
+        sentiment_vectors = SentimentVectors()
+        sentiment_weights = SentimentWeights()
+        sentiment_result = SentimentResult()
+        polarity_scores = {}
+        total_polarty_score = 0.0
+        for polarity in ["positive", "negative", "neutral"]:
+            polarity_sentiment_scores = deque()
+            polarity_score = 0.0
+            for scored_sent in scored_sents:
+                for token, score in scored_sent:
+                    sentiment_score = score * \
+                        sentiment_scores.get(token.norm_, default_score)[
+                            polarity]
+                    polarity_sentiment_scores.append(sentiment_score)
+                    polarity_score += sentiment_score
+            sentiment_vector = np.sum(
+                (scored_vectors * polarity_sentiment_scores).T / (polarity_score or 1.0), axis=0)
+            setattr(sentiment_vectors, polarity, sentiment_vector)
+            polarity_scores[polarity] = polarity_score
+            if polarity != "neutral":
+                total_polarty_score += polarity_score
+        negaposi_score = []
+        for polarity, polarity_score in polarity_scores.items():
+            if polarity != "neutral":
+                weight = polarity_score / total_polarty_score
+                setattr(sentiment_weights, polarity, weight)
+                negaposi_score.append(weight)
+        sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
+        sentiment_result.weights = sentiment_weights
+        sentiment_result.vectors = sentiment_vectors
+        return document_vector, sentiment_result, token_to_score
 
-            scored_keywords: list[str] = [word_index[i]
-                                          for i in sorted_array if norms_from_center[i] <= limit]
+    def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
+        total_step_count = 0.0
+        token_steps = deque()
+        last_step_count = 0.0
+        for token in sent:
+            step_count = specifiable_token_to_weight.get(
+                self._get_norm(token), 0.1)
+            total_step_count += step_count
+            token_steps.append((token, step_count, ))
+            last_step_count = step_count
+        total_step_count -= last_step_count
+        total_step_count = total_step_count or 1.0
+        position = 0.0
+        result = deque()
+        total_score = 0.0
+        for token, step_count in token_steps:
 
-            if len(scored_keywords) == 0:
-                scored_keywords = [word_index[sorted_array[0]]]
+            score = 1 - math.sin(math.pi * position / total_step_count) * \
+                0.8 - 0.1 * position / total_step_count
+            score *= step_count * sent_weight
 
-            return [keyword for keyword in scored_keywords if keyword in keyword_set][:5]
-        except:
-            return []
+            total_score += score
+            position += step_count
+            result.append((token, score, ))
 
-    def _process_senti_total(self, vector_map, vector, sentimentWordMap, sentimentRatio):
-        sentimentVectors = SentimentVectors()
+        return result, score
 
-        for sentiment, sentimentWords in sentimentWordMap.items():
+    def _check_specifiable_pos(self, token) -> bool:
+        pass
 
-            total = sum(sentimentWords.values())
+    def _check_main_pos(self, token) -> bool:
+        pass
 
-            if total == 0:
+    def _get_vector(self, word_to_vector: WordToVecDictType, token: Any) -> Optional[np.ndarray]:
+        pass
 
-                total = 1
-            reguraised = {k: v / total for k, v in sentimentWords.items()}
+    def _get_norm(self, token) -> str:
+        pass
 
-            setattr(sentimentVectors, sentiment, sum(
-                [vector_map[k] * w for k, w in reguraised.items() if vector_map.get(k, False) is not False]))
-
-        total = sum(sentimentRatio.values())
-        sentimentWeights = SentimentWeights()
-        for sentiment, weight in sentimentRatio.items():
-            setattr(sentimentWeights, sentiment, weight / total)
-        ret = SentimentResult()
-
-        ret.vectors = sentimentVectors
-        ret.weights = sentimentWeights
-
-        return ret
-
-    def _processSentiment(self, line: str, weigts: defaultdict, positionWeight: float, sentimentWordMap: dict, sentimentRatio: dict):
-        sentiments = self._analizeSentiment(line)
-
-        for face, weight in weigts.items():
-            for sentiment, sWeight in sentiments.items():
-                sentimentWordMap[sentiment][face] += weight * \
-                    sWeight * positionWeight
-        for sentiment, sWeight in sentiments.items():
-            sentimentRatio[sentiment] += sWeight * positionWeight
-
-    def _analizeSentiment(self, line):
-        return self._sentimentAnalyzer.exec(line)
-
-    def _computeWait(self, subnodes, position, nodeslen):
-        weights = defaultdict(float)
-        nodeWeight = 1 - math.sin(math.pi * position /
-                                  nodeslen) * 0.6 - 0.1 * position / nodeslen
-        for surface, subscore in subnodes:
-            weights[surface] += subscore * nodeWeight
-        return weights, nodeWeight
+    def _get_zero_array(self):
+        return np.zeros(2)
