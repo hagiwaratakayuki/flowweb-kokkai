@@ -4,8 +4,8 @@ import math
 from typing import Dict
 import numpy as np
 
-from processer.doc2vec.base.protocol.tokenizer import TokenizerCls
-from processer.doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.vectorizer import Vectorizer
 
 from ..protocol.sentiment import SentimentAnarizer, SentimentVectors, SentimentWeights
 

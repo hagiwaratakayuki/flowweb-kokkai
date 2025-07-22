@@ -6,17 +6,18 @@ from typing import Any, Deque, Iterable, Optional
 import numpy as np
 from doc2vec.base.protocol.vectorizer import Vectorizer, WordToVecDictType
 from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, SentimentVectors, SentimentWeights
-from processer.data_loader.dto import DTO
-from processer.doc2vec.base.protocol.tokenizer import TokenDTO
-from processer.doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
+from data_loader.dto import DTO
+from doc2vec.base.protocol.tokenizer import TokenDTO
+from doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
 
 
 class Indexer:
     def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer):
         self._setiment_aanraizer = sentiment_anarizer
+        self._vectorozer = vectorizer
 
     def exec(self, parse_result: TokenDTO, data: DTO):
-        faces = parse_result.get_faces()
+        faces = parse_result.get_norm()
         sent_count = len(faces)
         if sent_count == 0:
 
@@ -41,12 +42,13 @@ class Indexer:
                     word_to_vector=word_to_vector, token=token)
                 if token_vector is None or not self._check_specifiable_pos(token):
                     continue
-                if (token.norm_ not in specifiable_tokens):
+                token_norm = self._get_norm(token)
+                if (token_norm not in specifiable_tokens):
                     index += 1
                     specifiable_tokens_vector_list.append(token_vector)
-                    index2norm[index] = token.norm_
-                specifiable_tokens.add(token.norm_)
-                sent_to_specifi_tokens.add(token.norm_)
+                    index2norm[index] = token_norm
+                specifiable_tokens.add(token_norm)
+                sent_to_specifi_tokens.add(token_norm)
 
         specifiable_token_vector = np.array(specifiable_tokens_vector_list)
         specifiable_tokens_center = np.average(
@@ -129,8 +131,9 @@ class Indexer:
             polarity_score = 0.0
             for scored_sent in scored_sents:
                 for token, score in scored_sent:
+
                     sentiment_score = score * \
-                        sentiment_scores.get(token.norm_, default_score)[
+                        sentiment_scores.get(self._get_norm(token), default_score)[
                             polarity]
                     polarity_sentiment_scores.append(sentiment_score)
                     polarity_score += sentiment_score

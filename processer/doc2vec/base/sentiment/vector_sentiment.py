@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
 from doc2vec.base.protocol.vectorizer import Vectorizer
-from processer.doc2vec.spacy.components.sentiment.cls import SentimentBaseDict, SentimentScoreDict
+from doc2vec.spacy.components.sentiment.cls import SentimentBaseDict, SentimentScoreDict
 
 
 class VectorSentiment(SentimentAnarizer):

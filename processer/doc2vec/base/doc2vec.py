@@ -1,9 +1,9 @@
 from collections import deque
 from data_loader.dto import DTO
-from processer.doc2vec.base.protocol.indexer import IndexerCls
-from processer.doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.indexer import IndexerCls
+from doc2vec.base.protocol.tokenizer import TokenizerCls
 
-from .vectaizer.gensim import MODEL_PATH, Vectaizer
+from .vectorizer.gensim import MODEL_PATH, Vectaizer
 
 
 from multiprocessing.pool import Pool

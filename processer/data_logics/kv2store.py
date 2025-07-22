@@ -2,7 +2,7 @@ from collections import deque
 from collections.abc import Iterable
 import time
 import math
-from processer.doc2vec.vectaizer.gensim import loadWord2VecFormat, MODEL_PATH
+from doc2vec.vectaizer.gensim import loadWord2VecFormat, MODEL_PATH
 from db.word_to_vec import WordToVec
 from db.model import put_multi
 from multiprocessing import Pool

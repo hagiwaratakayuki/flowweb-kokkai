@@ -9,9 +9,9 @@ class TokenDTO:
     def __init__(self):
         self._faces = None
 
-    def get_faces(self):
+    def get_norm(self):
         if self._faces == None:
-            self._faces = self.get_faces()
+            self._faces = self.get_norm()
         return self._faces
 
     def get_sents(self) -> Iterable[Iterable[Any]]:

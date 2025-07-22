@@ -55,11 +55,15 @@ def example(i):
 　前川喜平元文部科学事務次官は、一九九七年に僕が文化庁宗務課長だったとき、統一協会が名称変更を求めてきた、実体が変わらないのに名称を変えることはできないと言って断ったと発信をしております。
 　改めて聞きますけれども、解散命令請求の根拠として文化庁が悪質性や継続性を認めた民事判決三十二件のうち、既に大半の二十七件もの判決が出ていたにもかかわらず、なぜ二〇一五年八月には名称変更を認めたんですか。次長、お答えいただけますか。
         """
-    texts.append((convert(text, None), {1: 3}))
-    text = "地方行政・警察委員会について"
-    text = "4条の1の2と3、それと2の6ですね、これは憲法9条ですが、そして5条の7"
-    texts.append((convert(text, None), {1: 3}))
-    list(nlp.pipe(texts=texts, n_process=3, batch_size=1, as_tuples=True))
+    # texts.append((convert(text, None), {1: 3}))
+    # text = "地方行政・警察委員会について"
+    # text = "4条の1の2と3、それと2の6ですね、これは憲法9条ですが、そして5条の7"
+    # texts.append((convert(text, None), {1: 3}))
+    start = time.perf_counter_ns()
+    # list(nlp.pipe(texts=[(convert(text, None), {
+    #     1: 3}, )] * 200, n_process=1, batch_size=10, as_tuples=True))
+    nlp(text=convert(text, None) * 25)
+    print((time.perf_counter_ns() - start) / 10 ** 9)
     return
     docs = nlp.pipe(
         [convert(text, None)], n_process=3, batch_size=10)
