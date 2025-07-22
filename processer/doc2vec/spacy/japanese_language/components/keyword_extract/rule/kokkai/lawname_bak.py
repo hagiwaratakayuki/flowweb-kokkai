@@ -17,7 +17,7 @@ import json
 from operator import itemgetter
 from collections import Counter, defaultdict, deque
 from data_loader.kokkai import DTO
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from doc2vec.tokenaizer.japanese_language.extracter.kokkai_specificword import lawname

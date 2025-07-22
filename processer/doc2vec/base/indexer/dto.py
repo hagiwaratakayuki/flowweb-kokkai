@@ -1,9 +1,9 @@
 import numpy as np
 import random
 
-from doc2vec.protocol.sentiment import SentimentWeights
-from doc2vec.protocol.sentiment import SentimentVectors
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentWeights
+from doc2vec.base.protocol.sentiment import SentimentVectors
+from doc2vec.base.protocol.sentiment import SentimentResult
 
 
 def build_mock_sentiment_result(d1: int):

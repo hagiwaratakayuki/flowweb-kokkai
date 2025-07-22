@@ -9,9 +9,10 @@ from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, 
 from data_loader.dto import DTO
 from doc2vec.base.protocol.tokenizer import TokenDTO
 from doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
+from processer.doc2vec.base.protocol.indexer import IndexerCls
 
 
-class Indexer:
+class Indexer(IndexerCls):
     def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer):
         self._setiment_anaraizer = sentiment_anarizer
         self._vectorizer = vectorizer
@@ -152,6 +153,8 @@ class Indexer:
         sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
+        keywords = self._keyword_extracter.exec(
+            doc=doc, vector=vector, sentiment_result=sentiment_result, dto=data, token_2_score=token_2_score)
         return document_vector, sentiment_result, token_to_score
 
     def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):

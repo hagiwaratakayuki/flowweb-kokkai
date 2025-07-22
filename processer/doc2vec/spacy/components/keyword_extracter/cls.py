@@ -4,7 +4,7 @@ from typing import Callable, Dict, List
 from spacy.tokens import Doc, Token
 import numpy as np
 
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule, ExtractResultDTO
 from doc2vec.util.specified_keyword import SpecifiedKeyword

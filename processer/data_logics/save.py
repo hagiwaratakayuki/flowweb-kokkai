@@ -16,8 +16,8 @@ from data_logics.node_logic import NodeLogic
 from data_logics import author_keyword
 from data_logics import cluster_link
 from ridgedetect.taged import Taged
-from doc2vec.base.Doc2Vec import Doc2Vec
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.doc2vec import Doc2Vec
+from doc2vec.base.protocol.sentiment import SentimentResult
 
 from db.util.chunked_batch_saver import ChunkedBatchSaver
 

@@ -3,7 +3,7 @@ from collections import defaultdict, deque
 from typing import DefaultDict, Dict, Iterator, List, Optional, Set
 import numpy as np
 from data_loader.dto import DTO
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from ..util.tag_check import is_popular_noun, is_tail, is_header, is_numeral, is_counter, is_form_tail, is_sahen, is_adverbable
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token

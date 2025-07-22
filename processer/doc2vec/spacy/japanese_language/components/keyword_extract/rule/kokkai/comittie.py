@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 
 from data_loader.kokkai import DTO
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.japanese_language.components.keyword_extract.util.tag_check import is_popular_noun
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.keyword_extracter.protocol import ExtractResultDTO, KeywordExtractRule

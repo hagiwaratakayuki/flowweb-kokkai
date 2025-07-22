@@ -5,7 +5,7 @@ from spacy.tokens import Doc, Token
 import numpy as np
 
 from data_loader.dto import DTO
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpecifiedKeywordType
 
 

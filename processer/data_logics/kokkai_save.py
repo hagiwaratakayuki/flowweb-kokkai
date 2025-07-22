@@ -1,11 +1,11 @@
 from collections import deque, defaultdict
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Tuple
 from numpy import ndarray
 
 from db.node import Node
 from data_loader.kokkai import DTO
 from db.util.chunked_batch_saver import ChunkedBatchSaver
-from doc2vec.protocol.sentiment import SentimentResult
+from doc2vec.base.protocol.sentiment import SentimentResult
 from .node_logic import NodeLogic
 from .save import Logic
 from db.node_kokkai import NodeKokkai
@@ -58,7 +58,7 @@ class KokkaiLogic(Logic):
 
         super().__init__(ClusterModelClass=KokkaiCluster)
 
-    def save(self, datas: Iterable[tuple[ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: KokkaiNodeLogic):
+    def save(self, datas: Iterable[Tuple[ndarray, SentimentResult, Iterable[str], DTO]], nodeLogic: KokkaiNodeLogic):
         super().save(datas, nodeLogic=nodeLogic)
 
         self._link_map.update(self._next_link)
