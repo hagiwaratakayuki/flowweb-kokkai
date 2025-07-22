@@ -1,5 +1,5 @@
 from email.policy import default
-from typing import Union
+from typing import Optional, Union
 
 from gensim.models import KeyedVectors
 from collections import deque
@@ -57,10 +57,10 @@ class Vectaizer:
     _kv: KeyedVectors
     _loader: LoderFunctionClass
 
-    def __init__(self, filepath=MODEL_PATH, basepath='', loader: LoderFunctionClass = loadKeyedVectors) -> None:
-        self._filepath = filepath
+    def __init__(self, model_path=None, basepath='', loader: Optional[LoderFunctionClass] = None) -> None:
+        self._modelpath = model_path or MODEL_PATH
         self._basepath = basepath
-        self._loader = loader
+        self._loader = loader or loadKeyedVectors
 
     def exec(self, word):
         if word in self._kv:
@@ -69,7 +69,7 @@ class Vectaizer:
 
     def exec_dict(self, words):
         global projected
-        kv = self._loader.load(filepath=self._filepath,
+        kv = self._loader.load(filepath=self._modelpath,
                                basepath=self._basepath)
 
         ret = {}

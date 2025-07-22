@@ -13,8 +13,8 @@ from doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
 
 class Indexer:
     def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer):
-        self._setiment_aanraizer = sentiment_anarizer
-        self._vectorozer = vectorizer
+        self._setiment_anaraizer = sentiment_anarizer
+        self._vectorizer = vectorizer
 
     def exec(self, parse_result: TokenDTO, data: DTO):
         faces = parse_result.get_norm()

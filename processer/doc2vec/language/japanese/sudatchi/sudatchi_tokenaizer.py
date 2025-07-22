@@ -20,20 +20,20 @@ class SudatchiDTO(TokenDTO):
         return set([m.normalized_form() for m in self.tokens])
 
     def _get_sents(self):
-        sents = []
-        sent = []
+        sents = deque()
+        sent = deque()
         is_sent_exit = False
-        is_muti_sent_exist = False
+        is_multi_sent_exist = False
         for m in self.tokens:
-            is_muti_sent_exist = True
+            is_multi_sent_exist = True
             is_sent_exit = True
             sent.append(m)
 
             if m.normalized_form() == '。':
-                sent = []
+                sent = deque()
                 sents.append(sent)
                 is_sent_exit = False
-        if is_muti_sent_exist == False:
+        if is_multi_sent_exist == False:
             return []
         if is_sent_exit == False:
             sents.pop()
@@ -52,7 +52,7 @@ class SudatchiTokenizer(TokenizerCls):
         chunk = ''
         for split in splited:
             line = split + '。'
-            line_len = len(line.encode(errors='a'))
+            line_len = len(line.encode(errors='replace'))
             next_byte_length = line_len + byte_length
             is_chunk_exist = True
             if next_byte_length > 49149:
