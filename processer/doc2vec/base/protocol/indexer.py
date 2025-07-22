@@ -1,7 +1,23 @@
-from typing import Any
+from typing import Any, Iterable, Tuple
+
+from numpy import ndarray
+
+from processer.data_loader.dto import DTO
+
+from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult
+from processer.doc2vec.base.protocol.vectorizer import Vectorizer
 from .tokenizer import TokenDTO
+DocVectorType = ndarray
+KeywordsType = Iterable[str]
+ExecResponseType = Tuple[DocVectorType, SentimentResult, KeywordsType, DTO]
 
 
-class IndexerCls:
-    def exec(self, token_dto: TokenDTO, dto: Any):
+class AbstractIndexerCls:
+
+    def exec(self, token_dto: TokenDTO, dto: Any) -> ExecResponseType:
         pass
+
+
+class IndexerCls(AbstractIndexerCls):
+    sentiment_anaraizer: SentimentAnarizer
+    vectorizer: Vectorizer

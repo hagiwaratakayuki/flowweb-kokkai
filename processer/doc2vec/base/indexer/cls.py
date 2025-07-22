@@ -9,15 +9,17 @@ from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, 
 from data_loader.dto import DTO
 from doc2vec.base.protocol.tokenizer import TokenDTO
 from doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
-from processer.doc2vec.base.protocol.indexer import IndexerCls
+from processer.doc2vec.base.protocol.indexer import ExecResponseType, IndexerCls
+from processer.doc2vec.base.protocol.keyword_extracter import KeywordExtracterClass
 
 
 class Indexer(IndexerCls):
-    def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer):
+    def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer, keyword_extracter: KeywordExtracterClass):
         self._setiment_anaraizer = sentiment_anarizer
         self._vectorizer = vectorizer
+        self._keyword_extracter = keyword_extracter
 
-    def exec(self, parse_result: TokenDTO, data: DTO):
+    def exec(self, parse_result: TokenDTO, data: DTO) -> ExecResponseType:
         faces = parse_result.get_norm()
         sent_count = len(faces)
         if sent_count == 0:
@@ -154,8 +156,8 @@ class Indexer(IndexerCls):
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
         keywords = self._keyword_extracter.exec(
-            doc=doc, vector=vector, sentiment_result=sentiment_result, dto=data, token_2_score=token_2_score)
-        return document_vector, sentiment_result, token_to_score
+            parse_result=parse_result, document_vector=document_vector, sentiment_result=sentiment_result, dto=data, token_2_score=specifiable_token_to_weight, indexer=self)
+        return document_vector, sentiment_result, token_to_score, keywords
 
     def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0

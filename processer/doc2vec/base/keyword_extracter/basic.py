@@ -1,13 +1,14 @@
 from collections import defaultdict
 from operator import itemgetter
-from typing import Callable, Dict, List
+from typing import Any, Callable, Dict, List
 from spacy.tokens import Doc, Token
 import numpy as np
 
 from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
-from doc2vec.spacy.components.keyword_extracter.protocol import KeywordExtractRule, ExtractResultDTO
-from doc2vec.util.specified_keyword import SpecifiedKeyword
+from doc2vec.base.protocol.keyword_extracter import KeywordExtractRule, ExtractResultDTO
+
+from processer.doc2vec.base.protocol.indexer import DocVectorType
 
 SCORE_KEY = itemgetter(1)
 
@@ -17,12 +18,12 @@ class BasicKeywordExtratcer:
         self.rules = rules
         self.keyword_limit = keyword_limit
 
-    def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
+    def exec(self, parse_result: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any):
 
         results = ExtractResultDTO()
         for rule in self.rules:
             results = rule.execute(
-                parse_results=doc,
+                parse_result=parse_result,
                 vector=vector,
                 sentiment_results=sentiment_results,
                 dto=dto,

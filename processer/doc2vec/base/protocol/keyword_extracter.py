@@ -7,7 +7,7 @@ import numpy as np
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpecifiedKeywordType
-from processer.doc2vec.base.protocol.indexer import DocVectorType
+from processer.doc2vec.base.protocol.indexer import DocVectorType, KeywordsType
 
 
 type Token2Keyword = Dict[Token, Set[SpacySpecifiedKeywordType]]
@@ -60,5 +60,11 @@ class ExtractResultDTO:
 
 
 class KeywordExtractRule:
-    def execute(self, parse_results: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any, results: ExtractResultDTO) -> List[SpacySpecifiedKeywordType]:
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO) -> List[SpacySpecifiedKeywordType]:
+
+        pass
+
+
+class KeywordExtracterClass:
+    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
         pass
