@@ -15,20 +15,20 @@ from processer.doc2vec.base.protocol.keyword_extracter import KeywordExtracterCl
 
 class Indexer(IndexerCls):
     def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer, keyword_extracter: KeywordExtracterClass):
-        self._setiment_anaraizer = sentiment_anarizer
-        self._vectorizer = vectorizer
-        self._keyword_extracter = keyword_extracter
+        self.setiment_anaraizer = sentiment_anarizer
+        self.vectorizer = vectorizer
+        self.keyword_extracter = keyword_extracter
 
     def exec(self, parse_result: TokenDTO, data: DTO) -> ExecResponseType:
-        faces = parse_result.get_norm()
-        sent_count = len(faces)
-        if sent_count == 0:
+        norms = parse_result.get_norm()
+        norm_count = len(norms)
+        if norm_count == 0:
 
             return None, None, None, data
 
         specifiable_tokens = set()
 
-        word_to_vector = self._vectorizer.get_vectors(faces)
+        word_to_vector = self.vectorizer.get_vectors(norms)
 
         specifiable_tokens_vector_list = []
         index2norm = {}
@@ -83,7 +83,7 @@ class Indexer(IndexerCls):
         for sent_number, sent_to_specifi_tokens in sents_to_specifi_tokens.items():
             sent_total_weight = 0.0
             count = 0.0
-            sent_count += 1
+            norm_count += 1
             for norm in sent_to_specifi_tokens:
                 count += 1.0
                 sent_total_weight += specifiable_token_to_weight[norm]
@@ -155,7 +155,7 @@ class Indexer(IndexerCls):
         sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
         sentiment_result.weights = sentiment_weights
         sentiment_result.vectors = sentiment_vectors
-        keywords = self._keyword_extracter.exec(
+        keywords = self.keyword_extracter.exec(
             parse_result=parse_result, document_vector=document_vector, sentiment_result=sentiment_result, dto=data, token_2_score=specifiable_token_to_weight, indexer=self)
         return document_vector, sentiment_result, token_to_score, keywords
 

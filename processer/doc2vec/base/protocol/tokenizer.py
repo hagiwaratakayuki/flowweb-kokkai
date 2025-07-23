@@ -11,13 +11,13 @@ class TokenDTO:
 
     def get_norm(self):
         if self._faces == None:
-            self._faces = self.get_norm()
+            self._faces = self._get_norm()
         return self._faces
 
     def get_sents(self) -> Iterable[Iterable[Any]]:
         pass
 
-    def _get_faces(self):
+    def _get_norm(self):
         pass
 
 
