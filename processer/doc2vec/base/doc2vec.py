@@ -3,7 +3,7 @@ from data_loader.dto import DTO
 from doc2vec.base.protocol.indexer import IndexerCls
 from doc2vec.base.protocol.tokenizer import TokenizerCls
 
-from .vectorizer.gensim import MODEL_PATH, Vectaizer
+from .vectorizer.gensim import MODEL_PATH, Vectorizer
 
 
 from multiprocessing.pool import Pool

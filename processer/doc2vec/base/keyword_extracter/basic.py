@@ -6,14 +6,14 @@ import numpy as np
 
 from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
-from doc2vec.base.protocol.keyword_extracter import KeywordExtractRule, ExtractResultDTO
+from doc2vec.base.protocol.keyword_extracter import KeywordExtractRule, ExtractResultDTO, KeywordExtracterClass
 
 from processer.doc2vec.base.protocol.indexer import DocVectorType
 
 SCORE_KEY = itemgetter(1)
 
 
-class BasicKeywordExtratcer:
+class BasicKeywordExtratcer(KeywordExtracterClass):
     def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5):
         self.rules = rules
         self.keyword_limit = keyword_limit

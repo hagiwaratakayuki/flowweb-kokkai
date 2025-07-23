@@ -66,5 +66,8 @@ class KeywordExtractRule:
 
 
 class KeywordExtracterClass:
+    def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5):
+        pass
+
     def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
         pass

@@ -53,7 +53,7 @@ class LoadKeyedVectors(LoderFunctionClass):
 loadKeyedVectors = LoadKeyedVectors()
 
 
-class Vectaizer:
+class Vectorizer:
     _kv: KeyedVectors
     _loader: LoderFunctionClass
 

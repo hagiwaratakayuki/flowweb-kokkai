@@ -1,4 +1,6 @@
+from typing import Type
 from processer.doc2vec.base.indexer.cls import Indexer
+from processer.doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
 from processer.doc2vec.base.protocol.vectorizer import Vectorizer
 from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer
 
@@ -6,7 +8,11 @@ from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer
 class Builder:
     sentiment_anarizer: SentimentAnarizer
     vectorizer: Vectorizer
-    indexer_class = Indexer
+    keyword_extratcer: BasicKeywordExtratcer
+    indexer_class: Type[Indexer]
+
+    def __init__(self, indexer_clsss=Indexer):
+        self.indexer_clsss = indexer_clsss
 
     def build_indexer(self):
-        return self.indexer_class(self.vectorizer, self.sentiment_anarizer)
+        return self.indexer_class(self.vectorizer, self.sentiment_anarizer, self.keyword_extratcer)
