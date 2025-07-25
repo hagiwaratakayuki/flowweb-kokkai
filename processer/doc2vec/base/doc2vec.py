@@ -31,12 +31,3 @@ class Doc2Vec:
             data_map[dto.id] = dto
 
             yield dto.get_text(), dto.id
-
-    def get_word_vector(self, parse_itr, dto_map):
-
-        for first, tokens, keywords, third, force in parse_itr:
-
-            vector, sentimentResults, scored_keywords, dataid = self._indexer.compute(
-                [first, self._vectaizer.exec_dict(tokens), keywords, third, force])
-
-            yield vector, sentimentResults, scored_keywords, dto_map[dataid]
