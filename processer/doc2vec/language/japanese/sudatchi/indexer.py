@@ -22,4 +22,7 @@ class SudatchiIndexer(Indexer):
         return word_to_vector.get(self._get_norm())
 
     def _get_norm(self, token: Morpheme) -> str:
-        return token.dictionary_form()
+        surface = token.surface()
+        if not surface.isascii():
+            return token.normalized_form()
+        return surface

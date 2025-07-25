@@ -1,7 +1,7 @@
 
 from processer.doc2vec.base.doc2vec import Doc2Vec
 from processer.doc2vec.language.japanese.sudatchi import builder
-from doc2vec.language.japanese.keyword_extracter.rule.kokkai import kokkai_extract_rule
+from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.kokkai import kokkai_extract_rule
 
 
 def build(build_func=builder.build, doc2vec_class=Doc2Vec):

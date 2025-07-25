@@ -60,7 +60,7 @@ class ExtractResultDTO:
 
 
 class KeywordExtractRule:
-    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO) -> List[SpacySpecifiedKeywordType]:
+    def execute(self, parse_result: Any, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: Any) -> List[SpacySpecifiedKeywordType]:
 
         pass
 

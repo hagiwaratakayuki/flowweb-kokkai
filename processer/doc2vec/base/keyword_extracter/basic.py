@@ -28,6 +28,7 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
                 sentiment_results=sentiment_results,
                 dto=dto,
                 results=results,
+                indexer=indexer
 
             )
 
