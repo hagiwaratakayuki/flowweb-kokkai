@@ -3,6 +3,7 @@ from collections import deque
 from functools import cache
 from itertools import chain
 import re
+import token
 from typing import Iterable, Optional, Tuple
 from doc2vec.base.protocol.tokenizer import TokenizerCls, TokenDTO
 
@@ -26,33 +27,23 @@ class SudatchiDTO(TokenDTO):
     def _get_sents(self):
         sents = deque()
         sent = deque()
-        is_sent_exit = False
+        is_last_sent_exit = False
         is_multi_sent_exist = False
         for m in self.tokens:
+            m.begin
             is_multi_sent_exist = True
-            is_sent_exit = True
+            is_last_sent_exit = True
             sent.append(m)
 
             if m.normalized_form() == '。':
                 sent = deque()
                 sents.append(sent)
-                is_sent_exit = False
+                is_last_sent_exit = False
         if is_multi_sent_exist == False:
             return []
-        if is_sent_exit == False:
+        if is_last_sent_exit == False:
             sents.pop()
         return sents
-
-    def get_tokens_with_position(self):
-        if self._tokens_with_positions is None:
-            token_with_positins = deque()
-            start = 0
-            for token in self.tokens:
-                len_surface = len(token.surface())
-                end = len_surface - 1 + start
-                token_with_positins.append((token, start, end, ))
-                start += len_surface
-        return self._tokens_with_positions
 
 
 class SudatchiTokenizer(TokenizerCls):
