@@ -1,10 +1,10 @@
 from typing import Optional
 
 import numpy as np
-from processer.doc2vec.base.indexer.cls import Indexer
+from doc2vec.base.indexer.cls import Indexer
 from sudachipy.morpheme import Morpheme
 
-from processer.doc2vec.base.protocol.vectorizer import WordToVecDictType
+from doc2vec.base.protocol.vectorizer import WordToVecDictType
 
 MainPos = {'名詞', '動詞'}
 SpecifiablePos = MainPos | {'形容詞'}

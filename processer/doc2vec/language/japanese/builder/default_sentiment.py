@@ -1,4 +1,4 @@
-from processer.doc2vec.base.builder import vectored_sentiment
+from doc2vec.base.builder import vectored_sentiment
 posi_words = ['優れる', '良い', '喜ぶ', '褒める', '賢い', '生かす', '祝う', '功績', '賞', '嬉しい', '才知', '徳', '才能', '素晴らしい', '芳しい', '称える',
               '適切', '崇める', '助ける', '忠実', 'にぎやか', '美しい', '雄雄しい', '幸い', '吉兆', '秀でる', '味方']
 

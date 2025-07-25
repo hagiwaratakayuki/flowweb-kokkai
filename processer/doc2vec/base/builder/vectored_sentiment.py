@@ -1,10 +1,10 @@
 
 
 from typing import List
-from processer.doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
-from processer.doc2vec.base.builder import basic_indexer
-from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer
-from processer.doc2vec.base.vectorizer.gensim import Vectorizer
+from doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
+from doc2vec.base.builder import basic_indexer
+from doc2vec.base.protocol.sentiment import SentimentAnarizer
+from doc2vec.base.vectorizer.gensim import Vectorizer
 
 
 class BuilderClass(basic_indexer.Builder):

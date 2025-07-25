@@ -9,8 +9,8 @@ from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, 
 from data_loader.dto import DTO
 from doc2vec.base.protocol.tokenizer import TokenDTO
 from doc2vec.spacy.components.commons.const import MAIN_POS, SPECIFIABLE_POS
-from processer.doc2vec.base.protocol.indexer import ExecResponseType, IndexerCls
-from processer.doc2vec.base.protocol.keyword_extracter import KeywordExtracterClass
+from doc2vec.base.protocol.indexer import ExecResponseType, IndexerCls
+from doc2vec.base.protocol.keyword_extracter import KeywordExtracterClass
 
 
 class Indexer(IndexerCls):

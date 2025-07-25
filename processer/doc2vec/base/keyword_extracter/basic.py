@@ -8,7 +8,7 @@ from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 from doc2vec.base.protocol.keyword_extracter import KeywordExtractRule, ExtractResultDTO, KeywordExtracterClass
 
-from processer.doc2vec.base.protocol.indexer import DocVectorType
+from doc2vec.base.protocol.indexer import DocVectorType
 
 SCORE_KEY = itemgetter(1)
 

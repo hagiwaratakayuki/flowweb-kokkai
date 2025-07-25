@@ -2,10 +2,10 @@ from typing import Any, Iterable, Tuple
 
 from numpy import ndarray
 
-from processer.data_loader.dto import DTO
+from data_loader.dto import DTO
 
-from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult
-from processer.doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult
+from doc2vec.base.protocol.vectorizer import Vectorizer
 from .tokenizer import TokenDTO
 DocVectorType = ndarray
 KeywordsType = Iterable[str]

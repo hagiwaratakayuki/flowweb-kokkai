@@ -1,7 +1,7 @@
-from processer.doc2vec.base.builder import vectored_sentiment
-from processer.doc2vec.language.japanese.builder import default_sentiment
-from processer.doc2vec.language.japanese.sudatchi.indexer import SudatchiIndexer
-from processer.doc2vec.language.japanese.sudatchi.tokenaizer import SudatchiTokenizer
+from doc2vec.base.builder import vectored_sentiment
+from doc2vec.language.japanese.builder import default_sentiment
+from doc2vec.language.japanese.sudatchi.indexer import SudatchiIndexer
+from doc2vec.language.japanese.sudatchi.tokenizer.cls import SudatchiTokenizer
 
 DefaultFilePath = 'model/chive-1.3-mc90.kv'
 

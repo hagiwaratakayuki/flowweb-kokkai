@@ -1,8 +1,8 @@
 from typing import Type
-from processer.doc2vec.base.indexer.cls import Indexer
-from processer.doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
-from processer.doc2vec.base.protocol.vectorizer import Vectorizer
-from processer.doc2vec.base.protocol.sentiment import SentimentAnarizer
+from doc2vec.base.indexer.cls import Indexer
+from doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
+from doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.sentiment import SentimentAnarizer
 
 
 class Builder:

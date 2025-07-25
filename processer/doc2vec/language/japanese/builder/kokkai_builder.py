@@ -1,6 +1,6 @@
 
-from processer.doc2vec.base.doc2vec import Doc2Vec
-from processer.doc2vec.language.japanese.sudatchi import builder
+from doc2vec.base.doc2vec import Doc2Vec
+from doc2vec.language.japanese.sudatchi import builder
 from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.kokkai import kokkai_extract_rule
 
 
