@@ -11,11 +11,9 @@ from typing import Iterable
 
 
 class Doc2Vec:
-    def __init__(self, indexer: IndexerCls, tokenaizer: TokenizerCls, is_use_title=True, line_break=r'\n', chunksize=1000) -> None:
+    def __init__(self, indexer: IndexerCls, tokenaizer: TokenizerCls, chunksize=1000) -> None:
         self._tokenaizer = tokenaizer
         self._indexer = indexer
-        self._is_use_title = is_use_title
-        self._line_break = line_break
 
         self._chunk_size = chunksize
 
@@ -31,11 +29,8 @@ class Doc2Vec:
 
         for dto in dtos:
             data_map[dto.id] = dto
-            if self._is_use_title:
-                text = dto.title + self._line_break + dto.body
-            else:
-                text = dto.body
-            yield text, dto.id
+
+            yield dto.get_text(), dto.id
 
     def get_word_vector(self, parse_itr, dto_map):
 

@@ -6,4 +6,4 @@ from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.kokkai import kok
 
 def build(build_func=builder.build, doc2vec_class=Doc2Vec):
     indexer, tokenaizer = build_func(kokkai_extract_rule)
-    return doc2vec_class(indexer=indexer, tokenaizer=tokenaizer, is_use_title=False, chunksize=100)
+    return doc2vec_class(indexer=indexer, tokenaizer=tokenaizer, chunksize=100)

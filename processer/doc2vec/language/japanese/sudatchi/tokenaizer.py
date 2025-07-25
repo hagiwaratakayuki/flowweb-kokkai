@@ -14,11 +14,10 @@ DefaultMode = tokenizer.Tokenizer.SplitMode.C
 
 class SudatchiDTO(TokenDTO):
     tokens: Iterable[Morpheme]
-    _tokens_with_positions: Optional[Iterable[Tuple[Morpheme, int, int]]]
 
     def __init__(self, tokens: Iterable[Morpheme]):
         self.tokens = tokens
-        self._tokens_with_positions = None
+
         super().__init__()
 
     def _get_faces(self):
@@ -30,7 +29,7 @@ class SudatchiDTO(TokenDTO):
         is_last_sent_exit = False
         is_multi_sent_exist = False
         for m in self.tokens:
-            m.begin
+
             is_multi_sent_exist = True
             is_last_sent_exit = True
             sent.append(m)

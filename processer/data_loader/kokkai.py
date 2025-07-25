@@ -33,6 +33,7 @@ class DTO(Base):
     group: Optional[str]
     session: int
     discussion_id: Optional[str]
+    _is_use_title = False
 
 
 SessionComittieHouseDataType = kokkai_comittie.SessionComittieDataType
