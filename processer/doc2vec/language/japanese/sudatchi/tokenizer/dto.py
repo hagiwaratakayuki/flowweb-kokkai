@@ -9,6 +9,7 @@ class SudatchiDTO(TokenDTO):
 
     def __init__(self, tokens: List[Morpheme]):
         self.tokens = tokens
+        self._token_len = None
 
         super().__init__()
 
@@ -35,3 +36,8 @@ class SudatchiDTO(TokenDTO):
         if is_last_sent_exit == False:
             sents.pop()
         return sents
+
+    def get_token_len(self):
+        if self._token_len is None:
+            self._token_len = len(self.tokens)
+        return self._token_len
