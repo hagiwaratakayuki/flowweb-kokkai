@@ -1,7 +1,7 @@
 from sudachipy.morpheme import Morpheme
 
 
-def get(token: Morpheme):
+def apply(token: Morpheme):
     surface = token.surface()
     if surface.isascii():
         return surface

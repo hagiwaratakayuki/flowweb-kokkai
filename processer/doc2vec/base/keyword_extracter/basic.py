@@ -1,6 +1,6 @@
 from collections import defaultdict
 from operator import itemgetter
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional, Type
 from spacy.tokens import Doc, Token
 import numpy as np
 
@@ -14,13 +14,14 @@ SCORE_KEY = itemgetter(1)
 
 
 class BasicKeywordExtratcer(KeywordExtracterClass):
-    def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5):
+    def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5, result_class: Optional[Type[ExtractResultDTO]] = None):
         self.rules = rules
         self.keyword_limit = keyword_limit
+        self.result_class = result_class or ExtractResultDTO
 
     def exec(self, parse_result: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any):
 
-        results = ExtractResultDTO()
+        results = self.result_class()
         for rule in self.rules:
             results = rule.execute(
                 parse_result=parse_result,

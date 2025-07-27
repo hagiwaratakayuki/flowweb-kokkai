@@ -3,7 +3,7 @@ from operator import methodcaller
 import re
 from typing import List
 
-from processer.doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
+from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 StartColler = methodcaller('start')  # for sort
 
 
