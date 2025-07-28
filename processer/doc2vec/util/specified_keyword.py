@@ -1,4 +1,4 @@
-from typing import Any, FrozenSet, Iterable, Iterator, List, Optional, Union, Tuple, Set, TypeVar, Generic
+from typing import Any, FrozenSet, Iterable, Iterator, List, Optional, Type, Union, Tuple, Set, TypeVar, Generic
 import numpy as np
 
 
@@ -169,3 +169,7 @@ class BindSpecifiedKeyword(SpecifiedKeyword):
         ret = super().clone()
         ret._headwords = self._headwords
         return ret
+
+
+SpecifiedKeywordType = Type[SpecifiedKeyword]
+BindSpecifiedKeywordType = Type[BindSpecifiedKeyword]
