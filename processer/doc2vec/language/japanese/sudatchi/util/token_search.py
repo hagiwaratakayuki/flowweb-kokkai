@@ -7,33 +7,34 @@ from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 StartColler = methodcaller('start')  # for sort
 
 
-def exec(self, matches: List[re.Match], dto: SudatchiDTO):
-    token_len = dto.get_token_len()
-    token_index = 0
-    results = defaultdict(set)
-    for m in matches:
+class Searcher:
+    def search(self, matches: List[re.Match], dto: SudatchiDTO):
+        token_len = dto.get_token_len()
+        token_index = 0
+        results = defaultdict(set)
+        for m in matches:
 
-        while token_index < token_len:
-            token = dto.tokens[token_index]
-            if token.end() <= m.start():
-                index += 1
-                continue
-            if token.end() == m.end():
-                results[m].add(token)
-                index += 1
-                break
-            if token.end() > m.end():
-                if m.start() <= token.begin() < m.end():
-                    results[m].add(token)
+            while token_index < token_len:
+                token = dto.tokens[token_index]
+                if token.end() <= m.start():
                     index += 1
                     continue
-                if token.begin() != m.end():
+                if token.end() == m.end():
+                    results[m].add(token)
                     index += 1
-                break
-            index += 1
-            results[m].add(token)
+                    break
+                if token.end() > m.end():
+                    if m.start() <= token.begin() < m.end():
+                        results[m].add(token)
+                        index += 1
+                        continue
+                    if token.begin() != m.end():
+                        index += 1
+                    break
+                index += 1
+                results[m].add(token)
 
-    return results
+        return results
 
 # duck type re.match
 
@@ -46,3 +47,6 @@ class PseudoMatch:
 
     def group(self, number):
         return self._word
+
+
+token_searcher = Searcher()
