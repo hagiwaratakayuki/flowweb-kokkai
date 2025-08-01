@@ -6,9 +6,10 @@ from doc2vec.base.protocol.tokenizer import TokenizerCls
 from sudachipy import tokenizer, dictionary, Morpheme
 
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
+from processer.doc2vec.language.japanese.sudatchi.singleton import SudachiDictionary
 
 
-TokenizerObject = dictionary.Dictionary().create()
+TokenizerObject = SudachiDictionary.create()
 DefaultMode = tokenizer.Tokenizer.SplitMode.C
 
 
@@ -23,6 +24,8 @@ class SudatchiTokenizer(TokenizerCls):
         is_chunk_exist = False
         chunk = ''
         for split in splited:
+            if not split:
+                continue
             line = split + '。'
             line_len = len(line.encode(errors='replace'))
             next_byte_length = line_len + byte_length
