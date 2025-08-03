@@ -1,4 +1,3 @@
 from processer.doc2vec.language.japanese.sudatchi.util.matcher.pos_system import medium_category
 
-
-matcher = medium_category.builder.build('数詞')
+matcher = medium_category.builder.build('固有名詞')
