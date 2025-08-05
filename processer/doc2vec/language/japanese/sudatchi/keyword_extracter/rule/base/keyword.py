@@ -125,18 +125,14 @@ class WordCanditates:
                     canditates = sliced_canditates
 
                     break
-                if number.matcher(token):
-                    is_sub_mode = True
-                    subword += reguraize_rule.apply(token)
-                    continue
-                if is_sub_mode:
-                    subword += reguraize_rule.apply(token)
-                    continue
+                if is_counter_tail and number.matcher(token):
+
+                    canditates = sliced_canditates
+                    break
+
                 word += reguraize_rule.apply(token)
 
         self.word_to_tokens[word].update(canditates)
-        if subword:
-            self.word_to_tokens[word].add_subwords((subword,))
 
     def get_word_to_token(self):
         self.check()
