@@ -49,4 +49,4 @@ class PseudoMatch:
         return self._word
 
 
-token_searcher = Searcher()
+TokenSearcher = Searcher()

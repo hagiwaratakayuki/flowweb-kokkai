@@ -22,7 +22,7 @@ class DTO:
         self.author = author
         self.author_id = author_id
 
-    def get_text(self):
+    def get_text(self) -> str:
         if self._is_use_title == True:
             return self.title + self._line_break + self.body
         else:
