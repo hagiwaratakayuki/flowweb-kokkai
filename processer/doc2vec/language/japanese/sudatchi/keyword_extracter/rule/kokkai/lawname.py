@@ -89,18 +89,25 @@ class EqInShorter:
 
 
 class LawDTO:
-    start: int
+    _start: int
     is_reverse: bool
     face: str
     name: str
+    _end: int
 
     def __init__(self, name, start, face=''):
         self.name = name
-        self.start = start
+        self._start = start
         self.face = face
         self.is_reverse = False
         self.len = len(self.get_face())
-        self.end = self.start + self.len - 1
+        self._end = self.start() + self.len
+
+    def start(self):
+        return self._start
+
+    def end(self):
+        return self._end
 
     def get_face(self):
         return self.face or self.name
@@ -271,12 +278,12 @@ class Rule(KeywordExtractRule):
                 return results
             law_dto = LawDTO(name=法律名, start=0)
             law_list.append(law_dto)
-            position_list.append_position(law_dto.start, law_dto.end)
+            position_list.append_position(law_dto.start(), law_dto.end())
             is_context_added = True
             law_list_len = 1
         else:
             for law_dto in law_list:
-                position_list.append_position(law_dto.start, law_dto.end)
+                position_list.append_position(law_dto.start(), law_dto.end())
 
         段階表現のリスト = []
 
@@ -307,7 +314,7 @@ class Rule(KeywordExtractRule):
         法律名のインデックス = -1
         for law_dto in law_list:
             法律名のインデックス += 1
-            next_position = law_dto.start + law_dto.len
+            next_position = law_dto.start() + law_dto.len
             リンクしている段階表現のID = 段階表現と位置のインデックス.get(next_position)
             if リンクしている段階表現のID is not None:
 
@@ -325,7 +332,7 @@ class Rule(KeywordExtractRule):
         law_dto = law_list[0]
         if not is_context_added:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
-            if is_context_exist and 法律名 != None and law_dto.name != 法律名 and law_dto.start != 0:
+            if is_context_exist and 法律名 != None and law_dto.name != 法律名 and law_dto.start() != 0:
                 law_dto = LawDTO(name=法律名, start=0)
                 law_list.insert(0, law_dto)
                 law_list_len += 1
@@ -340,13 +347,10 @@ class Rule(KeywordExtractRule):
         tokens = set()
         is_in = False
         position = 0
-        prev_token = ''
+
         for token in parse_result.tokens:
 
-            position += len(prev_token)
-            prev_token = token
-
-            if position_list.now_start <= position <= position_list.now_end:
+            if position_list.now_start <= token.begin() <= position_list.now_end:
                 is_in = True
 
                 tokens.add(token)
@@ -401,7 +405,7 @@ class Rule(KeywordExtractRule):
 
             is_tail = True
 
-            while 段階表現のスタート > law_dto.start:
+            while 段階表現のスタート > law_dto.start():
 
                 if is_tail == True:
                     is_tail = False
