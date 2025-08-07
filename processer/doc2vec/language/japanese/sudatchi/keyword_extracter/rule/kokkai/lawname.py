@@ -19,6 +19,7 @@ from doc2vec.base.protocol.sentiment import SentimentResult
 
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from processer.doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
+from processer.doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 
 
 startkey = attrgetter('start')
@@ -135,44 +136,13 @@ class PositionList:
         return True
 
 
-class Cursor:
-    def __init__(self, doc):
-        self.doc_len = len(doc)
-        self.index = -1
-        self.limit = self.doc_len - 1
-        self.doc = doc
-        self.token_len = 0
-        self._check_next()
-        self.position = 0
-
-    def _check_next(self):
-        self.has_next = self.index < self.limit
-
-    def get_next(self):
-        if self.has_next == True:
-            return self.doc[self.index + 1]
-        return False
-
-    def step(self):
-
-        if self.has_next:
-            self.index += 1
-            self.position += self.token_len
-            self.now = self.doc[self.index]
-            self.token_len = len(self.now)
-            self._check_next()
-            return True
-
-        return False
-
-
 class Rule(KeywordExtractRule):
     context: DiscussionContext
 
     def __init__(self):
         self.context = DiscussionContext()
 
-    def execute(self, parse_result, vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
+    def execute(self, parse_result: SudatchiDTO, vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
 
         law_index = defaultdict(set)
         reverse_dict = defaultdict(set)
@@ -219,7 +189,8 @@ class Rule(KeywordExtractRule):
             self._set_law_positions(
                 all_text, law_list=law_list, lawname=アイヌ新法の正式名称, face=アイヌ新法)
             needle_words.append(アイヌ新法)
-            self._get_hittokens(doc=doc, word=アイヌ新法, tokens=target_tokens)
+            self._get_hittokens(text=all_text, word=アイヌ新法,
+                                tokens=target_tokens)
 
         活火山法の検索結果 = 活火山法の略称候補.search(all_text)
         活火山法が含まれるか = 活火山法の検索結果 is not None
@@ -233,19 +204,20 @@ class Rule(KeywordExtractRule):
             self._set_law_positions(
                 all_text, law_list=law_list, lawname=活火山法の正式名称, face=活火山法の略称)
 
-            self._get_hittokens(doc=doc, word=活火山法の略称, tokens=target_tokens)
+            self._get_hittokens(text=all_text, word=活火山法の略称,
+                                tokens=target_tokens)
         改正前の活火山法の正式名称が存在する = 改正前の活火山法の正式名称 in all_text
         改正後の活火山法の正式名称が存在する = 改正後の活火山法の正式名称 in all_text
         if 改正前の活火山法の正式名称が存在する or 改正後の活火山法の正式名称が存在する:
             additional_law_words.add(活火山法)
             if 改正前の活火山法の正式名称が存在する:
 
-                self._get_hittokens(doc, word=改正前の活火山法の正式名称,
+                self._get_hittokens(text=all_text, word=改正前の活火山法の正式名称,
                                     tokens=target_tokens)
             if 改正後の活火山法の正式名称が存在する:
 
                 self._get_hittokens(
-                    doc=doc, word=改正後の活火山法の正式名称, tokens=target_tokens)
+                    text=all_text, word=改正後の活火山法の正式名称, tokens=target_tokens)
 
         for i in range(len(all_text) - 1):
             gram = all_text[i:i + 2]
@@ -290,7 +262,7 @@ class Rule(KeywordExtractRule):
         law_list.sort(key=startkey)
 
         law_list_len = len(law_list)
-        doc_len = len(all_text)
+
         is_context_added = False
         position_list = PositionList()
         if law_list_len == 0:
@@ -306,7 +278,6 @@ class Rule(KeywordExtractRule):
             for law_dto in law_list:
                 position_list.append_position(law_dto.start, law_dto.end)
 
-        cursor = Cursor(doc)
         段階表現のリスト = []
 
         段階表現と位置のインデックス = {}
@@ -370,7 +341,7 @@ class Rule(KeywordExtractRule):
         is_in = False
         position = 0
         prev_token = ''
-        for token in doc:
+        for token in parse_result.tokens:
 
             position += len(prev_token)
             prev_token = token

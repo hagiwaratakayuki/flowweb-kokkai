@@ -9,7 +9,7 @@ StartColler = methodcaller('start')  # for sort
 
 class Searcher:
     def search(self, matches: List[re.Match], dto: SudatchiDTO):
-        token_len = dto.get_token_len()
+        token_len = dto.get_tokens_len()
         token_index = 0
         results = defaultdict(set)
         for m in matches:
