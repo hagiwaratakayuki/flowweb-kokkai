@@ -193,9 +193,9 @@ class Rule(KeywordExtractRule):
             else:
                 アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
 
-            self._set_law_positions(
+            law_result = self._set_law_positions(
                 all_text, law_list=law_list, lawname=アイヌ新法の正式名称, face=アイヌ新法)
-            needle_words.append(アイヌ新法)
+
             self._get_hittokens(text=all_text, word=アイヌ新法,
                                 tokens=target_tokens)
 
@@ -521,23 +521,34 @@ class Rule(KeywordExtractRule):
 
         _face = face or lawname
         start = text.find(_face)
+        law_result = []
 
         while start != -1:
-
+            law_result.append(start)
             law_list.append(LawDTO(lawname, start=start, face=face))
             start = text.find(_face, start + 1)
+        return law_result
 
-    def _get_hittokens(self, doc, word: str, tokens: Optional[List] = None):
+    def _get_hittokens(self, parse_result: SudatchiDTO, word: str, start_positions: List[int], tokens: Optional[List] = None):
         if tokens is None:
             tokens = []
-        is_matched = False
-        for token in doc:
+        limit_index = len(start_position)
+        start_index = 0
+        distance = len(word)
+        start_position = start_positions[start_index]
+        end_position = start_position + distance
+        for token in parse_result.tokens:
 
-            if token.lemma_ not in word and word not in token.lemma_:
-                if is_matched:
-                    break
+            if token.begin() < start_position:
                 continue
-            is_matched = True
+            if token.begin() > end_position:
+                start_index += 1
+                if limit_index <= start_index:
+                    break
+                start_position = start_positions[start_index]
+                end_position = start_position + distance
+                continue
+
             tokens.append(token)
 
         return tokens
