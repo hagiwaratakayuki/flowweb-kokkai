@@ -193,10 +193,10 @@ class Rule(KeywordExtractRule):
             else:
                 アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
 
-            law_result = self._set_law_positions(
+            start_positions = self._set_law_positions(
                 all_text, law_list=law_list, lawname=アイヌ新法の正式名称, face=アイヌ新法)
 
-            self._get_hittokens(text=all_text, word=アイヌ新法,
+            self._get_hittokens(parse_result=parse_result, face=アイヌ新法, start_positions=start_positions,
                                 tokens=target_tokens)
 
         活火山法の検索結果 = 活火山法の略称候補.search(all_text)
@@ -208,23 +208,28 @@ class Rule(KeywordExtractRule):
                 活火山法の正式名称 = 改正後の活火山法の正式名称
             else:
                 活火山法の正式名称 = 改正前の活火山法の正式名称
-            self._set_law_positions(
+            start_positions = self._set_law_positions(
                 all_text, law_list=law_list, lawname=活火山法の正式名称, face=活火山法の略称)
 
-            self._get_hittokens(text=all_text, word=活火山法の略称,
-                                tokens=target_tokens)
+            self._get_hittokens(prase_result=parse_result, face=活火山法の略称,
+                                tokens=target_tokens, start_positions=start_positions)
         改正前の活火山法の正式名称が存在する = 改正前の活火山法の正式名称 in all_text
         改正後の活火山法の正式名称が存在する = 改正後の活火山法の正式名称 in all_text
-        if 改正前の活火山法の正式名称が存在する or 改正後の活火山法の正式名称が存在する:
+
+        if 改正前の活火山法の正式名称が存在する:
             additional_law_words.add(活火山法)
-            if 改正前の活火山法の正式名称が存在する:
 
-                self._get_hittokens(text=all_text, word=改正前の活火山法の正式名称,
-                                    tokens=target_tokens)
-            if 改正後の活火山法の正式名称が存在する:
+            start_positions = self._set_law_positions(
+                all_text, law_list=law_list, lawname=改正前の活火山法の正式名称)
+            self._get_hittokens(parse_result=parse_result, face=改正前の活火山法の正式名称, start_positions=start_positions,
+                                tokens=target_tokens)
+        if 改正後の活火山法の正式名称が存在する:
 
-                self._get_hittokens(
-                    text=all_text, word=改正後の活火山法の正式名称, tokens=target_tokens)
+            additional_law_words.add(活火山法)
+            start_positions = self._set_law_positions(
+                all_text, law_list=law_list, lawname=改正後の活火山法の正式名称)
+            self._get_hittokens(
+                parse_result=parse_result, face=改正後の活火山法の正式名称, tokens=target_tokens, start_positions=start_positions)
 
         for i in range(len(all_text) - 1):
             gram = all_text[i:i + 2]
@@ -256,12 +261,17 @@ class Rule(KeywordExtractRule):
                 all_text) is not None
 
         for 法律名 in 発見された正式名称のリスト:
-            self._set_law_positions(all_text, law_list=law_list, lawname=法律名)
+            start_positions = self._set_law_positions(
+                all_text, law_list=law_list, lawname=法律名)
+            self._get_hittokens(parse_result=parse_result, face=法律名,
+                                tokens=target_tokens, start_positions=start_positions)
 
         for 法律名の略称 in 法律名の略称のリスト:
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
-            self._set_law_positions(
+            start_positions = self._set_law_positions(
                 text=all_text, law_list=law_list, lawname=法律の正式名称, face=法律名の略称)
+            self._get_hittokens(parse_result=parse_result, face=法律名の略称,
+                                tokens=target_tokens, start_positions=start_positions)
 
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
@@ -529,12 +539,12 @@ class Rule(KeywordExtractRule):
             start = text.find(_face, start + 1)
         return law_result
 
-    def _get_hittokens(self, parse_result: SudatchiDTO, word: str, start_positions: List[int], tokens: Optional[List] = None):
+    def _get_hittokens(self, parse_result: SudatchiDTO, face: str, start_positions: List[int], tokens: Optional[List] = None):
         if tokens is None:
             tokens = []
         limit_index = len(start_position)
         start_index = 0
-        distance = len(word)
+        distance = len(face)
         start_position = start_positions[start_index]
         end_position = start_position + distance
         for token in parse_result.tokens:
