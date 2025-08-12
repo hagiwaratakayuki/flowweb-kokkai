@@ -1,0 +1,6 @@
+import re
+from processer.doc2vec.language.japanese.sudatchi.keyword_extracter.rule.component.regex import SudatchiRegexRule
+
+
+rule = SudatchiRegexRule(re.compile(
+    r'子ども食堂'), output_word='こども食堂', is_bind_output=True, is_force=True)

@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Set
 
-from processer.doc2vec.base.keyword_extracter.rule.regex import RegexRule
+from processer.doc2vec.base.keyword_extracter.rule.regex_rule import RegexRule
 from processer.doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from processer.doc2vec.language.japanese.sudatchi.util.token_search import token_searcher
 

@@ -382,6 +382,10 @@ class Rule(KeywordExtractRule):
                     headword=法律名, source_ids=DUMMY_SET, is_force=True)
 
                 results.add_keyword(kw)
+        for additional_law_word in additional_law_words:
+            kw = SpecifiedKeyword(
+                headword=additional_law_word, source_ids=DUMMY_SET, is_force=True)
+            results.add_keyword(kw)
 
         return results
 
