@@ -10,7 +10,7 @@ def build(extract_rules, file_path=DefaultFilePath):
 
     index_builder = vectored_sentiment.BuilderClass(SudatchiIndexer)
     index_builder = default_sentiment.build(bulder=index_builder)
-    index_builder.buide_vectorizer(filepath=DefaultFilePath)
+    index_builder.build_vectorizer(filepath=DefaultFilePath)
     index_builder.build_keyword_extracter(rules=extract_rules)
     indexer = index_builder.build_indexer()
     tokenaizer = SudatchiTokenizer()

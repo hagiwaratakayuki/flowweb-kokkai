@@ -12,8 +12,8 @@ from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from sudachipy import tokenizer
 from sudachipy.morpheme import Morpheme
 from doc2vec.util.specified_keyword import SpecifiedKeyword
-from processer.doc2vec.language.japanese.sudatchi.util import reguraize_rule
-from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible
+from doc2vec.language.japanese.sudatchi.util import reguraize_rule
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible
 ModeA = tokenizer.Tokenizer.SplitMode.A
 
 

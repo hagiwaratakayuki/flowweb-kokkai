@@ -18,8 +18,8 @@ from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
-from processer.doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
-from processer.doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
+from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
+from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 
 
 startkey = attrgetter('start')

@@ -17,7 +17,7 @@ class BuilderClass(basic_indexer.Builder):
             posi_words=posi_words, nega_words=nega_words)
         return self
 
-    def buide_vectorizer(self, filepath=None, basepath='', loader=None):
+    def build_vectorizer(self, filepath=None, basepath='', loader=None):
         self.vectorizer = self.vectorizer_class(
             filepath=filepath, basepath=basepath, loader=loader)
         return self

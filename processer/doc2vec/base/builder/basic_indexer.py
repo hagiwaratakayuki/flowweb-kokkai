@@ -12,7 +12,7 @@ class Builder:
     indexer_class: Type[Indexer]
 
     def __init__(self, indexer_clsss=Indexer):
-        self.indexer_clsss = indexer_clsss
+        self.indexer_class = indexer_clsss
 
     def build_indexer(self):
         return self.indexer_class(self.vectorizer, self.sentiment_anarizer, self.keyword_extratcer)

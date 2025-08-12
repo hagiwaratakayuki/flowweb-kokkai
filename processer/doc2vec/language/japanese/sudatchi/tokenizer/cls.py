@@ -6,7 +6,7 @@ from doc2vec.base.protocol.tokenizer import TokenizerCls
 from sudachipy import tokenizer, dictionary, Morpheme
 
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
-from processer.doc2vec.language.japanese.sudatchi.singleton import SudachiDictionary
+from doc2vec.language.japanese.sudatchi.singleton import SudachiDictionary
 
 
 TokenizerObject = SudachiDictionary.create()

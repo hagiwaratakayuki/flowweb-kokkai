@@ -5,9 +5,9 @@ import re
 from typing import Any, Iterable, List, Literal
 
 from click import Option, group
-from processer.data_loader.dto import DTO
-from processer.doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
-from processer.doc2vec.util.specified_keyword import BindSpecifiedKeyword, BindSpecifiedKeywordType, SpecifiedKeyword, SpecifiedKeywordType, BindSpecifiedKeywordType
+from data_loader.dto import DTO
+from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
+from doc2vec.util.specified_keyword import BindSpecifiedKeyword, BindSpecifiedKeywordType, SpecifiedKeyword, SpecifiedKeywordType, BindSpecifiedKeywordType
 
 OutputWord = Option[Union[str, Iterable[str]]]
 StartMethodCaller = methodcaller('start')

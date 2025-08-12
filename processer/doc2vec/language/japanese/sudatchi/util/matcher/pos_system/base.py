@@ -1,6 +1,6 @@
 
 
-from processer.doc2vec.language.japanese.sudatchi.singleton import SudachiDictionary
+from doc2vec.language.japanese.sudatchi.singleton import SudachiDictionary
 
 
 class SudatchiMatcherGenerater:
