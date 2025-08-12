@@ -1,7 +1,7 @@
-from ast import Dict, Tuple
+
 from collections import defaultdict, deque
 import math
-from typing import Any, Deque, Iterable, Optional
+from typing import Any, Deque, Iterable, Optional, Dict, Tuple
 
 import numpy as np
 from doc2vec.base.protocol.vectorizer import Vectorizer, WordToVecDictType

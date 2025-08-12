@@ -13,6 +13,7 @@ kv: Union[KeyedVectors, None] = None
 projected = {}
 
 MODEL_PATH = 'model/cc.ja.300.vec'
+KV: Optional[KeyedVectors] = None
 
 
 class LoderFunctionClass:
@@ -20,18 +21,18 @@ class LoderFunctionClass:
     default_path: str
 
     def __init__(self, default_path: str):
-        self.kv = None
+
         self.default_path = default_path
 
-    def load(self, filepath=MODEL_PATH, basepath='') -> KeyedVectors:
+    def load(self, model_path=MODEL_PATH, base_path='') -> KeyedVectors:
+        global KV
+        if KV is None:
+            base_path = base_path or os.getcwd()
+            targetpath = os.path.join(base_path, model_path)
 
-        if self.kv is None:
-            basepath = basepath or os.getcwd()
-            targetpath = os.path.join(basepath, filepath)
+            KV = self._load(targetpath)
 
-            kv = self._load(targetpath)
             logging.info('model load ' + targetpath)
-        return self.kv
 
     def _load(self, targetpath):
         pass
@@ -50,27 +51,26 @@ class LoadKeyedVectors(LoderFunctionClass):
         return KeyedVectors.load(targetpath)
 
 
-loadKeyedVectors = LoadKeyedVectors()
+loadKeyedVectors = LoadKeyedVectors(MODEL_PATH)
 
 
 class Vectorizer:
     _kv: KeyedVectors
-    _loader: LoderFunctionClass
 
     def __init__(self, model_path=None, basepath='', loader: Optional[LoderFunctionClass] = None) -> None:
-        self._modelpath = model_path or MODEL_PATH
-        self._basepath = basepath
-        self._loader = loader or loadKeyedVectors
+        self._model_path = model_path or MODEL_PATH
+        self._base_path = basepath
+        _loader = loader or loadKeyedVectors
+        _loader.load(model_path=self._model_path,
+                     base_path=self._base_path)
 
     def exec(self, word):
-        if word in self._kv:
-            return self._kv[word]
+        if word in KV:
+            return KV[word]
         return False
 
     def exec_dict(self, words):
         global projected
-        kv = self._loader.load(filepath=self._modelpath,
-                               basepath=self._basepath)
 
         ret = {}
         unprojected_vecs = deque()

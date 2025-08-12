@@ -1,6 +1,5 @@
 
-from ast import Tuple
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Iterable, Optional, Tuple
 
 
 class TokenDTO:
