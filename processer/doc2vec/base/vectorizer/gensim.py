@@ -55,7 +55,6 @@ loadKeyedVectors = LoadKeyedVectors(MODEL_PATH)
 
 
 class Vectorizer:
-    _kv: KeyedVectors
 
     def __init__(self, model_path=None, basepath='', loader: Optional[LoderFunctionClass] = None) -> None:
         self._model_path = model_path or MODEL_PATH
@@ -64,12 +63,12 @@ class Vectorizer:
         _loader.load(model_path=self._model_path,
                      base_path=self._base_path)
 
-    def exec(self, word):
+    def get_vector(self, word):
         if word in KV:
             return KV[word]
         return False
 
-    def exec_dict(self, words):
+    def get_vectors(self, words):
         global projected
 
         ret = {}
@@ -84,12 +83,12 @@ class Vectorizer:
             if word in projected is True:
 
                 ret[word] = projected[word]
-            elif word not in kv:
+            elif word not in KV:
 
                 continue
             else:
 
-                vec = kv[word]
+                vec = KV[word]
                 dt = vec.dtype
                 dimn = vec.shape[0]
 

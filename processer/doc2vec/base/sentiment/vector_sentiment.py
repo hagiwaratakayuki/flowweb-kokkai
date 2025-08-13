@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Dict, List
+from typing import Deque, Dict, List, Tuple
 
 import numpy as np
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
@@ -11,12 +11,13 @@ class VectorSentiment(SentimentAnarizer):
     _posi_vectors: List[np.ndarray]
     _nega_vectors: List[np.ndarray]
     cache: Dict
+    sentiment_vecs: Dict[str, Tuple[Deque[np.ndarray], int]]
 
     def __init__(self, posi_words: List[str], nega_words: List[str], vectorizer: Vectorizer):
-
+        self.sentiment_vecs = {}
         for words, key in [(posi_words, 'positive',), (nega_words, 'negative')]:
 
-            projected_dict = vectorizer(words)
+            projected_dict = vectorizer.get_vectors(words)
 
             self.sentiment_vecs[key] = (
                 deque(projected_dict.values()), len(words),)

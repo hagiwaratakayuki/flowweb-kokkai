@@ -10,7 +10,7 @@ def build(extract_rules, model_path=None):
 
     index_builder = vectored_sentiment.BuilderClass(SudatchiIndexer)
     index_builder.build_vectorizer(model_path=model_path or DefaultModelPath)
-    return
+
     index_builder = default_sentiment.build(bulder=index_builder)
     index_builder.build_keyword_extracter(rules=extract_rules)
     indexer = index_builder.build_indexer()
