@@ -1,5 +1,6 @@
 
 from collections import deque
+from typing import Any, Tuple
 
 from doc2vec.base.protocol.tokenizer import TokenizerCls
 
@@ -17,7 +18,8 @@ class SudatchiTokenizer(TokenizerCls):
     def __init__(self, mode=DefaultMode):
         self.mode = mode
 
-    def parse(self, text: str, data_id):
+    def parse(self, arg: Tuple[str, Any]):
+        text, data_id = arg
         splited = text.split('。')
         parse_result = deque()
         byte_length = 0

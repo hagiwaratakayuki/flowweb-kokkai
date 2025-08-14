@@ -6,7 +6,7 @@ from typing import Any, Deque, Iterator, List, Optional, Set, Tuple
 import numpy as np
 
 
-from doc2vec.util.specified_keyword import SpecifiedKeyword, E
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 import regex as re
 
 
@@ -52,11 +52,11 @@ zerogetter = itemgetter(0)
 改正前の活火山法の正式名称 = "活動火山周辺地域における避難施設等の整備等に関する法律"
 改正後の活火山法の正式名称 = "活動火山対策特別措置法"
 name_index_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/nameindex.json')
+    'process_data/law/nameindex.json')
 ryakusyou_tenchi_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou_tenchi.json')
+    'process_data/law/ryakusyou_tenchi.json')
 ryakusyou_path = os.path.realpath(
-    'doc2vec/tokenaizer/japanese_language/extracter/kokkai_specificword/ryakusyou.json')
+    'process_data/law/ryakusyou.json')
 with open(file=name_index_path, mode='r', encoding="utf-8") as fp:
     name_index = json.load(fp)
 with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:

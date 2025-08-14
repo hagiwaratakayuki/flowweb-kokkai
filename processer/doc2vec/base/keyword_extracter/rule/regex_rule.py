@@ -1,15 +1,14 @@
-from collections import defaultdict, deque
-from ctypes import Union
+from collections import defaultdict
+
 from operator import methodcaller
 import re
-from typing import Any, Iterable, List, Literal
+from typing import Any, Iterable, List, Literal, Union, Optional
 
-from click import Option, group
 from data_loader.dto import DTO
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.util.specified_keyword import BindSpecifiedKeyword, BindSpecifiedKeywordType, SpecifiedKeyword, SpecifiedKeywordType, BindSpecifiedKeywordType
 
-OutputWord = Option[Union[str, Iterable[str]]]
+OutputWord = Optional[Union[str, Iterable[str]]]
 StartMethodCaller = methodcaller('start')
 
 
