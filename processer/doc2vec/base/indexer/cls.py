@@ -15,20 +15,19 @@ from doc2vec.base.protocol.keyword_extracter import KeywordExtracterClass
 
 class Indexer(IndexerCls):
     def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer, keyword_extracter: KeywordExtracterClass):
-        self.setiment_anaraizer = sentiment_anarizer
+        self.sentiment_anaraizer = sentiment_anarizer
         self.vectorizer = vectorizer
         self.keyword_extracter = keyword_extracter
 
     def exec(self, parse_result: TokenDTO, data: DTO) -> ExecResponseType:
-        norms = parse_result.get_norm()
-        norm_count = len(norms)
-        if norm_count == 0:
+        reguraized_forms = parse_result.get_reguraized_forms()
+        if not reguraized_forms:
 
             return None, None, None, data
 
         specifiable_tokens = set()
 
-        word_to_vector = self.vectorizer.get_vectors(norms)
+        word_to_vector = self.vectorizer.get_vectors(reguraized_forms)
 
         specifiable_tokens_vector_list = []
         index2norm = {}
@@ -45,13 +44,13 @@ class Indexer(IndexerCls):
                     word_to_vector=word_to_vector, token=token)
                 if token_vector is None or not self._check_specifiable_pos(token):
                     continue
-                token_norm = self._get_norm(token)
-                if (token_norm not in specifiable_tokens):
+                token_reguraized = self._get_reguraized(token)
+                if (token_reguraized not in specifiable_tokens):
                     index += 1
                     specifiable_tokens_vector_list.append(token_vector)
-                    index2norm[index] = token_norm
-                specifiable_tokens.add(token_norm)
-                sent_to_specifi_tokens.add(token_norm)
+                    index2norm[index] = token_reguraized
+                specifiable_tokens.add(token_reguraized)
+                sent_to_specifi_tokens.add(token_reguraized)
 
         specifiable_token_vector = np.array(specifiable_tokens_vector_list)
         specifiable_tokens_center = np.average(
@@ -83,7 +82,7 @@ class Indexer(IndexerCls):
         for sent_number, sent_to_specifi_tokens in sents_to_specifi_tokens.items():
             sent_total_weight = 0.0
             count = 0.0
-            norm_count += 1
+
             for norm in sent_to_specifi_tokens:
                 count += 1.0
                 sent_total_weight += specifiable_token_to_weight[norm]
@@ -104,8 +103,9 @@ class Indexer(IndexerCls):
             total_score += sentence_total_score
 
         main_pos_to_vecters = {
-            self._get_norm(token): self._get_vector(token=token) for token in parse_result if self._check_main_pos(token)}
-        sentiment_scores = self.sentiment.evaluate(main_pos_to_vecters)
+            self._get_reguraized(token): self._get_vector(word_to_vector=word_to_vector, token=token) for token in parse_result.get_tokens() if self._check_main_pos(token)}
+        sentiment_scores = self.sentiment_anaraizer.execute(
+            main_pos_to_vecters)
 
         scored_vectors_deque = deque()
         token_to_score = {}
@@ -126,7 +126,7 @@ class Indexer(IndexerCls):
         default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
         sentiment_vectors = SentimentVectors()
         sentiment_weights = SentimentWeights()
-        sentiment_result = SentimentResult()
+        sentiment_results = SentimentResult()
         polarity_scores = {}
         total_polarty_score = 0.0
         for polarity in ["positive", "negative", "neutral"]:
@@ -136,7 +136,7 @@ class Indexer(IndexerCls):
                 for token, score in scored_sent:
 
                     sentiment_score = score * \
-                        sentiment_scores.get(self._get_norm(token), default_score)[
+                        sentiment_scores.get(self._get_reguraized(token), default_score)[
                             polarity]
                     polarity_sentiment_scores.append(sentiment_score)
                     polarity_score += sentiment_score
@@ -153,11 +153,11 @@ class Indexer(IndexerCls):
                 setattr(sentiment_weights, polarity, weight)
                 negaposi_score.append(weight)
         sentiment_weights.neutral = min(negaposi_score) / max(negaposi_score)
-        sentiment_result.weights = sentiment_weights
-        sentiment_result.vectors = sentiment_vectors
+        sentiment_results.weights = sentiment_weights
+        sentiment_results.vectors = sentiment_vectors
         keywords = self.keyword_extracter.exec(
-            parse_result=parse_result, document_vector=document_vector, sentiment_result=sentiment_result, dto=data, token_2_score=specifiable_token_to_weight, indexer=self)
-        return document_vector, sentiment_result, token_to_score, keywords
+            parse_result=parse_result, document_vector=document_vector, sentiment_results=sentiment_results, dto=data, token_2_score=specifiable_token_to_weight, indexer=self)
+        return document_vector, sentiment_results, token_to_score, keywords
 
     def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0
@@ -165,7 +165,7 @@ class Indexer(IndexerCls):
         last_step_count = 0.0
         for token in sent:
             step_count = specifiable_token_to_weight.get(
-                self._get_norm(token), 0.1)
+                self._get_reguraized(token), 0.1)
             total_step_count += step_count
             token_steps.append((token, step_count, ))
             last_step_count = step_count
@@ -195,7 +195,7 @@ class Indexer(IndexerCls):
     def _get_vector(self, word_to_vector: WordToVecDictType, token: Any) -> Optional[np.ndarray]:
         pass
 
-    def _get_norm(self, token) -> str:
+    def _get_reguraized(self, token) -> str:
         pass
 
     def _get_zero_array(self):

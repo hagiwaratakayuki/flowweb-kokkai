@@ -6,11 +6,12 @@ import numpy as np
 
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
-from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpecifiedKeywordType
+
 from doc2vec.base.protocol.indexer import DocVectorType, KeywordsType
+from doc2vec.util.specified_keyword import SpecifiedKeyword
 
-
-type Token2Keyword = Dict[Token, Set[SpacySpecifiedKeywordType]]
+SpecifiedKeyword
+type Token2Keyword = Dict[Token, Set[SpecifiedKeyword]]
 
 
 EMPTY_SET = set()
@@ -18,13 +19,13 @@ EMPTY_SET = set()
 
 class ExtractResultDTO:
     token_2_keyword: Token2Keyword
-    keywords: Set[SpacySpecifiedKeywordType]
+    keywords: Set[SpecifiedKeyword]
 
     def __init__(self):
         self.token_2_keyword = defaultdict(set)
         self.keywords = set()
 
-    def add_keyword(self, keyword: SpacySpecifiedKeywordType, is_overwrite_token=True):
+    def add_keyword(self, keyword: SpecifiedKeyword, is_overwrite_token=True):
 
         self.keywords.add(keyword)
         if is_overwrite_token == True:
@@ -46,8 +47,8 @@ class ExtractResultDTO:
         # refarence shortcut
         return [keyword for keyword in self.keywords if keyword.source_ids != EMPTY_SET]
 
-    def get_by_source_ids(self, source_ids: Iterable[Any]) -> Set[SpacySpecifiedKeywordType]:
-        ret: Set[SpacySpecifiedKeywordType] = set()
+    def get_by_source_ids(self, source_ids: Iterable[Any]) -> Set[SpecifiedKeyword]:
+        ret: Set[SpecifiedKeyword] = set()
         for source_id in source_ids:
             ret.update(self.token_2_keyword.get(source_id, []))
         return ret
@@ -55,12 +56,12 @@ class ExtractResultDTO:
     def check_by_source_ids(self, source_ids):
         return {source_id for source_id in source_ids if source_id in self.token_2_keyword}
 
-    def substruct_sorce_id(self, keyword: SpacySpecifiedKeywordType, source_ids: Set[Any]):
+    def substruct_sorce_id(self, keyword: SpecifiedKeyword, source_ids: Set[Any]):
         self.keywords[keyword].source_ids -= source_ids
 
 
 class KeywordExtractRule:
-    def execute(self, parse_result: Any, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: Any) -> List[SpacySpecifiedKeywordType]:
+    def execute(self, parse_result: Any, document_vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: Any) -> List[SpecifiedKeyword]:
 
         pass
 

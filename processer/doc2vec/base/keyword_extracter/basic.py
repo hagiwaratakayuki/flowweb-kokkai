@@ -19,13 +19,13 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
         self.keyword_limit = keyword_limit
         self.result_class = result_class or ExtractResultDTO
 
-    def exec(self, parse_result: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any):
+    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any):
 
         results = self.result_class()
         for rule in self.rules:
             results = rule.execute(
                 parse_result=parse_result,
-                vector=vector,
+                document_vector=document_vector,
                 sentiment_results=sentiment_results,
                 dto=dto,
                 results=results,

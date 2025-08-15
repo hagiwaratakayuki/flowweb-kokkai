@@ -149,7 +149,7 @@ class Rule(KeywordExtractRule):
     def __init__(self):
         self.context = DiscussionContext()
 
-    def execute(self, parse_result: SudatchiDTO, vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
+    def execute(self, parse_result: SudatchiDTO, document_vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
 
         law_index = defaultdict(set)
         reverse_dict = defaultdict(set)

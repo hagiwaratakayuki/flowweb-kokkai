@@ -70,14 +70,14 @@ class WordCanditates:
             token = canditates.pop()
             if unuse_word_conditions(token):
                 return
-            if verb_noun_possible(token):
+            if verb_noun_possible.matcher(token):
                 self.word_to_tokens[reguraize_rule.apply(token)].add(
                     token=token, is_force=True)
                 return
             splited = token.split(ModeA)
             if len(splited) > 1:
                 tail = splited[-1]
-                if verb_noun_possible(tail):
+                if verb_noun_possible.matcher(tail):
                     head = ''.join([reguraize_rule.apply(t)
                                    for t in splited[:-1]])
                     self.word_to_tokens[head].add(token=token)
@@ -140,7 +140,7 @@ class WordCanditates:
 
 
 class Rule(KeywordExtractRule):
-    def execute(self, parse_result: SudatchiDTO, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: IndexerCls):
+    def execute(self, parse_result: SudatchiDTO, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: IndexerCls):
         tokens: DefaultDict[str, TokensDTO] = defaultdict(TokensDTO)
         word_canditate = WordCanditates()
         for token in parse_result.tokens:
@@ -149,7 +149,7 @@ class Rule(KeywordExtractRule):
                 continue
             word_canditate.check()
 
-        for headword, token_dto in word_canditate.get_word_to_token():
+        for headword, token_dto in word_canditate.get_word_to_token().items():
             sk = SpecifiedKeyword(
                 headword=headword, source_ids=token_dto.tokens, is_force=token_dto.is_force)
             results.add_keyword(sk)

@@ -3,20 +3,29 @@ from typing import List
 from doc2vec.base.protocol.tokenizer import TokenDTO
 from sudachipy.morpheme import Morpheme
 
+from doc2vec.language.japanese.sudatchi.util import reguraize_rule
+
 
 class SudatchiDTO(TokenDTO):
     tokens: List[Morpheme]
 
     def __init__(self, tokens: List[Morpheme]):
         self.tokens = tokens
+
         self._tokens_len = None
 
         super().__init__()
 
+    def get_tokens(self):
+        return self.tokens
+
     def _get_faces(self):
         return set([m.normalized_form() for m in self.tokens])
 
-    def _get_sents(self):
+    def _get_reguraized_forms(self):
+        return set([reguraize_rule.apply(m) for m in self.tokens])
+
+    def get_sents(self):
         sents = deque()
         sent = deque()
         is_last_sent_exit = False

@@ -32,7 +32,7 @@ class RegexRule(KeywordExtractRule):
             output_word, str)
         self._is_force = is_force
 
-    def execute(self, parse_result, vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
+    def execute(self, parse_result, document_vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
         text = dto.get_text()
 
         all_matches: List[re.Match] = []

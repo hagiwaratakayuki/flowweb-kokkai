@@ -5,6 +5,7 @@ from doc2vec.base.indexer.cls import Indexer
 from sudachipy.morpheme import Morpheme
 
 from doc2vec.base.protocol.vectorizer import WordToVecDictType
+from doc2vec.language.japanese.sudatchi.util import reguraize_rule
 
 MainPos = {'名詞', '動詞'}
 SpecifiablePos = MainPos | {'形容詞'}
@@ -19,10 +20,7 @@ class SudatchiIndexer(Indexer):
         return token.part_of_speech()[0] in MainPos
 
     def _get_vector(self, word_to_vector: WordToVecDictType, token: Morpheme) -> Optional[np.ndarray]:
-        return word_to_vector.get(self._get_norm())
+        return word_to_vector.get(self._get_reguraized(token=token))
 
-    def _get_norm(self, token: Morpheme) -> str:
-        surface = token.surface()
-        if not surface.isascii():
-            return token.normalized_form()
-        return surface
+    def _get_reguraized(self, token: Morpheme) -> str:
+        return reguraize_rule.apply(token=token)
