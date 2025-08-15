@@ -12,7 +12,7 @@ import regex as re
 
 import os
 import json
-from operator import attrgetter, itemgetter
+from operator import attrgetter, itemgetter, methodcaller
 from collections import defaultdict, deque
 from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
@@ -22,7 +22,7 @@ from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExt
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 
 
-startkey = attrgetter('start')
+startkey = methodcaller('start')
 zerogetter = itemgetter(0)
 
 章としての区分を表す単語 = r"編章条項節款目"
@@ -546,7 +546,7 @@ class Rule(KeywordExtractRule):
     def _get_hittokens(self, parse_result: SudatchiDTO, face: str, start_positions: List[int], tokens: Optional[List] = None):
         if tokens is None:
             tokens = []
-        limit_index = len(start_position)
+        limit_index = len(start_positions)
         start_index = 0
         distance = len(face)
         start_position = start_positions[start_index]

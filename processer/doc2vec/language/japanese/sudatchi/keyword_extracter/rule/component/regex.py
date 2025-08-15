@@ -12,4 +12,4 @@ def reducer(a: Set, b: Set):
 
 class SudatchiRegexRule(RegexRule):
     def _search_tokens(self, parse_result, matches):
-        return reduce(reducer, TokenSearcher.search(matches=matches, parse_result=parse_result).values(), set)
+        return reduce(reducer, TokenSearcher.search(matches=matches, dto=parse_result).values(), set)

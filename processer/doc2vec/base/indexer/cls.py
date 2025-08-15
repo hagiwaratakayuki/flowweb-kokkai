@@ -86,7 +86,8 @@ class Indexer(IndexerCls):
             for norm in sent_to_specifi_tokens:
                 count += 1.0
                 sent_total_weight += specifiable_token_to_weight[norm]
-            sent_weight = sent_total_weight / count
+
+            sent_weight = sent_total_weight / (count or 1)
             sent_to_weights[sent_number] = sent_weight
             all_sent_weight += sent_weight
         all_sent_weight = all_sent_weight or 1.0
@@ -96,6 +97,7 @@ class Indexer(IndexerCls):
         scored_sents: Deque[Deque[Tuple[Any, float]]] = deque()
 
         for sent in parse_result.get_sents():
+
             sent_number += 1
             scored_sent, sentence_total_score = self._get_sentence_score(
                 sent=sent, sent_weight=sent_to_weights[sent_number] / all_sent_weight, specifiable_token_to_weight=specifiable_token_to_weight)
@@ -111,6 +113,7 @@ class Indexer(IndexerCls):
         token_to_score = {}
         for scored_sent in scored_sents:
             for token, score in scored_sent:
+
                 reguraized_score = score / total_score
                 token_vector = self._get_vector(
                     word_to_vector=word_to_vector, token=token)

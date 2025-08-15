@@ -28,6 +28,7 @@ class SudatchiDTO(TokenDTO):
     def get_sents(self):
         sents = deque()
         sent = deque()
+        sents.append(sent)
         is_last_sent_exit = False
         is_multi_sent_exist = False
         for m in self.tokens:
