@@ -12,26 +12,27 @@ class Searcher:
         token_len = dto.get_tokens_len()
         token_index = 0
         results = defaultdict(set)
+
         for m in matches:
 
             while token_index < token_len:
                 token = dto.tokens[token_index]
                 if token.end() <= m.start():
-                    index += 1
+                    token_index += 1
                     continue
                 if token.end() == m.end():
                     results[m].add(token)
-                    index += 1
+                    token_index += 1
                     break
                 if token.end() > m.end():
                     if m.start() <= token.begin() < m.end():
                         results[m].add(token)
-                        index += 1
+                        token_index += 1
                         continue
                     if token.begin() != m.end():
-                        index += 1
+                        token_index += 1
                     break
-                index += 1
+                token_index += 1
                 results[m].add(token)
 
         return results

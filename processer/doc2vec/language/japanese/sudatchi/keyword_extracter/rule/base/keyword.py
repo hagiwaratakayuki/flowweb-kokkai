@@ -79,7 +79,7 @@ class WordCanditates:
                 tail = splited[-1]
                 if verb_noun_possible.matcher(tail):
                     head = ''.join([reguraize_rule.apply(t)
-                                   for t in splited[:-1]])
+                                   for t in splited if t != tail])
                     self.word_to_tokens[head].add(token=token)
                     self.word_to_tokens[reguraize_rule.apply(
                         splited[-1])].add(token, is_force=True)
