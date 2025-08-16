@@ -23,7 +23,7 @@ class SudatchiTokenizer(TokenizerCls):
         splited = text.split('。')
         parse_result = deque()
         byte_length = 0
-        is_chunk_exist = False
+
         chunk = ''
         for split in splited:
             if not split:
@@ -31,7 +31,7 @@ class SudatchiTokenizer(TokenizerCls):
             line = split + '。'
             line_len = len(line.encode(errors='replace'))
             next_byte_length = line_len + byte_length
-            is_chunk_exist = True
+
             if next_byte_length > 49149:
 
                 parse_result.extend(TokenizerObject.tokenize(
@@ -42,8 +42,8 @@ class SudatchiTokenizer(TokenizerCls):
             else:
                 chunk += line
                 byte_length = next_byte_length
-        if is_chunk_exist:
-            parse_result.extend(TokenizerObject.tokenize(
-                text=chunk, mode=self.mode))
+
+        parse_result.extend(TokenizerObject.tokenize(
+            text=chunk, mode=self.mode))
 
         return SudatchiDTO(parse_result), data_id

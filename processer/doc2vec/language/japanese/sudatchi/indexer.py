@@ -6,7 +6,7 @@ from sudachipy.morpheme import Morpheme
 
 from doc2vec.base.protocol.vectorizer import WordToVecDictType
 from doc2vec.language.japanese.sudatchi.util import reguraize_rule
-from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective, counter_word, counter_word_possible, noun, number, verb
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective, counter_word, counter_word_possible, noun, number, verb
 
 MainPos = noun.matcher | verb.matcher - \
     counter_word.matcher - counter_word_possible.matcher - number.matcher

@@ -110,7 +110,7 @@ class Indexer(IndexerCls):
             main_pos_to_vecters)
 
         scored_vectors_deque = deque()
-        token_to_score = {}
+        token_2_score = {}
         for scored_sent in scored_sents:
             for token, score in scored_sent:
 
@@ -120,7 +120,7 @@ class Indexer(IndexerCls):
                 if token_vector is None:
                     token_vector = self._get_zero_array()
                 token_vector *= reguraized_score
-                token_to_score[token] = reguraized_score
+                token_2_score[token] = reguraized_score
 
                 scored_vectors_deque.append(token_vector)
         scored_vectors = np.vstack(scored_vectors_deque).T
@@ -159,8 +159,8 @@ class Indexer(IndexerCls):
         sentiment_results.weights = sentiment_weights
         sentiment_results.vectors = sentiment_vectors
         keywords = self.keyword_extracter.exec(
-            parse_result=parse_result, document_vector=document_vector, sentiment_results=sentiment_results, dto=data, token_2_score=specifiable_token_to_weight, indexer=self)
-        return document_vector, sentiment_results, token_to_score, keywords
+            parse_result=parse_result, document_vector=document_vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score, indexer=self)
+        return document_vector, sentiment_results, token_2_score, keywords
 
     def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0
