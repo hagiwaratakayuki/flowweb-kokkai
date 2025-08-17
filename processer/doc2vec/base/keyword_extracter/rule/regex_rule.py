@@ -72,11 +72,11 @@ class RegexRule(KeywordExtractRule):
             if self.is_bind_output:
 
                 sk = self.bind_keyword_class(
-                    headwords=self.output_word, tokens=tokens)
+                    headwords=self.output_word, source_ids=tokens)
                 results.add_keyword(sk)
             else:
                 sk = self.single_keyword_class(
-                    headword=self.output_word, tokens=tokens)
+                    headword=self.output_word, source_ids=tokens)
                 results.add_keyword(sk)
         return results
 

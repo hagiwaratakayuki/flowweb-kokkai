@@ -131,12 +131,12 @@ class SpecifiedKeyword(Generic[SourceIDType]):
 
 
 class BindSpecifiedKeyword(SpecifiedKeyword):
-    def __init__(self, headwords: List[str] = [], vector=[], haystacks: Optional[Iterator[str]] = None, headword=None, subwords=[], is_force=False, target_words=None, line_numbers: Iterator = [], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
+    def __init__(self, headwords: List[str] = [], vectors=[], haystacks: Optional[Iterator[str]] = None, headword=None, subwords=[], is_force=False, target_words=None, source_ids=[], is_fixed_headword=False, is_allow_add_multiple_subword=False) -> None:
         self._headwords = tuple(headwords)
         self._haystacks = haystacks
 
-        super().__init__(headword, vector, subwords, is_force, target_words,
-                         line_numbers, is_fixed_headword, is_allow_add_multiple_subword)
+        super().__init__(headword, vectors, subwords, is_force, target_words,
+                         source_ids, is_fixed_headword, is_allow_add_multiple_subword)
 
     def _clone_class(self):
         return self.__class__(
