@@ -31,7 +31,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = list_runner.run(reguraizers, text=text, data={})
         data.discussion_id = "lowname"
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_aynu(self):
 
@@ -41,7 +41,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = list_runner.run(reguraizers, text=text, data={})
         data.discussion_id = "aynu"
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_sakura(self):
 
@@ -51,7 +51,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = list_runner.run(reguraizers, text=text, data={})
         data.discussion_id = "sakura"
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_worker(self):
 
@@ -62,7 +62,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = list_runner.run(reguraizers, text=text, data={})
 
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_airgun(self):
 
@@ -76,7 +76,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = list_runner.run(reguraizers, text=text, data={})
 
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_kenpou(self):
 
@@ -88,7 +88,7 @@ class TestDoc2vec(unittest.TestCase):
         data.discussion_id = "kenpou"
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_unionchurch(self):
 
@@ -104,7 +104,7 @@ class TestDoc2vec(unittest.TestCase):
         text = list_runner.run(reguraizers, text=text, data={})
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
 
     def test_complexword_with_count(self):
 
@@ -116,4 +116,4 @@ class TestDoc2vec(unittest.TestCase):
         text = list_runner.run(reguraizers, text=text, data={})
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
-        print(list(res))
+        r = list(res)
