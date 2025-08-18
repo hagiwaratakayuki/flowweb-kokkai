@@ -160,7 +160,7 @@ class Indexer(IndexerCls):
         sentiment_results.vectors = sentiment_vectors
         keywords = self.keyword_extracter.exec(
             parse_result=parse_result, document_vector=document_vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score, indexer=self)
-        return document_vector, sentiment_results, token_2_score, keywords
+        return document_vector, sentiment_results, keywords, data
 
     def _get_sentence_score(self, sent: Iterable[Any], specifiable_token_to_weight: Dict[Any, float], sent_weight: float):
         total_step_count = 0.0

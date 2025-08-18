@@ -52,6 +52,7 @@ class TestDoc2vec(unittest.TestCase):
         data.discussion_id = "sakura"
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_worker(self):
 
