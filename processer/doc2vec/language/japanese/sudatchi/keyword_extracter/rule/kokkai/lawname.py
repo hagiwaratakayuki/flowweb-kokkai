@@ -1,7 +1,10 @@
 
 
-from typing import Any, Deque, Iterator, List, Optional, Set, Tuple
-
+from re import Pattern
+import token
+from turtle import back
+from typing import Any, Deque, Iterator, List, Optional, Set, Tuple, Union
+from sudachipy.morpheme import Morpheme
 
 import numpy as np
 
@@ -12,14 +15,15 @@ import regex as re
 
 import os
 import json
-from operator import attrgetter, itemgetter, methodcaller
+from operator import attrgetter, itemgetter
 from collections import defaultdict, deque
 from data_loader.kokkai import DTO
-from doc2vec.base.protocol.sentiment import SentimentResult
+
 
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
+from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import number
 
 
 startkey = attrgetter('start')
@@ -72,11 +76,11 @@ law_standard_phrases = ['法の下の平等', '法の支配']
 記号を表すパターン = re.compile(r'^\W+$')
 数字と第を表すパターン = re.compile(r'\d|第')
 
-並列を表す日本語のパターン = [
-    re.compile('と$'),
-    re.compile('並びに?$|ならびに?$'),
-    re.compile('び$')
-]
+並列を表す接続詞 = {
+    'と', '並び', '及び',
+}
+
+
 DUMMY_SET = {0}
 
 
@@ -88,17 +92,92 @@ class EqInShorter:
         return __value in self.value
 
 
+Kana = set(['イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
+           'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'])
+
+
+class ChapterExtracter:
+    token_limit: int
+    index: int
+    tokens: List[Morpheme]
+
+    def __init__(self, parse_result: SudatchiDTO):
+        self.token_limit = len(parse_result.tokens)
+        self.index = 0
+        self.tokens = parse_result.tokens
+
+    def exec(self, text_start_index, end):
+        depth = 0
+        is_relative = True
+        result = ChapterExpression()
+        results = [result]
+        is_guass = True
+
+        while self.index < self.token_limit:
+            token = self.tokens[self.index]
+            self.index + 1
+            if token.end() <= text_start_index:
+                continue
+            if token.end() >= end:
+                break
+            if number.matcher(token) == True:
+                self.index + 1
+                if self.index < self.token_limit:
+                    target_token = self.tokens[self.index]
+
+                    target_depth = 章の区分と数値の変換表.get(
+                        target_token.surface(), None)
+                    if target_depth == None:
+                        back_index = self.index - 2
+                        if back_index > 0:
+                            back_token = self.tokens[back_index]
+                        if back_token.surface() == 'の':
+                            depth + 1
+                            result.append((token.normalized_form(), depth,))
+                        if back_token.surface() == '、':
+                            back_index -= 1
+
+                            if back_index < 0:
+                                continue
+
+                            back_token = self.tokens[back_index]
+                            if back_token.surface() == 'の' or :
+                                depth + 1
+                                result.append(
+                                    (token.normalized_form(), depth,))
+                            if number.matcher(back_token) or token.normalized_form() in 並列を表す接続詞:
+                                result.append
+                        continue
+
+                    if target_depth < 2:
+                        continue
+                    if target_depth <= depth:
+                        expressions = [
+                            exp[0] for exp in result.expressions if exp[1] > target_depth]
+                        result = ChapterExpression(
+                            expressions=expressions, is_relative=False)
+                        results.append(result)
+                    depth = target_depth
+                    result.append(token.normalized_form(), depth=depth,
+                                  chapter_word=target_token.surface())
+
+        return results
+
+
 class ChapterExpression:
     is_relative: bool
-    expressions: List[str]
+    expressions: List[Tuple[str, int, Optional[str]]]
     is_reverse: bool
     base_depth: int
 
-    def __init__(self, expressions, base_depth=0, is_relative=False, is_reverse=True):
+    def __init__(self, expressions=[], base_depth=0, is_relative=False, is_reverse=True):
         self.expressions = expressions
         self.base_depth = base_depth
         self.is_relative = is_relative
         self.is_reverse = is_reverse
+
+    def append(self, chapter_count: str, depth: int, chapter_word: Optional[str] = None):
+        self.expressions.append((chapter_count, depth, chapter_word))
 
 
 class LawDTO:
