@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Set, Union
@@ -66,9 +67,11 @@ class KeywordExtractRule:
         pass
 
 
-class KeywordExtracterClass:
+class KeywordExtracterClass(metaclass=ABCMeta):
+    @abstractmethod
     def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5):
         pass
 
+    @abstractmethod
     def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
         pass

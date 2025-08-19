@@ -19,55 +19,56 @@ kansuuji = {'零': '0', '一': '1', '壱': '1', '二': '2', '弐': '2', '三': '
             '四': '4', '五': '5', '六': '6', '七': '7', '八': '8', '九': '9'}
 
 
-def convert(speech, speechData):
+def convert(speech: str, speechData):
+    result = ''
+    for sent in speech.split('。'):
+        readed = {}
+        for target in KANSUUJI_PATTERN.findall(sent):
+            if target in readed:
+                continue
+            readed[target] = True
+            new = ''
+            if KANJI_COUNT_ONLY.search(target):
+                for token in target:
+                    new += kansuuji[token]
+            else:
+                value = 0
+                keta = 1
+                extend_keta = 1
 
-    readed = {}
-    for target in KANSUUJI_PATTERN.findall(speech):
-        if target in readed:
-            continue
-        readed[target] = True
-        new = ''
-        if KANJI_COUNT_ONLY.search(target):
-            for token in target:
-                new += kansuuji[token]
-        else:
-            value = 0
-            keta = 1
-            extend_keta = 1
+                tal = list(target)
+                tal.reverse()
+                lastten = False
 
-            tal = list(target)
-            tal.reverse()
-            lastten = False
+                lastbbasekata = 0
+                for token in tal:
+                    if lastten:
+                        nowten = token in KANJI_KETA_MAP
+                        if nowten or token in KANJI_KETA_EXTEND_MAP:
+                            value += lastbbasekata * extend_keta
+                        lastten = nowten
 
-            lastbbasekata = 0
-            for token in tal:
-                if lastten:
-                    nowten = token in KANJI_KETA_MAP
-                    if nowten or token in KANJI_KETA_EXTEND_MAP:
-                        value += lastbbasekata * extend_keta
-                    lastten = nowten
+                    if KANSUUJI_ZERO_PATTEN.match(token):
 
-                if KANSUUJI_ZERO_PATTEN.match(token):
+                        keta *= 10
+                        continue
 
+                    else:
+                        lastten = token in KANJI_KETA_MAP
+
+                    if lastten:
+                        keta = extend_keta * KANJI_KETA_MAP[token]
+                        lastbbasekata = KANJI_KETA_MAP[token]
+                        continue
+                    if token in KANJI_KETA_EXTEND_MAP:
+                        keta = extend_keta = KANJI_KETA_EXTEND_MAP[token]
+                        continue
+
+                    value += int(kansuuji[token]) * keta
                     keta *= 10
-                    continue
-
-                else:
-                    lastten = token in KANJI_KETA_MAP
-
                 if lastten:
-                    keta = extend_keta * KANJI_KETA_MAP[token]
-                    lastbbasekata = KANJI_KETA_MAP[token]
-                    continue
-                if token in KANJI_KETA_EXTEND_MAP:
-                    keta = extend_keta = KANJI_KETA_EXTEND_MAP[token]
-                    continue
+                    value += extend_keta * KANJI_KETA_MAP[token]
+                new = str(value)
+            result += sent.replace(target, new) + '。'
 
-                value += int(kansuuji[token]) * keta
-                keta *= 10
-            if lastten:
-                value += extend_keta * KANJI_KETA_MAP[token]
-            new = str(value)
-        speech = speech.replace(target, new)
-
-    return speech
+    return result

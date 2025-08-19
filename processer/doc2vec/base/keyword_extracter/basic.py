@@ -8,7 +8,7 @@ from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
 from doc2vec.base.protocol.keyword_extracter import KeywordExtractRule, ExtractResultDTO, KeywordExtracterClass
 
-from doc2vec.base.protocol.indexer import DocVectorType
+from doc2vec.base.protocol.indexer import DocVectorType, KeywordsType
 
 SCORE_KEY = itemgetter(1)
 
@@ -19,7 +19,7 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
         self.keyword_limit = keyword_limit
         self.result_class = result_class or ExtractResultDTO
 
-    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any):
+    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
 
         results = self.result_class()
         for rule in self.rules:

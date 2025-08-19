@@ -6,9 +6,9 @@ reguraizers = [
     jikosyoukai.convert,
     unicodedata.convert,
 
-    kyujitai.convert,
-    hattaraku.convert,
-    kyuu_kana.convert,
+    # kyujitai.convert,
+    # hattaraku.convert,
+    # kyuu_kana.convert,
     child.convert,
     kansuuji_houritu.convert,
 
