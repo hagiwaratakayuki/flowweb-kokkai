@@ -450,9 +450,11 @@ class Rule(KeywordExtractRule):
                 end = law_dto_list.next.start
             chapter_extracter.exec(start=start, end=end, tokens=tokens)
         for law_dto in law_dto_list.sequence:
-            if law_dto.is_guass and not law_dto.chapter_expressions:
-                continue
-            # TODO 　ここから実装
+            if not law_dto.chapter_expressions:
+                if law_dto.is_guass:
+                    continue
+                # TODO 章表現がない場合
+            # TODO 　章表現がある場合
         results.remove_kewywords(tokens)
 
         for 法律名, 対応した段階表現のリスト in 法律名と段階表現の対応表.items():
