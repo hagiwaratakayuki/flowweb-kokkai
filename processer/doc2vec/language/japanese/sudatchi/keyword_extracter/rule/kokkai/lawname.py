@@ -453,24 +453,30 @@ class Rule(KeywordExtractRule):
                 end = law_dto_list.next.start
             chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
+
+        non_chapter_laws = set()
+        law2chapter = defaultdict(set)
+
         for law_dto in law_dto_list.sequence:
             if not law_dto.chapter_expressions:
-                if law_dto.is_guass:
-                    continue
-                # TODO 章表現がない場合
-            # TODO 　章表現がある場合
+                if not law_dto.is_guass:
+                    non_chapter_laws.add(law_dto.name)
+                continue
+
+            for chapter_expression_dto in law_dto.chapter_expressions:
+                expression = tuple(
+                    [expression[0] + expression[2] or '' for expression in chapter_expression_dto.expressions])
+                law2chapter[law_dto.name].add(expression)
         results.remove_kewywords(tokens)
 
-        for 法律名, 対応した段階表現のリスト in 法律名と段階表現の対応表.items():
-            for 対応した段階表現 in 対応した段階表現のリスト:
-                kw = SpecifiedKeyword(
-                    headword=法律名, subwords=対応した段階表現, source_ids=DUMMY_SET, is_force=True)
+        for law_name in non_chapter_laws:
+            kw = SpecifiedKeyword(
+                headword=law_name, source_ids=DUMMY_SET, is_force=True)
             results.add_keyword(kw)
-        for 法律名 in 法律名の一覧:
-            if 法律名 not in 法律名と段階表現の対応表:
+        for law_name, expression_set in law2chapter:
+            for expression in expression_set:
                 kw = SpecifiedKeyword(
-                    headword=法律名, source_ids=DUMMY_SET, is_force=True)
-
+                    headword=law_name, subwords=expression, source_ids=DUMMY_SET, is_force=True)
                 results.add_keyword(kw)
         for additional_law_word in additional_law_words:
             kw = SpecifiedKeyword(
