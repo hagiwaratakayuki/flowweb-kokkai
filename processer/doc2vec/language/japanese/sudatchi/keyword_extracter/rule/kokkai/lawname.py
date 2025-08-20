@@ -106,7 +106,7 @@ class ChapterExtracter:
         self.index = 0
         self.tokens = parse_result.tokens
 
-    def exec(self, start, end, tokens: Set):
+    def exec(self, start, end, law_start, law_end, tokens: Set):
         depth = 0
         is_relative = True
         result = ChapterExpression()
@@ -116,6 +116,9 @@ class ChapterExtracter:
         while self.index < self.token_limit:
             token = self.tokens[self.index]
             self.index + 1
+            if law_start <= token.begin() < law_end:
+                tokens.add(token)
+                continue
 
             if token.end() <= start:
                 continue
@@ -445,10 +448,11 @@ class Rule(KeywordExtractRule):
         while law_dto_list.step():
             start = law_dto_list.now.start
             if law_dto_list.next == None:
-                end = len(all_text) - 1
+                end = len(all_text)
             else:
                 end = law_dto_list.next.start
-            chapter_extracter.exec(start=start, end=end, tokens=tokens)
+            chapter_extracter.exec(
+                start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
         for law_dto in law_dto_list.sequence:
             if not law_dto.chapter_expressions:
                 if law_dto.is_guass:
