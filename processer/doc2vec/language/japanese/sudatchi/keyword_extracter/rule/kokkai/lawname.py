@@ -192,13 +192,17 @@ class LawDTO:
     end: int
     chapter_expressions: List[ChapterExpression]
 
-    def __init__(self, name, start, face='', is_guass=False):
+    def __init__(self, name, start, face=None, is_guass=False):
         self.name = name
         self.start = start
 
         self.is_reverse = False
+        if face != None:
+            _face = face
+        else:
+            _face = name
 
-        self.end = start + len(face or name)
+        self.end = start + len(_face)
         self.is_guass = is_guass
         self.chapter_expressions = []
 
@@ -209,31 +213,50 @@ class LawDTO:
 class LawDTOList:
     sequence: List[LawDTO]
     index: int
-    now_start: int
-    now_end: int
+
     now: LawDTO
+    next: LawDTO
+    count: bool
 
     def __init__(self):
         self.sequence = []
+        self.is_exist = False
 
     def append(self, dto: LawDTO):
         self.sequence.append(dto)
+        self.count += 1
+
+    def prepend(self, dto: LawDTO):
+        self.sequence.insert(0, dto)
+        self.count += 1
 
     def prepare(self):
         self.sequence.sort(key=startkey)
-        self.limit = len(self.sequence) - 1
 
-        return self.reset()
+        return self.reset_index()
 
-    def reset(self):
+    def get_first(self) -> Union[False, LawDTO]:
+        if self.count == 0:
+            return False
+        return self.sequence[0]
+
+    def reset_index(self):
         self.index = -1
 
     def step(self) -> bool:
 
         self.index += 1
-        if self.limit < self.index:
+        diff = self.count - self.index
+        if diff <= 0:
 
             return False
+        self.now = self.sequence[self.index]
+        if diff == -1:
+
+            self.next = None
+        else:
+            self.next = self.sequence[self.index + 1]
+
         dto = self.sequence[self.index]
 
         self.now = dto
@@ -398,45 +421,38 @@ class Rule(KeywordExtractRule):
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
 
-        law_dto_list.sort(key=startkey)
-
-        law_list_len = len(law_dto_list)
-
-        if law_list_len == 0:
+        if law_dto_list.count == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_dto = LawDTO(name=法律名, start=0, is_guass=True)
+            law_dto = LawDTO(name=法律名, start=0, face='', is_guass=True)
             law_dto_list.append(law_dto)
 
             law_list_len = 1
-        else:
-            for law_dto in law_dto_list:
-                position_list.append_position(law_dto.start, law_dto.end)
+        law_dto_list.prepare()
 
-        if law_list_len == 0:
-            return results
-
-        self.context.set_data(data=law_dto_list[-1].name, dto=dto)
-        is_positions_exist = position_list.prepare()
-        if not is_positions_exist:
-            return results
+        first_law = law_dto_list.get_first()
+        self.context.set_data(data=law_dto.name, dto=dto)
+        if first_law.start > 0:
+            psuedo_law_dto = LawDTO(
+                name=first_law.name, start=0, face='', is_guass=True)
+            law_dto_list.prepend(dto=psuedo_law_dto)
 
         tokens = set()
         is_in = False
         chapter_extracter = ChapterExtracter(parse_result=parse_result)
 
-        for token in parse_result.tokens:
-
-            if position_list.now_start <= token.begin() <= position_list.now_end:
-                is_in = True
-
-                tokens.add(token)
-            elif is_in:
-                is_in = False
-                if not position_list.step():
-                    break
-
+        while law_dto_list.step():
+            start = law_dto_list.now.start
+            if law_dto_list.next == None:
+                end = len(all_text) - 1
+            else:
+                end = law_dto_list.next.start
+            chapter_extracter.exec(start=start, end=end, tokens=tokens)
+        for law_dto in law_dto_list.sequence:
+            if law_dto.is_guass and not law_dto.chapter_expressions:
+                continue
+            # TODO 　ここから実装
         results.remove_kewywords(tokens)
 
         for 法律名, 対応した段階表現のリスト in 法律名と段階表現の対応表.items():
