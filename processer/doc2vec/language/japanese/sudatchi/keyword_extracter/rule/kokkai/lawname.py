@@ -114,6 +114,7 @@ class ChapterExtracter:
             token = self.tokens[self.index]
             self.index += 1
             if law_start <= token.begin() < law_end:
+                print('law', token)
                 tokens.add(token)
                 continue
 
@@ -151,8 +152,10 @@ class ChapterExtracter:
                                 pass
                                 # result.append
                         continue
-
+                    tokens.add(token)
+                    tokens.add(target_token)
                     if target_depth < 2:
+
                         continue
                     if target_depth <= depth:
                         expressions = [
@@ -163,7 +166,7 @@ class ChapterExtracter:
                     depth = target_depth
                     result.append(token.normalized_form(), depth=depth,
                                   chapter_word=target_token.surface())
-                    tokens.add(token)
+
         len_results = len(results)
         if len_results == 1 and len(result.expressions) == 0:
             return False
