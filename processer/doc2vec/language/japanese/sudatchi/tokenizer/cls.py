@@ -19,7 +19,9 @@ class SudatchiTokenizer(TokenizerCls):
         self.mode = mode
 
     def parse(self, arg: Tuple[str, Any]):
+
         text, data_id = arg
+
         splited = text.split('。')
         parse_result = deque()
         byte_length = 0

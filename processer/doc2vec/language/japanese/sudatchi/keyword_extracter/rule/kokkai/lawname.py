@@ -346,11 +346,8 @@ class Rule(KeywordExtractRule):
             else:
                 アイヌ新法の正式名称 = 改正前のアイヌ新法の正式名称
 
-            start_positions = self._set_law_positions(
+            self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=アイヌ新法の正式名称, face=アイヌ新法)
-
-            self._get_hittokens(parse_result=parse_result, face=アイヌ新法, start_positions=start_positions,
-                                tokens=target_tokens)
 
         活火山法の検索結果 = 活火山法の略称候補.search(all_text)
         活火山法が含まれるか = 活火山法の検索結果 is not None
@@ -364,8 +361,6 @@ class Rule(KeywordExtractRule):
             start_positions = self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=活火山法の正式名称, face=活火山法の略称)
 
-            self._get_hittokens(prase_result=parse_result, face=活火山法の略称,
-                                tokens=target_tokens, start_positions=start_positions)
         改正前の活火山法の正式名称が存在する = 改正前の活火山法の正式名称 in all_text
         改正後の活火山法の正式名称が存在する = 改正後の活火山法の正式名称 in all_text
 
@@ -413,8 +408,6 @@ class Rule(KeywordExtractRule):
         for 法律名 in 発見された正式名称のリスト:
             start_positions = self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=法律名)
-            self._get_hittokens(parse_result=parse_result, face=法律名,
-                                tokens=target_tokens, start_positions=start_positions)
 
         for 法律名の略称 in 法律名の略称のリスト:
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
@@ -485,3 +478,16 @@ class Rule(KeywordExtractRule):
             results.add_keyword(kw)
 
         return results
+
+    def _set_law_positions(self, text, law_dto_list: LawDTOList, lawname, face=''):
+
+        _face = face or lawname
+        start = text.find(_face)
+
+        while start != -1:
+
+            dto = LawDTO(lawname, start=start, face=face)
+
+            law_dto_list.append(dto)
+
+            start = text.find(_face, start + 1)

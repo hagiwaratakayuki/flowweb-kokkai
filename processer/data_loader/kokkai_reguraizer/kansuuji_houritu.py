@@ -22,11 +22,12 @@ kansuuji = {'零': '0', '一': '1', '壱': '1', '二': '2', '弐': '2', '三': '
 def convert(speech: str, speechData):
     result = ''
     for sent in speech.split('。'):
-        readed = {}
+        readed = set()
+
         for target in KANSUUJI_PATTERN.findall(sent):
             if target in readed:
                 continue
-            readed[target] = True
+            readed.add(target)
             new = ''
             if KANJI_COUNT_ONLY.search(target):
                 for token in target:
@@ -69,6 +70,10 @@ def convert(speech: str, speechData):
                 if lastten:
                     value += extend_keta * KANJI_KETA_MAP[token]
                 new = str(value)
-            result += sent.replace(target, new) + '。'
+
+            sent = sent.replace(target, new)
+
+        result += sent
+        result += '。'
 
     return result
