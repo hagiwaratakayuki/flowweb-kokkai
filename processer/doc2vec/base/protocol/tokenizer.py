@@ -1,26 +1,30 @@
 
 from typing import Any, Iterable, Optional, Set, Tuple
+from abc import ABCMeta, abstractmethod
 
 
-class TokenDTO:
+class TokenDTO(metaclass=ABCMeta):
     _reguraized_forms: Optional[Set[str]]
 
     def __init__(self):
         self._reguraized_forms = None
 
+    @abstractmethod
     def get_tokens(self) -> Any:
-        raise Exception('get tokens does not implemented')
+        pass
 
     def get_reguraized_forms(self) -> Set[str]:
         if self._reguraized_forms == None:
             self._reguraized_forms = self._get_reguraized_forms()
         return self._reguraized_forms
 
+    @abstractmethod
     def get_sents(self) -> Iterable[Iterable[Any]]:
         pass
 
-    def _get_reguraized_forms() -> Set[str]:
-        raise Exception('_get_reguraized_forms does not implemented')
+    @abstractmethod
+    def _get_reguraized_forms(self) -> Set[str]:
+        pass
 
 
 class TokenizerCls:

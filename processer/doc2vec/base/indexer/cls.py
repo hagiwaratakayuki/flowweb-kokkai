@@ -21,6 +21,7 @@ class Indexer(IndexerCls):
 
     def exec(self, parse_result: TokenDTO, data: DTO) -> ExecResponseType:
         reguraized_forms = parse_result.get_reguraized_forms()
+
         if not reguraized_forms:
 
             return None, None, None, data

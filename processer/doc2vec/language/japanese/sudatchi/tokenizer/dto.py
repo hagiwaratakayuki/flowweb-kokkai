@@ -10,6 +10,7 @@ class SudatchiDTO(TokenDTO):
     tokens: List[Morpheme]
 
     def __init__(self, tokens: List[Morpheme]):
+
         self.tokens = tokens
 
         self._tokens_len = None
