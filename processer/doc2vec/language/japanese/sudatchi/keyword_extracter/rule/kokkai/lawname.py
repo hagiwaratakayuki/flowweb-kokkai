@@ -112,7 +112,7 @@ class ChapterExtracter:
 
         while self.index < self.token_limit:
             token = self.tokens[self.index]
-            self.index + 1
+            self.index += 1
             if law_start <= token.begin() < law_end:
                 tokens.add(token)
                 continue
@@ -129,6 +129,7 @@ class ChapterExtracter:
                     target_depth = 章の区分と数値の変換表.get(
                         target_token.surface(), None)
                     if target_depth == None:
+                        continue
                         back_index = self.index - 2
                         if back_index > 0:
                             back_token = self.tokens[back_index]
@@ -224,6 +225,7 @@ class LawDTOList:
     def __init__(self):
         self.sequence = []
         self.is_exist = False
+        self.count = 0
 
     def append(self, dto: LawDTO):
         self.sequence.append(dto)
@@ -238,7 +240,7 @@ class LawDTOList:
 
         return self.reset_index()
 
-    def get_first(self) -> Union[False, LawDTO]:
+    def get_first(self) -> Union[Literal[False], LawDTO]:
         if self.count == 0:
             return False
         return self.sequence[0]
@@ -254,7 +256,8 @@ class LawDTOList:
 
             return False
         self.now = self.sequence[self.index]
-        if diff == -1:
+
+        if diff == 1:
 
             self.next = None
         else:
@@ -358,7 +361,7 @@ class Rule(KeywordExtractRule):
                 活火山法の正式名称 = 改正後の活火山法の正式名称
             else:
                 活火山法の正式名称 = 改正前の活火山法の正式名称
-            start_positions = self._set_law_positions(
+            self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=活火山法の正式名称, face=活火山法の略称)
 
         改正前の活火山法の正式名称が存在する = 改正前の活火山法の正式名称 in all_text
@@ -367,7 +370,7 @@ class Rule(KeywordExtractRule):
         if 改正前の活火山法の正式名称が存在する:
             additional_law_words.add(活火山法)
 
-            start_positions = self._set_law_positions(
+            self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=改正前の活火山法の正式名称)
 
         if 改正後の活火山法の正式名称が存在する:
@@ -414,9 +417,7 @@ class Rule(KeywordExtractRule):
             self._set_law_positions(
                 text=all_text, law_dto_list=law_dto_list, lawname=法律の正式名称, face=法律名の略称)
 
-        # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
-        #             )
-
+        # 本当に空なのかを判定
         if law_dto_list.count == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
@@ -424,11 +425,10 @@ class Rule(KeywordExtractRule):
             law_dto = LawDTO(name=法律名, start=0, face='', is_guass=True)
             law_dto_list.append(law_dto)
 
-            law_list_len = 1
         law_dto_list.prepare()
 
         first_law = law_dto_list.get_first()
-        self.context.set_data(data=law_dto.name, dto=dto)
+        self.context.set_data(data=first_law.name, dto=dto)
         if first_law.start > 0:
             psuedo_law_dto = LawDTO(
                 name=first_law.name, start=0, face='', is_guass=True)
@@ -447,7 +447,7 @@ class Rule(KeywordExtractRule):
             chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
             if chapter_expressions != False:
-                law_dto.chapter_expressions = chapter_expressions
+                law_dto_list.now.chapter_expressions = chapter_expressions
         non_chapter_laws = set()
         law2chapter = defaultdict(set)
 
@@ -467,7 +467,7 @@ class Rule(KeywordExtractRule):
             kw = SpecifiedKeyword(
                 headword=law_name, source_ids=DUMMY_SET, is_force=True)
             results.add_keyword(kw)
-        for law_name, expression_set in law2chapter:
+        for law_name, expression_set in law2chapter.items():
             for expression in expression_set:
                 kw = SpecifiedKeyword(
                     headword=law_name, subwords=expression, source_ids=DUMMY_SET, is_force=True)
