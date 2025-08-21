@@ -1,9 +1,6 @@
 
 
-from re import Pattern
-import token
-from turtle import back
-from typing import Any, Deque, Iterator, List, Optional, Set, Tuple, Union
+from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 from sudachipy.morpheme import Morpheme
 
 import numpy as np
@@ -23,7 +20,7 @@ from data_loader.kokkai import DTO
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
-from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import number
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import number
 
 
 startkey = attrgetter('start')
@@ -106,7 +103,7 @@ class ChapterExtracter:
         self.index = 0
         self.tokens = parse_result.tokens
 
-    def exec(self, start, end, law_start, law_end, tokens: Set):
+    def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
         depth = 0
         is_relative = True
         result = ChapterExpression()
@@ -166,6 +163,9 @@ class ChapterExtracter:
                     result.append(token.normalized_form(), depth=depth,
                                   chapter_word=target_token.surface())
                     tokens.add(token)
+        len_results = len(results)
+        if len_results == 1 and len(result.expressions) == 0:
+            return False
 
         return results
 
@@ -451,9 +451,10 @@ class Rule(KeywordExtractRule):
                 end = len(all_text)
             else:
                 end = law_dto_list.next.start
-            chapter_extracter.exec(
+            chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
-
+            if chapter_expressions != False:
+                law_dto.chapter_expressions = chapter_expressions
         non_chapter_laws = set()
         law2chapter = defaultdict(set)
 

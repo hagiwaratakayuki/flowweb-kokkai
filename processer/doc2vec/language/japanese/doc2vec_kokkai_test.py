@@ -23,7 +23,7 @@ mock_pool = MockPool()
 
 
 class TestDoc2vec(unittest.TestCase):
-    def test_lowname(self):
+    def test_lawname(self):
 
         data = DTO()
         data.published = "1999-07-01"
@@ -32,6 +32,7 @@ class TestDoc2vec(unittest.TestCase):
         data.discussion_id = "lowname"
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_aynu(self):
 
