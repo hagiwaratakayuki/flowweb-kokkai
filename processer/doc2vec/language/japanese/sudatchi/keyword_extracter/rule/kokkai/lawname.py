@@ -129,7 +129,22 @@ class ChapterExtracter:
 
                     target_depth = 章の区分と数値の変換表.get(
                         target_token.surface(), None)
-                    if target_depth == None:
+                    if target_depth != None:
+                        tokens.add(token)
+                        tokens.add(target_token)
+                        if target_depth < 2:
+
+                            continue
+                        if target_depth <= depth:
+                            expressions = [
+                                exp[0] for exp in result.expressions if exp[1] > target_depth]
+                            result = ChapterExpression(
+                                expressions=expressions, is_relative=False)
+                            results.append(result)
+                        depth = target_depth
+                        result.append(token.normalized_form(), depth=depth,
+                                      chapter_word=target_token.surface())
+                    else:
                         continue
                         back_index = self.index - 2
                         if back_index > 0:
@@ -152,20 +167,6 @@ class ChapterExtracter:
                                 pass
                                 # result.append
                         continue
-                    tokens.add(token)
-                    tokens.add(target_token)
-                    if target_depth < 2:
-
-                        continue
-                    if target_depth <= depth:
-                        expressions = [
-                            exp[0] for exp in result.expressions if exp[1] > target_depth]
-                        result = ChapterExpression(
-                            expressions=expressions, is_relative=False)
-                        results.append(result)
-                    depth = target_depth
-                    result.append(token.normalized_form(), depth=depth,
-                                  chapter_word=target_token.surface())
 
         len_results = len(results)
         if len_results == 1 and len(result.expressions) == 0:
