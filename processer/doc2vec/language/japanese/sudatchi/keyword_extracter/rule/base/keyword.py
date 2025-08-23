@@ -1,7 +1,7 @@
 
 from collections import defaultdict, deque
 
-from typing import DefaultDict, Deque, Dict, Iterable, List, Set
+from typing import DefaultDict, Deque, Dict, Iterable, List, Optional, Set
 
 
 from data_loader.dto import DTO
@@ -13,7 +13,8 @@ from sudachipy import tokenizer
 from sudachipy.morpheme import Morpheme
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.language.japanese.sudatchi.util import reguraize_rule
-from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible, verb_sagyou
+
 ModeA = tokenizer.Tokenizer.SplitMode.A
 
 
@@ -43,42 +44,59 @@ unuse_word_conditions = adverb_possible.matcher | adjective_verb_possible.matche
 noun_or_safix_matcher = noun.matcher | safix.matcher
 whole_counter_word = counter_word.matcher | counter_word_possible.matcher
 
-サ行変格活用 = list('さしすせそ')
-できる = 'できる'
-可能 = '可能'
-
 
 class WordCanditates:
     canditates: Deque[Morpheme]
     word_to_tokens: DefaultDict[str, TokensDTO]
-    start: int
+    start: Optional[int]
+    end: int
+    all_tokens: List[Morpheme]
+    # all_text:str
+    # def __init__(self, all_tokens: List[Morpheme], all_text):
 
-    def __init__(self, start):
-        self.canditates = deque()
-
-        self.canditates_count = 0
+    def __init__(self, all_tokens: List[Morpheme]):
         self.word_to_tokens = defaultdict(TokensDTO)
-        self.start = start
-        self.token_to_position = {}
+        self.all_tokens = all_tokens
+
+        # self.all_text = all_text
+        self.reset()
+
+    def reset(self):
+        self.canditates = deque()
+        self.canditates_count = 0
+
+        self.start = None
+        self.int = -1
 
     def add_canditate(self, token: Morpheme, position):
-        self.token_to_position[token] = position
+
         self.canditates.append(token)
         self.canditates_count += 1
+        if self.start == None:
+            self.start = position
+        self.end = position
 
-    def check(self, all_text: str, tokens: List[Morpheme]):
-        if canditate_count == 0:
+    def check(self):
+        if self.canditate_count == 0:
             return
         canditates = self.canditates
-        self.canditates = deque()
-        token_to_position = self.token_to_position
-        self.token_to_position = {}
-        canditate_count = self.canditates_count
-        self.canditates_count = 0
+        start = self.start
+        end = self.end
+        self.reset()
 
         last_token = canditates[-1]
-        if verb_noun_possible.matcher(last_token):
-            next_word = all_text
+
+        if adjective_verb_possible.matcher(last_token):
+            return
+        if len(self.all_tokens) > end + 1:
+
+            if verb_noun_possible.matcher(last_token):
+
+                next_token = self.all_tokens[end + 1]
+                if verb_sagyou.matcher(next_token):
+                    return
+
+        canditate_count = len(canditates)
         if canditate_count == 1:
             token = canditates.pop()
             if unuse_word_conditions(token):
@@ -92,7 +110,7 @@ class WordCanditates:
                 tail = splited[-1]
                 if verb_noun_possible.matcher(tail):
                     head = ''.join([reguraize_rule.apply(t)
-                                   for t in splited if t != tail])
+                                    for t in splited if t != tail])
                     self.word_to_tokens[head].add(token=token)
                     self.word_to_tokens[reguraize_rule.apply(
                         splited[-1])].add(token, is_force=True)
@@ -155,16 +173,16 @@ class WordCanditates:
 class Rule(KeywordExtractRule):
     def execute(self, parse_result: SudatchiDTO, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: IndexerCls):
 
-        word_canditate = WordCanditates()
-        all_text = dto.get_text()
+        word_canditate = WordCanditates(all_tokens=parse_result.tokens)
+        # all_text = dto.get_text()
         position = -1
         for token in parse_result.tokens:
             position += 1
             if noun_or_safix_matcher(token) or (word_canditate.canditates_count > 0 and prefix.matcher(token)):
-                word_canditate.add_canditate(token, position)
+                word_canditate.add_canditate(token, position=position)
                 continue
-            word_canditate.check(all_text=all_text, tokens=parse_result.tokens)
-        word_canditate.check(all_text=all_text, tokens=parse_result.tokens)
+            word_canditate.check()
+        word_canditate.check()
         for headword, token_dto in word_canditate.get_word_to_token(all_texts=dto.get_text()).items():
             sk = SpecifiedKeyword(
                 headword=headword, source_ids=token_dto.tokens, is_force=token_dto.is_force)
