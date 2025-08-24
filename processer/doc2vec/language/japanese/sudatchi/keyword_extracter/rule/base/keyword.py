@@ -13,7 +13,8 @@ from sudachipy import tokenizer
 from sudachipy.morpheme import Morpheme
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.language.japanese.sudatchi.util import reguraize_rule
-from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible, verb_sagyou
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible, verb
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import auxiliary_verb
 
 ModeA = tokenizer.Tokenizer.SplitMode.A
 
@@ -40,9 +41,11 @@ class TokensDTO:
         self.is_force = self.is_force or is_force
 
 
-unuse_word_conditions = adverb_possible.matcher | adjective_verb_possible.matcher | number.matcher | counter_word.matcher | counter_word_possible.matcher
+unuse_word_conditions = adverb_possible.matcher | adjective_verb_possible.matcher | number.matcher | counter_word.matcher | counter_word_possible.matcher | verb.matcher
 noun_or_safix_matcher = noun.matcher | safix.matcher
 whole_counter_word = counter_word.matcher | counter_word_possible.matcher
+
+verb_next = auxiliary_verb.matcher | verb.matcher
 
 
 class WordCanditates:
@@ -86,19 +89,27 @@ class WordCanditates:
 
         last_token = canditates[-1]
 
-        if adjective_verb_possible.matcher(last_token):
-            return
         if len(self.all_tokens) > end + 1:
 
             if verb_noun_possible.matcher(last_token):
 
                 next_token = self.all_tokens[end + 1]
-                if verb_sagyou.matcher(next_token):
+                if verb.matcher(next_token):
+                    return
+            elif adjective_verb_possible.matcher(last_token):
+                next_token = self.all_tokens[end + 1]
+                if verb_next(next_token):
+
+                    return
+            elif adverb_possible.matcher(last_token):
+                next_token = self.all_tokens[end + 1]
+                if verb_next(next_token):
+
                     return
 
         canditate_count = len(canditates)
         if canditate_count == 1:
-            token = canditates.pop()
+            token = canditates[0]
             if unuse_word_conditions(token):
                 return
             if verb_noun_possible.matcher(token):
