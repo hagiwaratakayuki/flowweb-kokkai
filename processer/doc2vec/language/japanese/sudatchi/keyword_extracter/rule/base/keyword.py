@@ -80,7 +80,7 @@ class WordCanditates:
         self.end = position
 
     def check(self):
-        if self.canditate_count == 0:
+        if self.canditates_count == 0:
             return
         canditates = self.canditates
         start = self.start
@@ -194,7 +194,7 @@ class Rule(KeywordExtractRule):
                 continue
             word_canditate.check()
         word_canditate.check()
-        for headword, token_dto in word_canditate.get_word_to_token(all_texts=dto.get_text()).items():
+        for headword, token_dto in word_canditate.get_word_to_token().items():
             sk = SpecifiedKeyword(
                 headword=headword, source_ids=token_dto.tokens, is_force=token_dto.is_force)
             results.add_keyword(sk)

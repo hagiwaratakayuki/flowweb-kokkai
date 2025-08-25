@@ -10,6 +10,6 @@ reguraizers = [
     # hattaraku.convert,
     # kyuu_kana.convert,
     child.convert,
-    kansuuji_houritu.convert,
+    # kansuuji_houritu.convert,
 
 ]
