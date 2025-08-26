@@ -21,6 +21,7 @@ from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.disc
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import number
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import proper_noun
 
 
 startkey = attrgetter('start')
@@ -30,11 +31,6 @@ zerogetter = itemgetter(0)
 区分の最大深さ = len(章としての区分を表す単語) - 1
 カナ区分の深さ = 区分の最大深さ + 1
 
-章区分を表すパターンと分割パターンのペアのリスト = [
-    (re.compile(r'(第?\d[' + 章としての区分を表す単語 + r'の、]*)+\p{Katakana}*'),
-     re.compile(r'(\d+|\p{Katakana}+)([' + 章としての区分を表す単語 + r'、]?)'),)
-
-]
 
 章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
 
@@ -93,6 +89,22 @@ Kana = set(['イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ'
            'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'])
 
 
+class ChapterExpression:
+    is_relative: bool
+    expressions: List[Tuple[str, int, Optional[str]]]
+    is_reverse: bool
+    base_depth: int
+
+    def __init__(self, expressions=[], base_depth=0, is_relative=False, is_reverse=True):
+        self.expressions = expressions
+        self.base_depth = base_depth
+        self.is_relative = is_relative
+        self.is_reverse = is_reverse
+
+    def append(self, chapter_count: str, depth: int, chapter_word: Optional[str] = None):
+        self.expressions.append((chapter_count, depth, chapter_word))
+
+
 class ChapterExtracter:
     token_limit: int
     index: int
@@ -114,7 +126,7 @@ class ChapterExtracter:
             token = self.tokens[self.index]
             self.index += 1
             if law_start <= token.begin() < law_end:
-                print('law', token)
+
                 tokens.add(token)
                 continue
 
@@ -122,28 +134,22 @@ class ChapterExtracter:
                 continue
             if token.end() >= end:
                 break
+
             if number.matcher(token) == True:
                 self.index + 1
                 if self.index < self.token_limit:
+
                     target_token = self.tokens[self.index]
 
+                    chapter_word_candiate = target_token.surface()
                     target_depth = 章の区分と数値の変換表.get(
-                        target_token.surface(), None)
+                        chapter_word_candiate, None)
                     if target_depth != None:
                         tokens.add(token)
                         tokens.add(target_token)
-                        if target_depth < 2:
+                        result, depth = self._apply_number_word_chapter(
+                            depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word_candiate, result=result, results=results)
 
-                            continue
-                        if target_depth <= depth:
-                            expressions = [
-                                exp[0] for exp in result.expressions if exp[1] > target_depth]
-                            result = ChapterExpression(
-                                expressions=expressions, is_relative=False)
-                            results.append(result)
-                        depth = target_depth
-                        result.append(token.normalized_form(), depth=depth,
-                                      chapter_word=target_token.surface())
                     else:
                         continue
                         back_index = self.index - 2
@@ -169,26 +175,28 @@ class ChapterExtracter:
                         continue
 
         len_results = len(results)
+
         if len_results == 1 and len(result.expressions) == 0:
             return False
 
         return results
 
+    def _apply_number_word_chapter(self, depth, target_depth, chapter_number, chapter_word: Optional[str], result: ChapterExpression, results: List):
 
-class ChapterExpression:
-    is_relative: bool
-    expressions: List[Tuple[str, int, Optional[str]]]
-    is_reverse: bool
-    base_depth: int
+        if target_depth < 2:
+            return result, depth
 
-    def __init__(self, expressions=[], base_depth=0, is_relative=False, is_reverse=True):
-        self.expressions = expressions
-        self.base_depth = base_depth
-        self.is_relative = is_relative
-        self.is_reverse = is_reverse
+        if target_depth <= depth:
 
-    def append(self, chapter_count: str, depth: int, chapter_word: Optional[str] = None):
-        self.expressions.append((chapter_count, depth, chapter_word))
+            expressions = [
+                exp for exp in result.expressions if exp[1] < target_depth]
+            result = ChapterExpression(
+                expressions=expressions, is_relative=False)
+            results.append(result)
+        depth = target_depth
+        result.append(chapter_number, depth=depth,
+                      chapter_word=chapter_word)
+        return result, depth
 
 
 class LawDTO:
@@ -443,6 +451,7 @@ class Rule(KeywordExtractRule):
         chapter_extracter = ChapterExtracter(parse_result=parse_result)
 
         while law_dto_list.step():
+
             start = law_dto_list.now.start
             if law_dto_list.next == None:
                 end = len(all_text)
@@ -450,21 +459,28 @@ class Rule(KeywordExtractRule):
                 end = law_dto_list.next.start
             chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
+
             if chapter_expressions != False:
-                law_dto_list.now.chapter_expressions = chapter_expressions
+
+                law_dto_list.now.chapter_expressions.extend(
+                    chapter_expressions)
+
         non_chapter_laws = set()
         law2chapter = defaultdict(set)
 
         for law_dto in law_dto_list.sequence:
+
             if not law_dto.chapter_expressions:
                 if not law_dto.is_guass:
                     non_chapter_laws.add(law_dto.name)
                 continue
 
             for chapter_expression_dto in law_dto.chapter_expressions:
-                expression = tuple(
+
+                expression_tuple = tuple(
                     [expression[0] + expression[2] or '' for expression in chapter_expression_dto.expressions])
-                law2chapter[law_dto.name].add(expression)
+
+                law2chapter[law_dto.name].add(expression_tuple)
         results.remove_kewywords(tokens)
 
         for law_name in non_chapter_laws:
@@ -472,14 +488,15 @@ class Rule(KeywordExtractRule):
                 headword=law_name, source_ids=DUMMY_SET, is_force=True)
             results.add_keyword(kw)
         for law_name, expression_set in law2chapter.items():
-            for expression in expression_set:
+            for expression_tuple in expression_set:
+
                 kw = SpecifiedKeyword(
-                    headword=law_name, subwords=expression, source_ids=DUMMY_SET, is_force=True)
-                results.add_keyword(kw)
+                    headword=law_name, subwords=expression_tuple, source_ids=DUMMY_SET, is_force=True)
+                results.add_keyword(kw, is_overwrite_token=False)
         for additional_law_word in additional_law_words:
             kw = SpecifiedKeyword(
                 headword=additional_law_word, source_ids=DUMMY_SET, is_force=True)
-            results.add_keyword(kw)
+            results.add_keyword(kw, is_overwrite_token=False)
 
         return results
 

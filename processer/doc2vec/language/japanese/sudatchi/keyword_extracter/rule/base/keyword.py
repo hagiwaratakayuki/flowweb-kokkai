@@ -9,14 +9,13 @@ from doc2vec.base.protocol.indexer import DocVectorType, IndexerCls
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
-from sudachipy import tokenizer
+
 from sudachipy.morpheme import Morpheme
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.language.japanese.sudatchi.util import reguraize_rule
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible, verb
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import auxiliary_verb
-
-ModeA = tokenizer.Tokenizer.SplitMode.A
+from doc2vec.language.japanese.sudatchi.singleton import ModeA
 
 
 class TokensDTO:

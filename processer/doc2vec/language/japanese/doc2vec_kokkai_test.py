@@ -27,7 +27,7 @@ class TestDoc2vec(unittest.TestCase):
 
         data = DTO()
         data.published = "1999-07-01"
-        text = "今回質問したいのは、金商法でございます。この5章第6条のですね、13項であります、この設置基準について議論したいと思います。"
+        text = "今回質問したいのは、金商法でございます。この5章第6条のですね、主に13項、この設置基準と一条の8項について議論したいと思います。"
         data.body = list_runner.run(reguraizers, text=text, data={})
 
         data.discussion_id = "lowname"
