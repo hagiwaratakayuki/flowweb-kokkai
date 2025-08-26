@@ -55,6 +55,14 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
             count += 1
             if count >= 5:
                 break
-        keywords = sum([['/'.join(tuples) for tuples in keyword_object.to_extender()]
-                       for keyword_object in keyword_objects], [])
+        keywords = []
+        added_keyword = set()
+        for keyword_object in keyword_objects:
+            for keyword_tuple in keyword_object.to_extender():
+                keyword = '/'.join(keyword_tuple)
+                if keyword in added_keyword:
+                    continue
+                added_keyword.add(keyword)
+                keywords.append(keyword)
+
         return keywords
