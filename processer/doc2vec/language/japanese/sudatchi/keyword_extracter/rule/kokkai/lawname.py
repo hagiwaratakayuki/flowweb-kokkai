@@ -151,13 +151,21 @@ class ChapterExtracter:
                             depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word_candiate, result=result, results=results)
 
                     else:
-                        continue
+
                         back_index = self.index - 2
                         if back_index > 0:
                             back_token = self.tokens[back_index]
-                        if back_token.surface() == 'の':
-                            depth + 1
-                            result.append((token.normalized_form(), depth,))
+                            if back_token.surface() == 'の':
+                                target_depth = depth + 1
+                                if 区分の最大深さ >= target_depth:
+                                    chapter_word = 章としての区分を表す単語[target_depth]
+                                else:
+                                    chapter_word = None
+                                result, depth = self._apply_number_word_chapter(
+                                    depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=results)
+
+                        continue
+
                         if back_token.surface() == '、':
                             back_index -= 1
 
@@ -197,6 +205,9 @@ class ChapterExtracter:
         result.append(chapter_number, depth=depth,
                       chapter_word=chapter_word)
         return result, depth
+
+    def _check_back_index(self):
+        pass
 
 
 class LawDTO:
@@ -281,36 +292,6 @@ class LawDTOList:
         return True
 
 
-class PositionList:
-    positions: List[Tuple[float, float]]
-    index: int
-    now_start: int
-    now_end: int
-
-    def __init__(self):
-        self.positions = []
-        self.index = -1
-
-    def append_position(self, start, end):
-        self.positions.append((start, end,))
-
-    def prepare(self):
-        self.positions.sort(key=zerogetter)
-        self.limit = len(self.positions) - 1
-        return self.step()
-
-    def step(self):
-
-        self.index += 1
-        if self.limit < self.index:
-
-            return False
-        start, end = self.positions[self.index]
-        self.now_start = start
-        self.now_end = end
-        return True
-
-
 class Rule(KeywordExtractRule):
     context: DiscussionContext
 
@@ -319,7 +300,6 @@ class Rule(KeywordExtractRule):
 
     def execute(self, parse_result: SudatchiDTO, document_vector, sentiment_results, dto: DTO, results: ExtractResultDTO, indexer: Any):
 
-        position_list = PositionList()
         reverse_dict = defaultdict(set)
         sent_number = -1
         all_text = dto.get_text()
