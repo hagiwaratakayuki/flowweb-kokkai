@@ -156,8 +156,10 @@ class ChapterExtracter:
                         if back_index > 0:
                             back_token = self.tokens[back_index]
 
-                            if back_token.surface() == 'の' or (back_token.begin()= < start and back_token.end() >= start):
+                            if back_token.surface() == 'の' or (back_token.begin() <= start and back_token.end() >= start):
                                 target_depth = depth + 1
+                                if target_depth < 2:
+                                    target_depth = 2
                                 if 区分の最大深さ >= target_depth:
                                     chapter_word = 章としての区分を表す単語[target_depth]
                                 else:
