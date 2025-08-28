@@ -24,20 +24,30 @@ mock_pool = MockPool()
 
 class TestDoc2vec(unittest.TestCase):
     def test_lawname(self):
-
+        datas = []
         data = DTO()
         data.published = "1999-07-01"
         text = "今回質問したいのは、金商法でございます。この5章第6条のですね、主に13項、この設置基準と一条の8項について議論したいと思います。"
         data.body = list_runner.run(reguraizers, text=text, data={})
 
         data.discussion_id = "lawname"
+        datas.append(data)
+
         data = DTO()
         data.published = "1999-07-01"
         text = "金商法一の8ですか。少し難しいですね"
         data.body = list_runner.run(reguraizers, text=text, data={})
-
         data.discussion_id = "lawname"
-        res = doc2vec.exec(mock_pool, [data])
+        datas.append(data)
+
+        data = DTO()
+        data.published = "1999-07-01"
+        text = "一の8はだからこそ整理していきたいなと思っております"
+        data.body = list_runner.run(reguraizers, text=text, data={})
+        data.discussion_id = "lawname"
+        datas.append(data)
+
+        res = doc2vec.exec(mock_pool, datas=datas)
         r = list(res)
         print(r)
 

@@ -96,7 +96,7 @@ class ChapterExpression:
     base_depth: int
 
     def __init__(self, expressions=[], base_depth=0, is_relative=False, is_reverse=True):
-        self.expressions = expressions
+        self.expressions = expressions[:]
         self.base_depth = base_depth
         self.is_relative = is_relative
         self.is_reverse = is_reverse
@@ -154,23 +154,29 @@ class ChapterExtracter:
                     else:
 
                         back_index = self.index - 2
-
-                        if back_index >= 0:
-
+                        is_step_expression = False
+                        if back_index < 0 and start == 0:
+                            is_step_expression = True
+                        else:
                             back_token = self.tokens[back_index]
-
                             if back_token.surface() == 'の' or (back_token.begin() <= start and back_token.end() >= start):
+                                is_step_expression = True
 
-                                tokens.add(token)
-                                target_depth = depth + 1
-                                if target_depth < 2:
-                                    target_depth = 2
-                                if 区分の最大深さ >= target_depth:
-                                    chapter_word = 章としての区分を表す単語[target_depth]
-                                else:
-                                    chapter_word = None
-                                result, depth = self._apply_number_word_chapter(
-                                    depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=results)
+                            # if back_token.surface():
+                            #    pass
+
+                        if is_step_expression:
+
+                            tokens.add(token)
+                            target_depth = depth + 1
+                            if target_depth < 2:
+                                target_depth = 2
+                            if 区分の最大深さ >= target_depth:
+                                chapter_word = 章としての区分を表す単語[target_depth]
+                            else:
+                                chapter_word = None
+                            result, depth = self._apply_number_word_chapter(
+                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=results)
 
                         continue
 
@@ -436,6 +442,7 @@ class Rule(KeywordExtractRule):
 
         tokens = set()
         is_in = False
+
         chapter_extracter = ChapterExtracter(parse_result=parse_result)
 
         while law_dto_list.step():
