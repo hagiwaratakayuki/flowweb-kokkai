@@ -136,6 +136,7 @@ class ChapterExtracter:
                 break
 
             if number.matcher(token) == True:
+
                 self.index + 1
                 if self.index < self.token_limit:
 
@@ -153,10 +154,14 @@ class ChapterExtracter:
                     else:
 
                         back_index = self.index - 2
-                        if back_index > 0:
+
+                        if back_index >= 0:
+
                             back_token = self.tokens[back_index]
 
                             if back_token.surface() == 'の' or (back_token.begin() <= start and back_token.end() >= start):
+
+                                tokens.add(token)
                                 target_depth = depth + 1
                                 if target_depth < 2:
                                     target_depth = 2
@@ -464,6 +469,7 @@ class Rule(KeywordExtractRule):
                     [expression[0] + expression[2] or '' for expression in chapter_expression_dto.expressions])
 
                 law2chapter[law_dto.name].add(expression_tuple)
+
         results.remove_kewywords(tokens)
 
         for law_name in non_chapter_laws:
