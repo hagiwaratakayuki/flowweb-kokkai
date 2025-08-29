@@ -27,7 +27,9 @@ from doc2vec.language.japanese.sudatchi.util.matcher.preset import proper_noun
 startkey = attrgetter('start')
 zerogetter = itemgetter(0)
 
-章としての区分を表す単語 = r"編章条項節款目"
+章としての区分を表す単語 = r"条項号"
+グループ分け単語 = set('編章節款目')
+
 区分の最大深さ = len(章としての区分を表す単語) - 1
 カナ区分の深さ = 区分の最大深さ + 1
 
@@ -63,11 +65,6 @@ with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
 law_standard_phrases = ['法の下の平等', '法の支配']
 商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}商法')
-漢字でないパターン = re.compile(r'^[^\p{Han}]')
-
-連続章段階表現の接続語 = {'の', '第'}
-記号を表すパターン = re.compile(r'^\W+$')
-数字と第を表すパターン = re.compile(r'\d|第')
 
 
 DUMMY_SET = {0}
@@ -137,6 +134,8 @@ class ChapterExtracter:
                 if self.index < self.token_limit:
 
                     target_token = self.tokens[self.index]
+                    if target_token.surface() in グループ分け単語:
+                        continue
 
                     chapter_word_candiate = target_token.surface()
                     target_depth = 章の区分と数値の変換表.get(
@@ -192,7 +191,7 @@ class ChapterExtracter:
                                 # result.append
                         continue
             if token.surface() in カタカナ一文字:
-                is_chapter = depth >= 4
+                is_chapter = depth >= 2
                 if not is_chapter:
                     back_index = self.index - 2
                     if back_index >= 0:
@@ -216,9 +215,6 @@ class ChapterExtracter:
         return results
 
     def _apply_number_word_chapter(self, depth, target_depth, chapter_number, chapter_word: Optional[str], result: ChapterExpression, results: List):
-
-        if target_depth < 2:
-            return result, depth
 
         if target_depth <= depth:
 
