@@ -81,8 +81,8 @@ class EqInShorter:
         return __value in self.value
 
 
-Kana = {'イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
-        'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
+カタカナ一文字 = {'イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
+           'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
 
 
 class ChapterExpression:
@@ -191,6 +191,22 @@ class ChapterExtracter:
                                 pass
                                 # result.append
                         continue
+            if token.surface() in カタカナ一文字:
+                is_chapter = depth >= 4
+                if not is_chapter:
+                    back_index = self.index - 2
+                    if back_index >= 0:
+                        back_token = self.tokens[back_index]
+                        if back_token.surface() == 'の':
+                            is_chapter = True
+                        elif back_index >= 1:
+                            next_back_token = self.tokens[back_index - 1]
+                            if back_token.surface() == '、' and next_back_token.surface() == 'の':
+                                is_chapter = True
+                if is_chapter:
+
+                    result, depth = self._apply_number_word_chapter(
+                        depth=depth, target_depth=5, chapter_number=token.surface(), result=result, results=results)
 
         len_results = len(results)
 
