@@ -62,16 +62,12 @@ with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
 law_standard_phrases = ['法の下の平等', '法の支配']
-商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}+商法')
+商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}商法')
 漢字でないパターン = re.compile(r'^[^\p{Han}]')
 
 連続章段階表現の接続語 = {'の', '第'}
 記号を表すパターン = re.compile(r'^\W+$')
 数字と第を表すパターン = re.compile(r'\d|第')
-
-並列を表す接続詞 = {
-    'と', '並び', '及び',
-}
 
 
 DUMMY_SET = {0}
@@ -277,10 +273,10 @@ class LawDTOList:
 
         return self.reset_index()
 
-    def get_first(self) -> Union[Literal[False], LawDTO]:
+    def get_last(self) -> Union[Literal[False], LawDTO]:
         if self.count == 0:
             return False
-        return self.sequence[0]
+        return self.sequence[-1]
 
     def reset_index(self):
         self.index = -1
@@ -336,11 +332,8 @@ class Rule(KeywordExtractRule):
             results.add_keyword(SpecifiedKeyword(
                 headword=detected_phrase, is_force=True, source_ids={1}))
 
-        if law_count == standard_phrase_count:
+        if law_count != 0 and law_count == standard_phrase_count:
             return results
-        商売の方法または金商法の略称の一部としての商法である = False
-
-        target_tokens = deque()
 
         sent_number += 1
 
@@ -382,7 +375,7 @@ class Rule(KeywordExtractRule):
         if 改正後の活火山法の正式名称が存在する:
 
             additional_law_words.add(活火山法)
-            start_positions = self._set_law_positions(
+            self._set_law_positions(
                 all_text, law_dto_list=law_dto_list, lawname=改正後の活火山法の正式名称)
 
         for i in range(len(all_text) - 1):
@@ -396,11 +389,11 @@ class Rule(KeywordExtractRule):
             canditate for canditate in ryakusyou_canditates_set if canditate in all_text]
 
         ryakusyou_index = [EqInShorter(ry) for ry in 略称の可能性があるもののリスト]
-        発見された正式名称のリスト = [
-            canditate for canditate in canditates_set if canditate in all_text and canditate not in ryakusyou_index]
+        発見された正式名称の一覧 = {
+            canditate for canditate in canditates_set if canditate in all_text and canditate not in ryakusyou_index}
 
         正式名称のインデックス = [EqInShorter(正式名称)
-                       for 正式名称 in 発見された正式名称のリスト]
+                       for 正式名称 in 発見された正式名称の一覧]
 
         法律名の略称のリスト = [
             canditate for canditate in 略称の可能性があるもののリスト if canditate not in 正式名称のインデックス]
@@ -409,14 +402,15 @@ class Rule(KeywordExtractRule):
                 continue
 
             reverse_dict[略称と正式名称の対応表[法律名の略称]].add(法律名の略称)
-        if "商法" in 発見された正式名称のリスト:
 
-            商売の方法または金商法の略称の一部としての商法である |= 商売の方法または金商法の略称の一部としての商法を表すパターン.search(
-                all_text) is not None
-
-        for 法律名 in 発見された正式名称のリスト:
-            start_positions = self._set_law_positions(
-                all_text, law_dto_list=law_dto_list, lawname=法律名)
+        for 法律名 in 発見された正式名称の一覧:
+            if 法律名 == '商法':
+                _text = 商売の方法または金商法の略称の一部としての商法を表すパターン.sub('')
+                self._set_law_positions(
+                    _text, law_dto_list=law_dto_list, lawname=法律名)
+            else:
+                self._set_law_positions(
+                    all_text, law_dto_list=law_dto_list, lawname=法律名)
 
         for 法律名の略称 in 法律名の略称のリスト:
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
@@ -427,17 +421,19 @@ class Rule(KeywordExtractRule):
         if law_dto_list.count == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
+
                 return results
+
             law_dto = LawDTO(name=法律名, start=0, face='', is_guass=True)
             law_dto_list.append(law_dto)
 
         law_dto_list.prepare()
 
-        first_law = law_dto_list.get_first()
-        self.context.set_data(data=first_law.name, dto=dto)
-        if first_law.start > 0:
+        last_law = law_dto_list.get_last()
+        self.context.set_data(data=last_law.name, dto=dto)
+        if last_law.start > 0:
             psuedo_law_dto = LawDTO(
-                name=first_law.name, start=0, face='', is_guass=True)
+                name=last_law.name, start=0, face='', is_guass=True)
             law_dto_list.prepend(dto=psuedo_law_dto)
 
         tokens = set()
