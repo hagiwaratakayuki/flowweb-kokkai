@@ -1,7 +1,8 @@
 from typing import List, Callable
 
 
-def invoke(funcs: List[Callable], results=None, *args, **kwargs):
+def true_break(funcs: List[Callable], *args, **kwargs):
     for func in funcs:
-        results = func(results, *args, **kwargs)
-    return results
+        if func(*args, **kwargs) == True:
+            return True
+    return False

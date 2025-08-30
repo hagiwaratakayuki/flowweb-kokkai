@@ -16,6 +16,7 @@ from doc2vec.language.japanese.sudatchi.util import reguraize_rule
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective_verb_possible, adverb_possible, counter_word, counter_word_possible, noun, number, prefix, safix, verb_noun_possible, verb
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import auxiliary_verb
 from doc2vec.language.japanese.sudatchi.singleton import ModeA
+from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.base import stopwords
 
 
 class TokensDTO:
@@ -130,7 +131,7 @@ class WordCanditates:
         count = 0
         for token in canditates:
             count += 1
-            if not unuse_word_conditions(token):
+            if not unuse_word_conditions(token) and not stopwords.matcher(token=token):
                 is_complexable_word = True
                 break
         if not is_complexable_word:
