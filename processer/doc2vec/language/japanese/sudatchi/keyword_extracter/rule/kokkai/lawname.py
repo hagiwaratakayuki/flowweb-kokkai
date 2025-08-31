@@ -1,5 +1,6 @@
 
 
+from turtle import back
 from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 from sudachipy.morpheme import Morpheme
 
@@ -22,6 +23,7 @@ from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExt
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import number
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import proper_noun
+from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import comma, counter_word_possible, particle
 
 
 startkey = attrgetter('start')
@@ -82,6 +84,34 @@ class EqInShorter:
            'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
 
 
+class IsExist:
+    def __init__(self, needles):
+        self._needles = needles
+
+    def searh(self, heystack):
+        for needle in self._needles:
+            if needle in heystack:
+                return True
+        return False
+
+
+parallel_expression = IsExist([
+    'と',
+    '並び',
+    'ならび',
+    'および',
+    '及び',
+    'ないし',
+    '乃至',
+    '又は',
+    'または',
+    '亦は',
+    '復は',
+    '股は',  # 誤記対策
+    '叉は'
+])
+
+
 class ChapterExpression:
     is_relative: bool
     expressions: List[Tuple[str, int, Optional[str]]]
@@ -102,29 +132,36 @@ class ChapterExtracter:
     token_limit: int
     index: int
     tokens: List[Morpheme]
+    all_text: str
 
-    def __init__(self, parse_result: SudatchiDTO):
+    def __init__(self, parse_result: SudatchiDTO, all_text: str):
         self.token_limit = len(parse_result.tokens)
         self.index = 0
         self.tokens = parse_result.tokens
+        self.all_text = all_text
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
         depth = 0
         is_relative = True
+        law_index = -1
         result = ChapterExpression()
         results = [result]
+        prev_text_position = 0
         is_guass = True
+        back_token: Optional[Morpheme] = None
 
         while self.index < self.token_limit:
             token = self.tokens[self.index]
+
             self.index += 1
+            if token.end() <= start:
+                continue
             if law_start <= token.begin() < law_end:
 
+                law_index = self.index - 1
                 tokens.add(token)
                 continue
 
-            if token.end() <= start:
-                continue
             if token.end() >= end:
                 break
 
@@ -133,35 +170,54 @@ class ChapterExtracter:
                 self.index + 1
                 if self.index < self.token_limit:
 
-                    target_token = self.tokens[self.index]
-                    if target_token.surface() in グループ分け単語:
+                    next_token = self.tokens[self.index]
+                    if next_token.surface() in グループ分け単語:
+                        prev_text_position = next_token.end()
                         continue
 
-                    chapter_word_candiate = target_token.surface()
+                    chapter_word_candiate = next_token.surface()
                     target_depth = 章の区分と数値の変換表.get(
                         chapter_word_candiate, None)
                     if target_depth != None:
+                        prev_text_position = next_token.end()
                         tokens.add(token)
-                        tokens.add(target_token)
+                        tokens.add(next_token)
                         result, depth = self._apply_number_word_chapter(
                             depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word_candiate, result=result, results=results)
 
                     else:
 
+                        if counter_word_possible.matcher(next_token):
+                            prev_text_position = next_token.end()
+                            continue
                         back_index = self.index - 2
                         is_step_expression = False
-                        if back_index < 0 and start == 0:
+                        if (back_index < 0 and start == 0) or back_index == law_index:
                             is_step_expression = True
                         else:
-                            back_token = self.tokens[back_index]
-                            if back_token.surface() == 'の' or (back_token.begin() <= start and back_token.end() >= start):
-                                is_step_expression = True
+                            if back_index > -1:
+                                back_token = self.tokens[self.index]
 
-                            # if back_token.surface():
-                            #    pass
+                                if particle.matcher(back_token):
+                                    is_step_expression = True
+
+                                target_text = self.all_text[prev_text_position:token.begin(
+                                )]
+
+                                if comma.matcher(back_token):
+                                    target_text = target_text[:-1]
+                                    back_index -= 1
+                                    if back_index > -1:
+                                        back_token = self.tokens[self.index]
+                                if back_token.surface() == 'の':
+                                    is_step_expression = True
+
+                                if parallel_expression.searh(target_text):
+                                    is_step_expression == True
+                                    # 推定開始処理
 
                         if is_step_expression:
-
+                            prev_text_position = token.end()
                             tokens.add(token)
                             target_depth = depth + 1
                             if target_depth < 2:
@@ -451,7 +507,8 @@ class Rule(KeywordExtractRule):
         tokens = set()
         is_in = False
 
-        chapter_extracter = ChapterExtracter(parse_result=parse_result)
+        chapter_extracter = ChapterExtracter(
+            parse_result=parse_result, all_text=all_text)
 
         while law_dto_list.step():
 
