@@ -23,7 +23,7 @@ from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExt
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import number
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import proper_noun
-from processer.doc2vec.language.japanese.sudatchi.util.matcher.preset import comma, counter_word_possible, particle
+from doc2vec.language.japanese.sudatchi.util.matcher.preset import adnominal, comma, counter_word_possible, particle
 
 
 startkey = attrgetter('start')
@@ -141,7 +141,7 @@ class ChapterExtracter:
         self.all_text = all_text
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
-        depth = 0
+        depth = -1
         is_relative = True
         law_index = -1
         result = ChapterExpression()
@@ -171,17 +171,18 @@ class ChapterExtracter:
                 if self.index < self.token_limit:
 
                     next_token = self.tokens[self.index]
-                    if next_token.surface() in グループ分け単語:
+                    chapter_word_candiate = next_token.surface()
+                    if chapter_word_candiate in グループ分け単語:
                         prev_text_position = next_token.end()
                         continue
 
-                    chapter_word_candiate = next_token.surface()
                     target_depth = 章の区分と数値の変換表.get(
                         chapter_word_candiate, None)
                     if target_depth != None:
                         prev_text_position = next_token.end()
                         tokens.add(token)
                         tokens.add(next_token)
+
                         result, depth = self._apply_number_word_chapter(
                             depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word_candiate, result=result, results=results)
 
@@ -192,13 +193,16 @@ class ChapterExtracter:
                             continue
                         back_index = self.index - 2
                         is_step_expression = False
+                        print(self.all_text, back_index)
                         if (back_index < 0 and start == 0) or back_index == law_index:
                             is_step_expression = True
                         else:
-                            if back_index > -1:
-                                back_token = self.tokens[self.index]
 
-                                if particle.matcher(back_token):
+                            if back_index > -1:
+
+                                back_token = self.tokens[back_index]
+
+                                if particle.matcher(back_token) or adnominal.matcher(back_token):
                                     is_step_expression = True
 
                                 target_text = self.all_text[prev_text_position:token.begin(
@@ -220,8 +224,7 @@ class ChapterExtracter:
                             prev_text_position = token.end()
                             tokens.add(token)
                             target_depth = depth + 1
-                            if target_depth < 2:
-                                target_depth = 2
+
                             if 区分の最大深さ >= target_depth:
                                 chapter_word = 章としての区分を表す単語[target_depth]
                             else:
@@ -473,7 +476,7 @@ class Rule(KeywordExtractRule):
 
         for 法律名 in 発見された正式名称の一覧:
             if 法律名 == '商法':
-                _text = 商売の方法または金商法の略称の一部としての商法を表すパターン.sub('')
+                _text = 商売の方法または金商法の略称の一部としての商法を表すパターン.sub('', all_text)
                 self._set_law_positions(
                     _text, law_dto_list=law_dto_list, lawname=法律名)
             else:
@@ -538,7 +541,7 @@ class Rule(KeywordExtractRule):
             for chapter_expression_dto in law_dto.chapter_expressions:
 
                 expression_tuple = tuple(
-                    [expression[0] + expression[2] or '' for expression in chapter_expression_dto.expressions])
+                    [expression[0] + (expression[2] or '') for expression in chapter_expression_dto.expressions])
 
                 law2chapter[law_dto.name].add(expression_tuple)
 
