@@ -1,7 +1,9 @@
 
 
+import math
 from turtle import back
 from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
+from ginza import dep
 from sudachipy.morpheme import Morpheme
 
 import numpy as np
@@ -112,20 +114,66 @@ parallel_expression = IsExist([
 ])
 
 
+class ChapterExpressionElement:
+    depth: int
+    count: str
+    chapter_word: Optional[str]
+
+    def __init__(self, count, chapter_word, depth):
+        self.depth = depth
+        self.cunt = count
+        self.chapter_word = chapter_word
+
+
+ExpressionListType = List[ChapterExpressionElement]
+
+
 class ChapterExpression:
     is_relative: bool
-    expressions: List[Tuple[str, int, Optional[str]]]
+    expressions: ExpressionListType
     is_reverse: bool
-    base_depth: int
 
-    def __init__(self, expressions=[], base_depth=0, is_relative=False, is_reverse=True):
-        self.expressions = expressions[:]
-        self.base_depth = base_depth
+    def __init__(self, is_relative=False, is_reverse=True):
+
+        self.expressions = []
+
         self.is_relative = is_relative
         self.is_reverse = is_reverse
 
-    def append(self, chapter_count: str, depth: int, chapter_word: Optional[str] = None):
-        self.expressions.append((chapter_count, depth, chapter_word))
+    def append(self, chapter_count: str, chapter_word: Optional[str] = None, depth: int = -1):
+        self.expressions.append((chapter_count, chapter_word, depth))
+
+    def get_tuple_expression(self, base_expressions):
+        result_expressions = []
+        start_depth = 0
+        if self.is_relative:
+            start_depth = -1
+            expression_index = -1
+
+            for expression in self.expressions:
+                expression_index += 1
+                depth = 章の区分と数値の変換表.get(expression.chapter_word)
+                if depth != None:
+                    start_depth = depth - expression_index
+                    break
+            if start_depth == -1:
+                start_depth = math.max(
+                    0, len(base_expressions) - len(self.expressions))
+                if base_expressions[-1].chapter_word in カタカナ一文字 and self.expressions[-1].chapter_word not in カタカナ一文字:
+                    start_depth = math.max(0, start_depth - 1)
+                if len(base_expressions) > start_depth:
+                    result_expressions.extend(base_expressions[start_depth:])
+                else:
+                    result_expressions.extend(base_expressions)
+        depth = start_depth
+        for expression in self.expressions:
+            chapter_string = expression.count
+
+            if not expression.chapter_word and depth < 3:
+                chapter_string += 章としての区分を表す単語[depth]
+            result_expressions.append(chapter_string)
+            depth += 1
+        return tuple(result_expressions)
 
 
 class ChapterExtracter:
@@ -147,10 +195,11 @@ class ChapterExtracter:
         result = ChapterExpression()
         results = [result]
         prev_text_position = 0
-        is_guass = True
+
         back_token: Optional[Morpheme] = None
 
         while self.index < self.token_limit:
+
             token = self.tokens[self.index]
 
             self.index += 1
@@ -193,7 +242,8 @@ class ChapterExtracter:
                             continue
                         back_index = self.index - 2
                         is_step_expression = False
-                        print(self.all_text, back_index)
+                        is_relative = False
+
                         if (back_index < 0 and start == 0) or back_index == law_index:
                             is_step_expression = True
                         else:
@@ -202,9 +252,6 @@ class ChapterExtracter:
 
                                 back_token = self.tokens[back_index]
 
-                                if particle.matcher(back_token) or adnominal.matcher(back_token):
-                                    is_step_expression = True
-
                                 target_text = self.all_text[prev_text_position:token.begin(
                                 )]
 
@@ -212,18 +259,25 @@ class ChapterExtracter:
                                     target_text = target_text[:-1]
                                     back_index -= 1
                                     if back_index > -1:
-                                        back_token = self.tokens[self.index]
-                                if back_token.surface() == 'の':
+                                        back_token = self.tokens[back_index]
+                                        if number.matcher(back_token):
+                                            is_relative
+
+                                if adnominal.matcher(back_token):
+                                    is_step_expression = True
+                                if particle.matcher(back_token) or back_token.surface() == 'の':
+
                                     is_step_expression = True
 
                                 if parallel_expression.searh(target_text):
                                     is_step_expression == True
-                                    # 推定開始処理
+                                    is_relative = True
 
                         if is_step_expression:
                             prev_text_position = token.end()
                             tokens.add(token)
-                            target_depth = depth + 1
+                            if not is_relative:
+                                target_depth = depth + 1
 
                             if 区分の最大深さ >= target_depth:
                                 chapter_word = 章としての区分を表す単語[target_depth]
@@ -234,21 +288,6 @@ class ChapterExtracter:
 
                         continue
 
-                        if back_token.surface() == '、':
-                            back_index -= 1
-
-                            if back_index < 0:
-                                continue
-
-                            back_token = self.tokens[back_index]
-                            if back_token.surface() == 'の':
-                                depth + 1
-                                result.append(
-                                    (token.normalized_form(), depth,))
-                            if number.matcher(back_token) or token.normalized_form() in 並列を表す接続詞:
-                                pass
-                                # result.append
-                        continue
             if token.surface() in カタカナ一文字:
                 is_chapter = depth >= 2
                 if not is_chapter:
@@ -273,18 +312,19 @@ class ChapterExtracter:
 
         return results
 
-    def _apply_number_word_chapter(self, depth, target_depth, chapter_number, chapter_word: Optional[str], result: ChapterExpression, results: List):
+    def _apply_number_word_chapter(self, depth, target_depth, chapter_number, chapter_word: Optional[str], result: ChapterExpression, results: List, is_relative: bool):
 
         if target_depth <= depth:
 
             expressions = [
                 exp for exp in result.expressions if exp[1] < target_depth]
             result = ChapterExpression(
-                expressions=expressions, is_relative=False)
+                expressions=expressions, is_relative=is_relative, base_depth=target_depth)
             results.append(result)
         depth = target_depth
-        result.append(chapter_number, depth=depth,
-                      chapter_word=chapter_word)
+        result.append(chapter_number,
+                      chapter_word=chapter_word,
+                      depth=depth)
         return result, depth
 
     def _check_back_index(self):
@@ -540,8 +580,7 @@ class Rule(KeywordExtractRule):
 
             for chapter_expression_dto in law_dto.chapter_expressions:
 
-                expression_tuple = tuple(
-                    [expression[0] + (expression[2] or '') for expression in chapter_expression_dto.expressions])
+                expression_tuple = chapter_expression_dto.get_tuple_expression()
 
                 law2chapter[law_dto.name].add(expression_tuple)
 
