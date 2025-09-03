@@ -313,7 +313,7 @@ class ChapterExtracter:
 
         prev_text_position = 0
 
-        back_token: Optional[Morpheme] = None
+        back_cursor.token: Optional[Morpheme] = None
 
         while self.cursor.step():
 
@@ -362,34 +362,34 @@ class ChapterExtracter:
                         is_step_expression = False
                         is_relative = False
 
-                        if (back_cursor == False and start == 0) or back_cursor == law_index:
+                        if back_cursor == False:
+                            is_step_expression = start == 0
+                        elif back_cursor.index == law_index:
                             is_step_expression = True
                         else:
 
-                            if back_index > -1:
+                            back_cursor.token = self.tokens[back_index]
 
-                                back_token = self.tokens[back_index]
+                            target_text = self.all_text[prev_text_position:token.begin(
+                            )]
 
-                                target_text = self.all_text[prev_text_position:token.begin(
-                                )]
+                            if comma.matcher(back_cursor.token):
+                                target_text = target_text[:-1]
+                                back_index -= 1
+                                if back_index > -1:
+                                    back_cursor.token = self.tokens[back_index]
+                                    if number.matcher(back_cursor.token):
+                                        is_relative
 
-                                if comma.matcher(back_token):
-                                    target_text = target_text[:-1]
-                                    back_index -= 1
-                                    if back_index > -1:
-                                        back_token = self.tokens[back_index]
-                                        if number.matcher(back_token):
-                                            is_relative
+                            if adnominal.matcher(back_cursor.token):
+                                is_step_expression = True
+                            if particle.matcher(back_cursor.token) or back_cursor.token.surface() == 'の':
 
-                                if adnominal.matcher(back_token):
-                                    is_step_expression = True
-                                if particle.matcher(back_token) or back_token.surface() == 'の':
+                                is_step_expression = True
 
-                                    is_step_expression = True
-
-                                if parallel_expression.searh(target_text):
-                                    is_step_expression == True
-                                    is_relative = True
+                            if parallel_expression.searh(target_text):
+                                is_step_expression == True
+                                is_relative = True
 
                         if is_step_expression:
                             prev_text_position = token.end()
@@ -407,15 +407,16 @@ class ChapterExtracter:
             if token.surface() in カタカナ一文字:
                 is_chapter = chapter_expressions.cursor_head != None and chapter_expressions.cursor_head.depth >= 2
                 if not is_chapter:
-                    back_index = self.index - 2
-                    if back_index >= 0:
-                        back_token = self.tokens[back_index]
-                        if self._イロハ表記に繋がるかの判定(back_token.surface()):
+                    back_cursor = self.cursor.get_back()
+                    if back_cursor != False:
+
+                        if self._イロハ表記に繋がるか判定する関数(back_cursor.token.surface()):
                             is_chapter = True
-                        elif comma.matcher(back_token) and back_index >= 1:
-                            next_back_token = self.tokens[back_index - 1]
-                            if self._イロハ表記に繋がるかの判定(next_back_token):
-                                is_chapter = True
+                        elif comma.matcher(back_cursor.token):
+                            next_back_cursor = back_cursor.get_back()
+                            is_chapter = next_back_cursor != False and self._イロハ表記に繋がるか判定する関数(
+                                next_back_cursor.token)
+
                 if is_chapter:
                     chapter_expressions.イロハの追加(token.surface())
 
@@ -426,7 +427,7 @@ class ChapterExtracter:
 
         return chapter_expressions
 
-    def _イロハ表記に繋がるかの判定(self, token: Morpheme):
+    def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
         return token.surface() in イロハにつながる単語 or number.matcher(token)
 
 
