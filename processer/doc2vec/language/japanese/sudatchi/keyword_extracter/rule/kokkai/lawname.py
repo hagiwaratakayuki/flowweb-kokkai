@@ -196,26 +196,28 @@ class ChapterExpressionList:
         self.sequence = []
         self.cursor_head = None
 
-    def add_element(self, chapter_number, chapter_word: Optional[str], is_relative: bool = False, depth=None):
+    def add_element(self, chapter_number, chapter_word: Optional[str], depth=None):
         if not self.cursor_head:
-            return self.add_new_elements(is_relative=is_relative)
+            return self.add_new_expression(is_relative=depth != None and depth != 0)
 
         elif depth != None:
-
-            if not self.cursor_head.is_relative and depth < self.cursor_head.depth:
+            if self.cursor_head.is_relative:
+                if self.cursor_head.depth != depth - 1:
+                    self.add_new_expression(
+                        is_relative=depth != 0)
+            elif depth < self.cursor_head.depth:
 
                 elements = [
                     element for element in self.cursor_head.elements if element.depth < depth]
 
-                self.add_new_elements(
+                self.add_new_expression(
                     elements=elements, is_relative=is_relative)
-            elif depth == 0:
-                self.add_new_elements(is_relative=is_relative)
+        elif is_relative:
 
         self.cursor_head.append(chapter_number,
                                 chapter_word=chapter_word)
 
-    def add_new_elements(self, elements=[], is_relative=False):
+    def add_new_expression(self, elements=[], is_relative=False):
         expression = ChapterExpression(
             elements=elements, is_relative=is_relative)
         self.sequence.append(expression)
@@ -239,7 +241,7 @@ class ChapterExpressionList:
 
     def イロハの追加(self, イロハ表記: str):
         if self.cursor_head == None:
-            self.add_new_elements(is_relative=True)
+            self.add_new_expression(is_relative=True)
             self.add_element(chapter_number=イロハ表記)
 
         elif self.cursor_head.depth >= 2:
@@ -251,20 +253,55 @@ class ChapterExpressionList:
                 elements = self.cursor_head.elements[:-1]
             else:
                 elements = self.cursor_head.elements[:]
-            self.add_new_elements(is_relative=True, elements=elements)
+            self.add_new_expression(is_relative=True, elements=elements)
             self.cursor_head.append(chapter_number=イロハ表記)
 
 
-class ChapterExtracter:
-    token_limit: int
-    index: int
+class TokenCursor:
     tokens: List[Morpheme]
+    limit: int
+    index: int
+    token: Optional[Morpheme]
+
+    def __init__(self, tokens: List[Morpheme], index=-1):
+        self.tokens = tokens
+
+        self.limit = len(tokens)
+        self.index = index
+        if -1 < self.index < self.limit:
+            self.token = self.tokens[index]
+        else:
+            self.token = None
+
+    def step(self):
+        index = self.index + 1
+        if self.limit > index:
+            self.token = self.tokens[self.index]
+            self.index = index
+            return True
+        return False
+
+    def get_back(self):
+        if self.index < 1:
+            return False
+        return TokenCursor(tokens=self.tokens, index=self.index - 1)
+
+    def get_next(self, is_step=False):
+        next_index = self.index + 1
+        if is_step:
+            self.index = next_index
+        if next_index >= self.limit:
+            return False
+        return TokenCursor(tokens=self.tokens, index=self.index + 1)
+
+
+class ChapterExtracter:
+    cursor: TokenCursor
     all_text: str
 
     def __init__(self, parse_result: SudatchiDTO, all_text: str):
         self.token_limit = len(parse_result.tokens)
-        self.index = 0
-        self.tokens = parse_result.tokens
+        self.cursor = TokenCursor(tokens=parse_result.tokens)
         self.all_text = all_text
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
@@ -278,28 +315,29 @@ class ChapterExtracter:
 
         back_token: Optional[Morpheme] = None
 
-        while self.index < self.token_limit:
+        while self.cursor.step():
 
-            token = self.tokens[self.index]
+            token = self.cursor.token
 
-            self.index += 1
             if token.end() <= start:
                 continue
             if law_start <= token.begin() < law_end:
 
-                law_index = self.index - 1
+                law_index = self.cursor.index
                 tokens.add(token)
                 continue
+            if token.end() == end:
+                break
 
-            if token.end() >= end:
+            if token.end() > end:
+                self.cursor.index -= 1
                 break
 
             if number.matcher(token) == True:
+                next_cursor = self.cursor.get_next(is_step=True)
+                if next_cursor:
 
-                self.index + 1
-                if self.index < self.token_limit:
-
-                    next_token = self.tokens[self.index]
+                    next_token = next_cursor.token
                     chapter_word_candiate = next_token.surface()
                     if chapter_word_candiate in グループ分け単語:
                         prev_text_position = next_token.end()
@@ -320,11 +358,11 @@ class ChapterExtracter:
                         if counter_word_possible.matcher(next_token):
                             prev_text_position = next_token.end()
                             continue
-                        back_index = self.index - 2
+                        back_cursor = self.cursor.get_back()
                         is_step_expression = False
                         is_relative = False
 
-                        if (back_index < 0 and start == 0) or back_index == law_index:
+                        if (back_cursor == False and start == 0) or back_cursor == law_index:
                             is_step_expression = True
                         else:
 
@@ -362,7 +400,7 @@ class ChapterExtracter:
                             else:
                                 chapter_word = None
                             chapter_expressions.add_element(
-                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=chapter_expressions)
+                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word)
 
                         continue
 
