@@ -13,7 +13,7 @@ doc2vec = kokkai_builder.build()
 
 
 class MockPool:
-    def imap_unordered(self, func: Callable, iterable: Iterable, chunksize: int):
+    def imap(self, func: Callable, iterable: Iterable, chunksize: int):
 
         for step in iterable:
             yield func(step)

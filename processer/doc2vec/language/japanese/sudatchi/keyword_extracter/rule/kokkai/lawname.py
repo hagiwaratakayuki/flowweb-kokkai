@@ -3,6 +3,7 @@
 import math
 from turtle import back
 from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
+from emojis import count
 from ginza import dep
 from sudachipy.morpheme import Morpheme
 
@@ -112,16 +113,17 @@ parallel_expression = IsExist([
     '股は',  # 誤記対策
     '叉は'
 ])
+イロハにつながる単語 = {'の', 章としての区分を表す単語[-1]}
 
 
 class ChapterExpressionElement:
     depth: int
-    count: str
+    chapter_number: str
     chapter_word: Optional[str]
 
-    def __init__(self, count, chapter_word, depth):
+    def __init__(self, chapter_number, chapter_word, depth):
         self.depth = depth
-        self.cunt = count
+        self.chapter_number = chapter_number
         self.chapter_word = chapter_word
 
 
@@ -130,50 +132,127 @@ ExpressionListType = List[ChapterExpressionElement]
 
 class ChapterExpression:
     is_relative: bool
-    expressions: ExpressionListType
+    elements: ExpressionListType
     is_reverse: bool
+    depth: int
 
-    def __init__(self, is_relative=False, is_reverse=True):
+    def __init__(self, elements=[], is_relative=False, is_reverse=True,):
 
-        self.expressions = []
+        self.elements = elements[:]
 
         self.is_relative = is_relative
         self.is_reverse = is_reverse
+        self.depth = len(elements) - 1
 
-    def append(self, chapter_count: str, chapter_word: Optional[str] = None, depth: int = -1):
-        self.expressions.append((chapter_count, chapter_word, depth))
+    def append(self, chapter_number: str, chapter_word: Optional[str] = None):
 
-    def get_tuple_expression(self, base_expressions):
-        result_expressions = []
+        self.elements.append(ChapterExpressionElement(
+            chapter_number, chapter_word, self.depth))
+        self.depth += 1
+
+    def get_tuple_expression(self, base_elements: Tuple[str, ...]):
+        result_expression = []
         start_depth = 0
+        if self.depth == 0:
+            return False
         if self.is_relative:
             start_depth = -1
             expression_index = -1
 
-            for expression in self.expressions:
+            for element in self.elements:
                 expression_index += 1
-                depth = 章の区分と数値の変換表.get(expression.chapter_word)
+                depth = 章の区分と数値の変換表.get(element.chapter_word)
                 if depth != None:
                     start_depth = depth - expression_index
                     break
             if start_depth == -1:
                 start_depth = math.max(
-                    0, len(base_expressions) - len(self.expressions))
-                if base_expressions[-1].chapter_word in カタカナ一文字 and self.expressions[-1].chapter_word not in カタカナ一文字:
-                    start_depth = math.max(0, start_depth - 1)
-                if len(base_expressions) > start_depth:
-                    result_expressions.extend(base_expressions[start_depth:])
-                else:
-                    result_expressions.extend(base_expressions)
+                    0, len(base_elements) - len(self.elements))
+            if base_elements and base_elements[-1].chapter_word in カタカナ一文字 and self.elements[-1].chapter_word not in カタカナ一文字:
+                start_depth = math.max(0, start_depth - 1)
+            if len(base_elements) > start_depth:
+                result_expression.extend(base_elements[:start_depth])
+            else:
+                result_expression.extend(base_elements)
         depth = start_depth
-        for expression in self.expressions:
-            chapter_string = expression.count
+        for element in self.elements:
+            chapter_string = element.chapter_number
 
-            if not expression.chapter_word and depth < 3:
-                chapter_string += 章としての区分を表す単語[depth]
-            result_expressions.append(chapter_string)
+            if not element.chapter_word:
+                if depth < 3:
+                    chapter_string += 章としての区分を表す単語[element.depth]
+            else:
+                chapter_string += element.chapter_word
+            result_expression.append(chapter_string)
             depth += 1
-        return tuple(result_expressions)
+        return tuple(result_expression)
+
+
+class ChapterExpressionList:
+    sequence: List[ChapterExpression]
+    cursor_head: Optional[ChapterExpression]
+
+    def __init__(self):
+        self.sequence = []
+        self.cursor_head = None
+
+    def add_element(self, chapter_number, chapter_word: Optional[str], is_relative: bool = False, depth=None):
+        if not self.cursor_head:
+            return self.add_new_elements(is_relative=is_relative)
+
+        elif depth != None:
+
+            if not self.cursor_head.is_relative and depth < self.cursor_head.depth:
+
+                elements = [
+                    element for element in self.cursor_head.elements if element.depth < depth]
+
+                self.add_new_elements(
+                    elements=elements, is_relative=is_relative)
+            elif depth == 0:
+                self.add_new_elements(is_relative=is_relative)
+
+        self.cursor_head.append(chapter_number,
+                                chapter_word=chapter_word)
+
+    def add_new_elements(self, elements=[], is_relative=False):
+        expression = ChapterExpression(
+            elements=elements, is_relative=is_relative)
+        self.sequence.append(expression)
+        self.cursor_head = expression
+
+    def get_chapter_expressions(self):
+        results = []
+        limit = len(self.sequence)
+        index = 0
+        base_elements = []
+        while index < limit:
+            target = self.sequence[index]
+            if target.is_relative:
+                elements = target.get_tuple_expression(
+                    base_elements=base_elements)
+
+            else:
+                elements = target.get_tuple_expression()
+            results.append(elements)
+            base_elements = elements
+
+    def イロハの追加(self, イロハ表記: str):
+        if self.cursor_head == None:
+            self.add_new_elements(is_relative=True)
+            self.add_element(chapter_number=イロハ表記)
+
+        elif self.cursor_head.depth >= 2:
+            self.add_element(chapter_number=イロハ表記, depth=3)
+        else:
+            if self.cursor_head.depth == -1:
+                elements = []
+            elif self.cursor_head.elements[-1] in カタカナ一文字:
+                elements = self.cursor_head.elements[:-1]
+            else:
+                elements = self.cursor_head.elements[:]
+            self.add_new_elements(is_relative=True, elements=elements)
+            self.cursor_head.append(chapter_number=イロハ表記)
 
 
 class ChapterExtracter:
@@ -192,8 +271,9 @@ class ChapterExtracter:
         depth = -1
         is_relative = True
         law_index = -1
-        result = ChapterExpression()
-        results = [result]
+
+        chapter_expressions = ChapterExpressionList()
+
         prev_text_position = 0
 
         back_token: Optional[Morpheme] = None
@@ -232,8 +312,8 @@ class ChapterExtracter:
                         tokens.add(token)
                         tokens.add(next_token)
 
-                        result, depth = self._apply_number_word_chapter(
-                            depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word_candiate, result=result, results=results)
+                        chapter_expressions.add_element(target_depth=target_depth, chapter_number=token.normalized_form(
+                        ), chapter_word=chapter_word_candiate, is_relative=False)
 
                     else:
 
@@ -276,59 +356,40 @@ class ChapterExtracter:
                         if is_step_expression:
                             prev_text_position = token.end()
                             tokens.add(token)
-                            if not is_relative:
-                                target_depth = depth + 1
 
                             if 区分の最大深さ >= target_depth:
                                 chapter_word = 章としての区分を表す単語[target_depth]
                             else:
                                 chapter_word = None
-                            result, depth = self._apply_number_word_chapter(
-                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=results)
+                            chapter_expressions.add_element(
+                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word, result=result, results=chapter_expressions)
 
                         continue
 
             if token.surface() in カタカナ一文字:
-                is_chapter = depth >= 2
+                is_chapter = chapter_expressions.cursor_head != None and chapter_expressions.cursor_head.depth >= 2
                 if not is_chapter:
                     back_index = self.index - 2
                     if back_index >= 0:
                         back_token = self.tokens[back_index]
-                        if back_token.surface() == 'の':
+                        if self._イロハ表記に繋がるかの判定(back_token.surface()):
                             is_chapter = True
-                        elif back_index >= 1:
+                        elif comma.matcher(back_token) and back_index >= 1:
                             next_back_token = self.tokens[back_index - 1]
-                            if back_token.surface() == '、' and next_back_token.surface() == 'の':
+                            if self._イロハ表記に繋がるかの判定(next_back_token):
                                 is_chapter = True
                 if is_chapter:
+                    chapter_expressions.イロハの追加(token.surface())
 
-                    result, depth = self._apply_number_word_chapter(
-                        depth=depth, target_depth=5, chapter_number=token.surface(), result=result, results=results)
+        len_results = len(chapter_expressions)
 
-        len_results = len(results)
-
-        if len_results == 1 and len(result.expressions) == 0:
+        if len_results == 1 and len(result.elements) == 0:
             return False
 
-        return results
+        return chapter_expressions
 
-    def _apply_number_word_chapter(self, depth, target_depth, chapter_number, chapter_word: Optional[str], result: ChapterExpression, results: List, is_relative: bool):
-
-        if target_depth <= depth:
-
-            expressions = [
-                exp for exp in result.expressions if exp[1] < target_depth]
-            result = ChapterExpression(
-                expressions=expressions, is_relative=is_relative, base_depth=target_depth)
-            results.append(result)
-        depth = target_depth
-        result.append(chapter_number,
-                      chapter_word=chapter_word,
-                      depth=depth)
-        return result, depth
-
-    def _check_back_index(self):
-        pass
+    def _イロハ表記に繋がるかの判定(self, token: Morpheme):
+        return token.surface() in イロハにつながる単語 or number.matcher(token)
 
 
 class LawDTO:
@@ -581,6 +642,8 @@ class Rule(KeywordExtractRule):
             for chapter_expression_dto in law_dto.chapter_expressions:
 
                 expression_tuple = chapter_expression_dto.get_tuple_expression()
+                if expression_tuple == False:
+                    continue
 
                 law2chapter[law_dto.name].add(expression_tuple)
 

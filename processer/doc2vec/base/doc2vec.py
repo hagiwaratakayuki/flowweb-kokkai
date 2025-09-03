@@ -21,7 +21,7 @@ class Doc2Vec:
         dto_map = {}
         generater = self.get_data_itr(dtos=datas, data_map=dto_map)
 
-        for parse_result, data_id in pool.imap_unordered(func=self._tokenaizer.parse, iterable=generater, chunksize=self._chunk_size):
+        for parse_result, data_id in pool.imap(func=self._tokenaizer.parse, iterable=generater, chunksize=self._chunk_size):
             dto = dto_map[data_id]
             yield self._indexer.exec(parse_result, dto)
 
