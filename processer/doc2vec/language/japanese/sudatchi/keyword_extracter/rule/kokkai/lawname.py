@@ -25,7 +25,6 @@ from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.disc
 from doc2vec.base.protocol.keyword_extracter import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import number
-from doc2vec.language.japanese.sudatchi.util.matcher.preset import proper_noun
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import adnominal, comma, counter_word_possible, particle
 
 
@@ -34,6 +33,7 @@ zerogetter = itemgetter(0)
 
 章としての区分を表す単語 = r"条項号"
 グループ分け単語 = set('編章節款目')
+章とグループ分けの単語 = set(章としての区分を表す単語) | グループ分け単語
 
 区分の最大深さ = len(章としての区分を表す単語) - 1
 カナ区分の深さ = 区分の最大深さ + 1
@@ -87,33 +87,25 @@ class EqInShorter:
            'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
 
 
-class IsExist:
-    def __init__(self, needles):
-        self._needles = needles
-
-    def searh(self, heystack):
-        for needle in self._needles:
-            if needle in heystack:
-                return True
-        return False
-
-
-parallel_expression = IsExist([
-    'と',
+parallel_expression = {
     '並び',
     'ならび',
     'および',
     '及び',
     'ないし',
     '乃至',
-    '又は',
-    'または',
-    '亦は',
-    '復は',
-    '股は',  # 誤記対策
-    '叉は'
-])
-イロハにつながる単語 = {'の', 章としての区分を表す単語[-1]}
+    '又',
+    'また',
+    '亦',
+    '復',
+    '股',  # 誤記対策
+    '叉',
+    'あるいは'
+
+}
+
+
+イロハ表記につながる単語 = {'の', 章としての区分を表す単語[-1]}
 
 
 class ChapterExpressionElement:
@@ -211,10 +203,9 @@ class ChapterExpressionList:
                     element for element in self.cursor_head.elements if element.depth < depth]
 
                 self.add_new_expression(
-                    elements=elements, is_relative=is_relative)
-        elif is_relative:
+                    elements=elements)
 
-        self.cursor_head.append(chapter_number,
+        self.cursor_head.append(chapter_number=chapter_number,
                                 chapter_word=chapter_word)
 
     def add_new_expression(self, elements=[], is_relative=False):
@@ -255,6 +246,9 @@ class ChapterExpressionList:
                 elements = self.cursor_head.elements[:]
             self.add_new_expression(is_relative=True, elements=elements)
             self.cursor_head.append(chapter_number=イロハ表記)
+
+    def is_exist(self):
+        self.cursor_head != None
 
 
 class TokenCursor:
@@ -306,14 +300,10 @@ class ChapterExtracter:
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
         depth = -1
-        is_relative = True
+
         law_index = -1
 
         chapter_expressions = ChapterExpressionList()
-
-        prev_text_position = 0
-
-        back_cursor.token: Optional[Morpheme] = None
 
         while self.cursor.step():
 
@@ -340,67 +330,78 @@ class ChapterExtracter:
                     next_token = next_cursor.token
                     chapter_word_candiate = next_token.surface()
                     if chapter_word_candiate in グループ分け単語:
-                        prev_text_position = next_token.end()
+
                         continue
 
                     target_depth = 章の区分と数値の変換表.get(
                         chapter_word_candiate, None)
                     if target_depth != None:
-                        prev_text_position = next_token.end()
+
                         tokens.add(token)
                         tokens.add(next_token)
 
-                        chapter_expressions.add_element(target_depth=target_depth, chapter_number=token.normalized_form(
-                        ), chapter_word=chapter_word_candiate, is_relative=False)
+                        chapter_expressions.add_element(depth=target_depth, chapter_number=token.normalized_form(
+                        ), chapter_word=chapter_word_candiate)
 
                     else:
 
                         if counter_word_possible.matcher(next_token):
-                            prev_text_position = next_token.end()
+
                             continue
                         back_cursor = self.cursor.get_back()
                         is_step_expression = False
-                        is_relative = False
+                        is_new_expression = False
+                        is_comma_back = False
 
                         if back_cursor == False:
                             is_step_expression = start == 0
-                        elif back_cursor.index == law_index:
-                            is_step_expression = True
+
                         else:
 
-                            back_cursor.token = self.tokens[back_index]
-
-                            target_text = self.all_text[prev_text_position:token.begin(
-                            )]
-
                             if comma.matcher(back_cursor.token):
-                                target_text = target_text[:-1]
-                                back_index -= 1
-                                if back_index > -1:
-                                    back_cursor.token = self.tokens[back_index]
-                                    if number.matcher(back_cursor.token):
-                                        is_relative
+                                back_cursor = back_cursor.get_back()
+                                if back_cursor == False:
+                                    continue
+                                is_comma_back = True
+                                if number.matcher(back_cursor.token) or back_cursor.token.surface() in 章の区分と数値の変換表:
+                                    is_step_expression = True
+                                    is_new_expression = True
 
-                            if adnominal.matcher(back_cursor.token):
-                                is_step_expression = True
-                            if particle.matcher(back_cursor.token) or back_cursor.token.surface() == 'の':
-
+                            if back_cursor.index == law_index:
                                 is_step_expression = True
 
-                            if parallel_expression.searh(target_text):
-                                is_step_expression == True
-                                is_relative = True
+                            if not is_step_expression:
+                                if adnominal.matcher(back_cursor.token):
+                                    is_step_expression = True
+                                    is_new_expression = True
+
+                                elif back_cursor.token.surface() == 'の':
+                                    next_back_cursor = back_cursor.get_back()
+                                    if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
+                                        is_step_expression = True
+                                elif back_cursor.token.surface() == 'と':
+
+                                    next_back_cursor = back_cursor.get_back()
+                                    if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
+                                        is_step_expression = True
+                                        is_new_expression = True
+                                else:
+                                    if particle.matcher(back_cursor.token):
+
+                                        is_step_expression = True
+                                        back_cursor = back_cursor.get_back()
+                                    if back_cursor != False:
+                                        is_new_expression = back_cursor.token.surface() in parallel_expression
 
                         if is_step_expression:
-                            prev_text_position = token.end()
-                            tokens.add(token)
 
-                            if 区分の最大深さ >= target_depth:
-                                chapter_word = 章としての区分を表す単語[target_depth]
-                            else:
-                                chapter_word = None
+                            tokens.add(token)
+                            if is_new_expression:
+                                chapter_expressions.add_new_expression(
+                                    is_relative=True)
+
                             chapter_expressions.add_element(
-                                depth=depth, target_depth=target_depth, chapter_number=token.normalized_form(), chapter_word=chapter_word)
+                                chapter_number=token.normalized_form())
 
                         continue
 
@@ -420,15 +421,13 @@ class ChapterExtracter:
                 if is_chapter:
                     chapter_expressions.イロハの追加(token.surface())
 
-        len_results = len(chapter_expressions)
-
-        if len_results == 1 and len(result.elements) == 0:
+        if chapter_expressions.cursor_head == None:
             return False
 
         return chapter_expressions
 
     def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
-        return token.surface() in イロハにつながる単語 or number.matcher(token)
+        return token.surface() in イロハ表記につながる単語 or number.matcher(token)
 
 
 class LawDTO:
