@@ -1,10 +1,9 @@
 
 
 import math
-from turtle import back
-from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
-from emojis import count
-from ginza import dep
+
+from typing import Any, Callable, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
+
 from sudachipy.morpheme import Morpheme
 
 import numpy as np
@@ -69,7 +68,6 @@ with open(file=ryakusyou_path, mode='r', encoding="utf-8") as fp:
 with open(file=ryakusyou_tenchi_path, mode='r', encoding="utf-8") as fp:
     ryakusyou_tench = json.load(fp)
 law_standard_phrases = ['法の下の平等', '法の支配']
-商売の方法または金商法の略称の一部としての商法を表すパターン = re.compile(r'\p{Han}商法')
 
 
 DUMMY_SET = {0}
@@ -142,7 +140,7 @@ class ChapterExpression:
             chapter_number, chapter_word, self.depth))
         self.depth += 1
 
-    def get_tuple_expression(self, base_elements: Tuple[str, ...]):
+    def get_tuple_expression(self, base_element_strs: Tuple[str, ...]):
         result_expression = []
         start_depth = 0
         if self.depth == 0:
@@ -159,13 +157,12 @@ class ChapterExpression:
                     break
             if start_depth == -1:
                 start_depth = math.max(
-                    0, len(base_elements) - len(self.elements))
-            if base_elements and base_elements[-1].chapter_word in カタカナ一文字 and self.elements[-1].chapter_word not in カタカナ一文字:
+                    0, len(base_element_strs) - len(self.elements))
+            if base_element_strs and base_element_strs[-1] in カタカナ一文字 and self.elements[-1].chapter_word not in カタカナ一文字:
                 start_depth = math.max(0, start_depth - 1)
-            if len(base_elements) > start_depth:
-                result_expression.extend(base_elements[:start_depth])
-            else:
-                result_expression.extend(base_elements)
+
+            result_expression.extend(base_element_strs[:start_depth])
+
         depth = start_depth
         for element in self.elements:
             chapter_string = element.chapter_number
@@ -223,12 +220,14 @@ class ChapterExpressionList:
             target = self.sequence[index]
             if target.is_relative:
                 elements = target.get_tuple_expression(
-                    base_elements=base_elements)
+                    base_element_strs=base_elements)
 
             else:
                 elements = target.get_tuple_expression()
             results.append(elements)
             base_elements = elements
+
+        return results
 
     def イロハの追加(self, イロハ表記: str):
         if self.cursor_head == None:
@@ -264,13 +263,15 @@ class TokenCursor:
         self.index = index
         if -1 < self.index < self.limit:
             self.token = self.tokens[index]
+            print('init', self.token)
         else:
             self.token = None
 
     def step(self):
         index = self.index + 1
         if self.limit > index:
-            self.token = self.tokens[self.index]
+            self.token = self.tokens[index]
+
             self.index = index
             return True
         return False
@@ -278,15 +279,19 @@ class TokenCursor:
     def get_back(self):
         if self.index < 1:
             return False
+
         return TokenCursor(tokens=self.tokens, index=self.index - 1)
 
     def get_next(self, is_step=False):
         next_index = self.index + 1
-        if is_step:
-            self.index = next_index
+
         if next_index >= self.limit:
             return False
-        return TokenCursor(tokens=self.tokens, index=self.index + 1)
+        if is_step:
+            self.index = next_index
+            self.token = self.tokens[self.index]
+
+        return TokenCursor(tokens=self.tokens, index=next_index)
 
 
 class ChapterExtracter:
@@ -296,10 +301,10 @@ class ChapterExtracter:
     def __init__(self, parse_result: SudatchiDTO, all_text: str):
         self.token_limit = len(parse_result.tokens)
         self.cursor = TokenCursor(tokens=parse_result.tokens)
+
         self.all_text = all_text
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
-        depth = -1
 
         law_index = -1
 
@@ -324,11 +329,15 @@ class ChapterExtracter:
                 break
 
             if number.matcher(token) == True:
-                next_cursor = self.cursor.get_next(is_step=True)
-                if next_cursor:
 
-                    next_token = next_cursor.token
+                next_step_cursor = self.cursor.get_next()
+
+                if next_step_cursor != False:
+
+                    next_token = next_step_cursor.token
+
                     chapter_word_candiate = next_token.surface()
+
                     if chapter_word_candiate in グループ分け単語:
 
                         continue
@@ -424,7 +433,7 @@ class ChapterExtracter:
         if chapter_expressions.cursor_head == None:
             return False
 
-        return chapter_expressions
+        return chapter_expressions.get_chapter_expressions()
 
     def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
         return token.surface() in イロハ表記につながる単語 or number.matcher(token)
@@ -615,9 +624,9 @@ class Rule(KeywordExtractRule):
 
         for 法律名 in 発見された正式名称の一覧:
             if 法律名 == '商法':
-                _text = 商売の方法または金商法の略称の一部としての商法を表すパターン.sub('', all_text)
+
                 self._set_law_positions(
-                    _text, law_dto_list=law_dto_list, lawname=法律名)
+                    all_text, law_dto_list=law_dto_list, lawname=法律名, filter_func=self._法律の略称ではない商法をブロックする関数)
             else:
                 self._set_law_positions(
                     all_text, law_dto_list=law_dto_list, lawname=法律名)
@@ -704,15 +713,27 @@ class Rule(KeywordExtractRule):
 
         return results
 
-    def _set_law_positions(self, text, law_dto_list: LawDTOList, lawname, face=''):
+    def _set_law_positions(self, text, law_dto_list: LawDTOList, lawname, face='', filter_func: Optional[Callable[[str, int], bool]] = None):
 
         _face = face or lawname
         start = text.find(_face)
 
         while start != -1:
+            if filter_func != None and filter_func(text, start):
+
+                continue
 
             dto = LawDTO(lawname, start=start, face=face)
 
             law_dto_list.append(dto)
 
             start = text.find(_face, start + 1)
+
+    def _法律の略称ではない商法をブロックする関数(self, text, start):
+
+        if start == 0:
+            return False
+        return 漢字一文字.search(text[start - 1]) != None
+
+
+漢字一文字 = re.compile(r'\p{Han}')
