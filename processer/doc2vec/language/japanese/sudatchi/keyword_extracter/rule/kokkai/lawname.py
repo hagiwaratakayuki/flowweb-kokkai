@@ -257,13 +257,14 @@ class TokenCursor:
     token: Optional[Morpheme]
 
     def __init__(self, tokens: List[Morpheme], index=-1):
+
         self.tokens = tokens
 
         self.limit = len(tokens)
         self.index = index
         if -1 < self.index < self.limit:
             self.token = self.tokens[index]
-            print('init', self.token)
+
         else:
             self.token = None
 
