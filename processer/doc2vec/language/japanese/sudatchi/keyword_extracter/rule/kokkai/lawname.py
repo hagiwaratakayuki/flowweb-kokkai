@@ -185,7 +185,7 @@ class ChapterExpressionList:
         self.sequence = []
         self.cursor_head = None
 
-    def add_element(self, chapter_number, chapter_word: Optional[str], depth=None):
+    def add_element(self, chapter_number, chapter_word: Optional[str] = None, depth=None):
         if not self.cursor_head:
             return self.add_new_expression(is_relative=depth != None and depth != 0)
 
@@ -211,19 +211,20 @@ class ChapterExpressionList:
         self.sequence.append(expression)
         self.cursor_head = expression
 
-    def get_chapter_expressions(self):
+    def get_expression_tuples(self):
         results = []
-        limit = len(self.sequence)
-        index = 0
+
+        # limit = len(self.sequence)
+        # index = 0
         base_elements = []
-        while index < limit:
-            target = self.sequence[index]
+        for target in self.sequence:
+
             if target.is_relative:
                 elements = target.get_tuple_expression(
                     base_element_strs=base_elements)
 
             else:
-                elements = target.get_tuple_expression()
+                elements = target.get_tuple_expression(base_element_strs=[])
             results.append(elements)
             base_elements = elements
 
@@ -269,11 +270,10 @@ class TokenCursor:
             self.token = None
 
     def step(self):
-        index = self.index + 1
-        if self.limit > index:
-            self.token = self.tokens[index]
+        self.index += 1
+        if self.limit > self.index:
+            self.token = self.tokens[self.index]
 
-            self.index = index
             return True
         return False
 
@@ -434,7 +434,7 @@ class ChapterExtracter:
         if chapter_expressions.cursor_head == None:
             return False
 
-        return chapter_expressions.get_chapter_expressions()
+        return chapter_expressions
 
     def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
         return token.surface() in イロハ表記につながる単語 or number.matcher(token)
@@ -447,7 +447,7 @@ class LawDTO:
     name: str
     is_guass: bool
     end: int
-    chapter_expressions: List[ChapterExpression]
+    chapter_expressions: ChapterExpressionList
 
     def __init__(self, name, start, face=None, is_guass=False):
         self.name = name
@@ -674,8 +674,7 @@ class Rule(KeywordExtractRule):
 
             if chapter_expressions != False:
 
-                law_dto_list.now.chapter_expressions.extend(
-                    chapter_expressions)
+                law_dto_list.now.chapter_expressions = chapter_expressions
 
         non_chapter_laws = set()
         law2chapter = defaultdict(set)
@@ -687,13 +686,12 @@ class Rule(KeywordExtractRule):
                     non_chapter_laws.add(law_dto.name)
                 continue
 
-            for chapter_expression_dto in law_dto.chapter_expressions:
+            expression_tuples = law_dto.chapter_expressions.get_expression_tuples()
 
-                expression_tuple = chapter_expression_dto.get_tuple_expression()
-                if expression_tuple == False:
-                    continue
+            if expression_tuple == False:
+                continue
 
-                law2chapter[law_dto.name].add(expression_tuple)
+            law2chapter[law_dto.name].update(expression_tuples)
 
         results.remove_kewywords(tokens)
 
