@@ -446,12 +446,16 @@ class LawDTO:
     face: str
     name: str
     is_guass: bool
-    end: int
+    end: Optional[int]
     chapter_expressions: ChapterExpressionList
 
     def __init__(self, name, start, face=None, is_guass=False):
-        self.name = name
+        self.name = name,
         self.start = start
+        if face != None:
+            self.end = self.start + len(face)
+        else:
+            self.end = None
 
         self.is_reverse = False
         if face != None:
@@ -663,8 +667,11 @@ class Rule(KeywordExtractRule):
             parse_result=parse_result, all_text=all_text)
 
         while law_dto_list.step():
+            if law_dto_list.now.end == None:
+                start = law_dto_list.now.start
+            else:
+                start = law_dto_list.now.end
 
-            start = law_dto_list.now.start
             if law_dto_list.next == None:
                 end = len(all_text)
             else:
@@ -728,7 +735,11 @@ class Rule(KeywordExtractRule):
 
             start = text.find(_face, start + 1)
 
-    def _法律の略称ではない商法をブロックする関数(self, text, start):
+    def _法律の略称ではない商法をブロックする関数(self, text: str, start: int) -> bool:
+        """
+        「悪徳商法」のような、法律名ではない「〇〇商法」を除外するためのフィルター。
+
+        """
 
         if start == 0:
             return False
