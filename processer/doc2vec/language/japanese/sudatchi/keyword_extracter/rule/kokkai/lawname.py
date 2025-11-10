@@ -85,7 +85,7 @@ class EqInShorter:
            'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
 
 
-parallel_expression = {
+parallel_expressions = {
     '並び',
     'ならび',
     'および',
@@ -101,7 +101,13 @@ parallel_expression = {
     'あるいは'
 
 }
+len_to_parallel_expression = defaultdict(set)
 
+for parallel_expression in parallel_expressions:
+    len_to_parallel_expression[len(parallel_expression)].add(
+        parallel_expression)
+len_list = list(len_to_parallel_expression.keys())
+len_list.sort()
 
 イロハ表記につながる単語 = {'の', 章としての区分を表す単語[-1]}
 
@@ -312,7 +318,7 @@ class ChapterExtracter:
         chapter_expressions = ChapterExpressionList()
 
         while self.cursor.step():
-
+            is_parallel = False
             token = self.cursor.token
 
             if token.end() <= start:
@@ -361,7 +367,6 @@ class ChapterExtracter:
                         back_cursor = self.cursor.get_back()
                         is_step_expression = False
                         is_new_expression = False
-                        is_comma_back = False
 
                         if back_cursor == False:
                             is_step_expression = start == 0
@@ -372,7 +377,7 @@ class ChapterExtracter:
                                 back_cursor = back_cursor.get_back()
                                 if back_cursor == False:
                                     continue
-                                is_comma_back = True
+
                                 if number.matcher(back_cursor.token) or back_cursor.token.surface() in 章の区分と数値の変換表:
                                     is_step_expression = True
                                     is_new_expression = True
@@ -441,7 +446,7 @@ class ChapterExtracter:
 
 
 class LawDTO:
-    _start: int
+    start: int
     is_reverse: bool
     face: str
     name: str
@@ -452,10 +457,6 @@ class LawDTO:
     def __init__(self, name, start, face=None, is_guass=False):
         self.name = name,
         self.start = start
-        if face != None:
-            self.end = self.start + len(face)
-        else:
-            self.end = None
 
         self.is_reverse = False
         if face != None:
