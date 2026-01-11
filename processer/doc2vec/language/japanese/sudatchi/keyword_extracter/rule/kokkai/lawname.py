@@ -2,6 +2,7 @@
 
 import math
 
+from types import NoneType
 from typing import Any, Callable, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 
 from sudachipy.morpheme import Morpheme
@@ -101,6 +102,9 @@ parallel_expressions = {
     'あるいは'
 
 }
+parallel_particles = {'や', 'と', 'か'}
+
+
 len_to_parallel_expression = defaultdict(set)
 
 for parallel_expression in parallel_expressions:
@@ -394,19 +398,22 @@ class ChapterExtracter:
                                     next_back_cursor = back_cursor.get_back()
                                     if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
                                         is_step_expression = True
-                                elif back_cursor.token.surface() == 'と':
-
-                                    next_back_cursor = back_cursor.get_back()
-                                    if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
-                                        is_step_expression = True
-                                        is_new_expression = True
                                 else:
-                                    if particle.matcher(back_cursor.token):
+                                    _is_parallel, critetion_cursor = self._check_parallel(
+                                        back_cursor)
+                                    if _is_parallel == True:
 
-                                        is_step_expression = True
-                                        back_cursor = back_cursor.get_back()
-                                    if back_cursor != False:
-                                        is_new_expression = back_cursor.token.surface() in parallel_expression
+                                        next_back_cursor = critetion_cursor.get_back()
+                                        if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
+                                            is_step_expression = True
+                                            is_new_expression = True
+                                    else:
+                                        if particle.matcher(back_cursor.token):
+
+                                            is_step_expression = True
+                                            back_cursor = back_cursor.get_back()
+                                        if back_cursor != False:
+                                            is_new_expression = back_cursor.token.surface() in parallel_expression
 
                         if is_step_expression:
 
@@ -443,6 +450,20 @@ class ChapterExtracter:
 
     def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
         return token.surface() in イロハ表記につながる単語 or number.matcher(token)
+
+    def _check_parallel(self, cursor: TokenCursor) -> Union[Tuple[Literal[True], TokenCursor], Tuple[Literal[False], NoneType]]:
+        if particle.matcher(cursor.token) == True:
+            if cursor.token.normalized_form() in parallel_particles:
+                back_cursor = cursor.get_back()
+                if back_cursor.token.surface() == 'と':
+                    return True, back_cursor
+                return True, cursor
+            back_cursor = cursor.get_back()
+            if back_cursor.token.surface() in parallel_expressions:
+                return True, back_cursor
+        else:
+            if cursor.token in parallel_expressions:
+                return True, cursor
 
 
 class LawDTO:
