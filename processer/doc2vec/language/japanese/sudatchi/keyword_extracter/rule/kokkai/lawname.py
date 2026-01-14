@@ -744,13 +744,11 @@ class Rule(KeywordExtractRule):
         start = text.find(_face)
 
         while start != -1:
-            if filter_func != None and filter_func(text, start):
+            if filter_func == None or filter_func(text, start) == False:
 
-                continue
+                dto = LawDTO(lawname, start=start, face=face)
 
-            dto = LawDTO(lawname, start=start, face=face)
-
-            law_dto_list.append(dto)
+                law_dto_list.append(dto)
 
             start = text.find(_face, start + 1)
 
@@ -762,6 +760,7 @@ class Rule(KeywordExtractRule):
 
         if start == 0:
             return False
+
         return 漢字一文字.search(text[start - 1]) != None
 
 
