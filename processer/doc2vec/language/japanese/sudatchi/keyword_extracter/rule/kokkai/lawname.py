@@ -397,6 +397,8 @@ class ChapterExtracter:
                                     if _is_parallel == True:
 
                                         next_back_cursor = critetion_cursor.get_back()
+                                        if comma.matcher(next_back_cursor.token):
+                                            next_back_cursor = next_back_cursor.get_back()
                                         if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
                                             is_step_expression = True
                                             is_new_expression = True
