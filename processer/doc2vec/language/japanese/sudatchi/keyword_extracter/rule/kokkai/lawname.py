@@ -100,18 +100,11 @@ parallel_expressions = {
     '股',  # 誤記対策
     '叉',
     'あるいは'
+    'と'
 
 }
 parallel_particles = {'や', 'と', 'か'}
 
-
-len_to_parallel_expression = defaultdict(set)
-
-for parallel_expression in parallel_expressions:
-    len_to_parallel_expression[len(parallel_expression)].add(
-        parallel_expression)
-len_list = list(len_to_parallel_expression.keys())
-len_list.sort()
 
 イロハ表記につながる単語 = {'の', 章としての区分を表す単語[-1]}
 
@@ -399,7 +392,7 @@ class ChapterExtracter:
                                     if number.matcher(next_back_cursor.token) or next_back_cursor.token.surface() in 章とグループ分けの単語:
                                         is_step_expression = True
                                 else:
-                                    _is_parallel, critetion_cursor = self._check_parallel(
+                                    _is_parallel, is_particle, critetion_cursor = self._check_parallel(
                                         back_cursor)
                                     if _is_parallel == True:
 
@@ -408,12 +401,10 @@ class ChapterExtracter:
                                             is_step_expression = True
                                             is_new_expression = True
                                     else:
-                                        if particle.matcher(back_cursor.token):
+                                        if is_particle:
 
                                             is_step_expression = True
                                             back_cursor = back_cursor.get_back()
-                                        if back_cursor != False:
-                                            is_new_expression = back_cursor.token.surface() in parallel_expression
 
                         if is_step_expression:
 
@@ -451,19 +442,23 @@ class ChapterExtracter:
     def _イロハ表記に繋がるか判定する関数(self, token: Morpheme):
         return token.surface() in イロハ表記につながる単語 or number.matcher(token)
 
-    def _check_parallel(self, cursor: TokenCursor) -> Union[Tuple[Literal[True], TokenCursor], Tuple[Literal[False], NoneType]]:
-        if particle.matcher(cursor.token) == True:
+    def _check_parallel(self, cursor: TokenCursor) -> Union[Tuple[Literal[True], bool, TokenCursor], Tuple[Literal[False], bool, NoneType]]:
+        is_particle = particle.matcher(cursor.token)
+        if is_particle == True:
             if cursor.token.normalized_form() in parallel_particles:
                 back_cursor = cursor.get_back()
-                if back_cursor.token.surface() == 'と':
-                    return True, back_cursor
-                return True, cursor
+                if back_cursor == False:
+                    return False, is_particle, None
+                if back_cursor.token.surface() in parallel_expressions:
+                    return True, particle.matcher(back_cursor.token), back_cursor
+                return True, is_particle, cursor
             back_cursor = cursor.get_back()
             if back_cursor.token.surface() in parallel_expressions:
-                return True, back_cursor
+                return True, is_particle, back_cursor
         else:
             if cursor.token in parallel_expressions:
-                return True, cursor
+                return True, is_particle, cursor
+            return False, is_particle, None
 
 
 class LawDTO:
