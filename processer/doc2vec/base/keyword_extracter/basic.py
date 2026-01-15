@@ -59,6 +59,7 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
         added_keyword = set()
         for keyword_object in keyword_objects:
             for keyword_tuple in keyword_object.to_extender():
+
                 keyword = '/'.join(keyword_tuple)
                 if keyword in added_keyword:
                     continue

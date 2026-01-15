@@ -220,8 +220,9 @@ class ChapterExpressionList:
         # limit = len(self.sequence)
         # index = 0
         base_elements = []
+        is_exist = False
         for target in self.sequence:
-
+            is_exist == True
             if target.is_relative:
                 elements = target.get_tuple_expression(
                     base_element_strs=base_elements)
@@ -230,7 +231,8 @@ class ChapterExpressionList:
                 elements = target.get_tuple_expression(base_element_strs=[])
             results.append(elements)
             base_elements = elements
-
+        if not is_exist:
+            return False
         return results
 
     def イロハの追加(self, イロハ表記: str):
@@ -472,8 +474,9 @@ class LawDTO:
     end: Optional[int]
     chapter_expressions: ChapterExpressionList
 
-    def __init__(self, name, start, face=None, is_guass=False):
-        self.name = name,
+    def __init__(self, name: str, start, face=None, is_guass=False):
+
+        self.name = name
         self.start = start
 
         self.is_reverse = False
@@ -486,7 +489,7 @@ class LawDTO:
         self.is_guass = is_guass
         self.chapter_expressions = []
 
-    def add_chapteer_expression(self, chapter_expression):
+    def add_chapter_expression(self, chapter_expression):
         self.chapter_expressions.append(chapter_expression)
 
 
@@ -520,6 +523,11 @@ class LawDTOList:
         if self.count == 0:
             return False
         return self.sequence[-1]
+
+    def get_first(self):
+        if self.count == 0:
+            return False
+        return self.sequence[0]
 
     def reset_index(self):
         self.index = -1
@@ -672,15 +680,24 @@ class Rule(KeywordExtractRule):
 
         law_dto_list.prepare()
 
-        last_law = law_dto_list.get_last()
-        self.context.set_data(data=last_law.name, dto=dto)
-        if last_law.start > 0:
+        first_law = law_dto_list.get_first()
+        if first_law != False and first_law.start > 0:
+            is_context_exist, data = self.context.get_data(dto=dto)
+
+            if is_context_exist == True:
+
+                law_name = data
+            else:
+                law_name = first_law.name
+
             psuedo_law_dto = LawDTO(
-                name=last_law.name, start=0, face='', is_guass=True)
+                name=law_name, start=0, face='', is_guass=True)
+
             law_dto_list.prepend(dto=psuedo_law_dto)
 
+        if first_law:
+            self.context.set_data(data=first_law.name, dto=dto)
         tokens = set()
-        is_in = False
 
         chapter_extracter = ChapterExtracter(
             parse_result=parse_result, all_text=all_text)
@@ -698,7 +715,7 @@ class Rule(KeywordExtractRule):
             chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
 
-            if chapter_expressions != False:
+            if not chapter_expressions == False:
 
                 law_dto_list.now.chapter_expressions = chapter_expressions
 
@@ -709,12 +726,13 @@ class Rule(KeywordExtractRule):
 
             if not law_dto.chapter_expressions:
                 if not law_dto.is_guass:
+
                     non_chapter_laws.add(law_dto.name)
                 continue
 
             expression_tuples = law_dto.chapter_expressions.get_expression_tuples()
 
-            if expression_tuple == False:
+            if expression_tuples == False:
                 continue
 
             law2chapter[law_dto.name].update(expression_tuples)
@@ -722,10 +740,13 @@ class Rule(KeywordExtractRule):
         results.remove_kewywords(tokens)
 
         for law_name in non_chapter_laws:
+
             kw = SpecifiedKeyword(
                 headword=law_name, source_ids=DUMMY_SET, is_force=True)
             results.add_keyword(kw)
+
         for law_name, expression_set in law2chapter.items():
+
             for expression_tuple in expression_set:
 
                 kw = SpecifiedKeyword(
