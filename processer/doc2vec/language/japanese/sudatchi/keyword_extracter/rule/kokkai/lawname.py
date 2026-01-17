@@ -129,13 +129,16 @@ class ChapterExpression:
     is_reverse: bool
     depth: int
 
-    def __init__(self, elements=[], is_relative=False, is_reverse=True,):
+    def __init__(self, elements=[], is_relative=False, is_reverse=False, depth=None):
 
         self.elements = elements[:]
 
         self.is_relative = is_relative
         self.is_reverse = is_reverse
-        self.depth = len(elements) - 1
+        if depth != None:
+            self.depth = depth
+        else:
+            self.depth = len(elements) - 1
 
     def append(self, chapter_number: str, chapter_word: Optional[str] = None):
 
@@ -144,6 +147,7 @@ class ChapterExpression:
         self.depth += 1
 
     def get_tuple_expression(self, base_element_strs: Tuple[str, ...]):
+
         result_expression = []
         start_depth = 0
         if self.depth == 0:
@@ -168,6 +172,7 @@ class ChapterExpression:
 
         depth = start_depth
         for element in self.elements:
+
             chapter_string = element.chapter_number
 
             if not element.chapter_word:
@@ -177,6 +182,7 @@ class ChapterExpression:
                 chapter_string += element.chapter_word
             result_expression.append(chapter_string)
             depth += 1
+
         return tuple(result_expression)
 
 
@@ -189,8 +195,13 @@ class ChapterExpressionList:
         self.cursor_head = None
 
     def add_element(self, chapter_number, chapter_word: Optional[str] = None, depth=None):
-        if not self.cursor_head:
-            return self.add_new_expression(is_relative=depth != None and depth != 0)
+
+        if self.cursor_head == None:
+            expression = self.add_new_expression(
+                is_relative=depth != None and depth != 0, depth=depth)
+            expression.append(chapter_number=chapter_number,
+                              chapter_word=chapter_word)
+            return
 
         elif depth != None:
             if self.cursor_head.is_relative:
@@ -208,11 +219,12 @@ class ChapterExpressionList:
         self.cursor_head.append(chapter_number=chapter_number,
                                 chapter_word=chapter_word)
 
-    def add_new_expression(self, elements=[], is_relative=False):
+    def add_new_expression(self, elements=[], is_relative=False, depth=None):
         expression = ChapterExpression(
-            elements=elements, is_relative=is_relative)
+            elements=elements, is_relative=is_relative, depth=depth)
         self.sequence.append(expression)
         self.cursor_head = expression
+        return expression
 
     def get_expression_tuples(self):
         results = []
@@ -224,13 +236,15 @@ class ChapterExpressionList:
 
         for target in self.sequence:
 
-            is_exist = True
             if target.is_relative:
                 elements = target.get_tuple_expression(
                     base_element_strs=base_elements)
 
             else:
                 elements = target.get_tuple_expression(base_element_strs=[])
+            if elements == False:
+                continue
+            is_exist = True
             results.append(elements)
             base_elements = elements
         if not is_exist:
@@ -312,7 +326,7 @@ class ChapterExtracter:
 
         self.all_text = all_text
 
-    def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], List]:
+    def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], ChapterExpressionList]:
 
         law_index = -1
 
@@ -474,7 +488,7 @@ class LawDTO:
     name: str
     is_guass: bool
     end: Optional[int]
-    chapter_expressions: ChapterExpressionList
+    chapter_expressions: Union[Literal[False], ChapterExpressionList]
 
     def __init__(self, name: str, start, face=None, is_guass=False):
 
@@ -489,10 +503,8 @@ class LawDTO:
 
         self.end = start + len(_face)
         self.is_guass = is_guass
-        self.chapter_expressions = []
-
-    def add_chapter_expression(self, chapter_expression):
-        self.chapter_expressions.append(chapter_expression)
+        self.face = _face
+        self.chapter_expressions = False
 
 
 class LawDTOList:
@@ -719,7 +731,7 @@ class Rule(KeywordExtractRule):
             chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
 
-            if not chapter_expressions == False:
+            if chapter_expressions != False:
 
                 law_dto_list.now.chapter_expressions = chapter_expressions
 
@@ -738,7 +750,7 @@ class Rule(KeywordExtractRule):
 
             if expression_tuples == False:
                 continue
-
+            print(expression_tuples)
             law2chapter[law_dto.name].update(expression_tuples)
 
         results.remove_kewywords(tokens)
