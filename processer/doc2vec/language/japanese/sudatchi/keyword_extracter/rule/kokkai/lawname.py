@@ -221,8 +221,10 @@ class ChapterExpressionList:
         # index = 0
         base_elements = []
         is_exist = False
+
         for target in self.sequence:
-            is_exist == True
+
+            is_exist = True
             if target.is_relative:
                 elements = target.get_tuple_expression(
                     base_element_strs=base_elements)
@@ -665,6 +667,7 @@ class Rule(KeywordExtractRule):
 
         for 法律名の略称 in 法律名の略称のリスト:
             法律の正式名称 = 略称と正式名称の対応表[法律名の略称]
+
             self._set_law_positions(
                 text=all_text, law_dto_list=law_dto_list, lawname=法律の正式名称, face=法律名の略称)
 
@@ -694,15 +697,16 @@ class Rule(KeywordExtractRule):
                 name=law_name, start=0, face='', is_guass=True)
 
             law_dto_list.prepend(dto=psuedo_law_dto)
-
-        if first_law:
-            self.context.set_data(data=first_law.name, dto=dto)
+        last_law = law_dto_list.get_last()
+        if last_law != False:
+            self.context.set_data(data=last_law.name, dto=dto)
         tokens = set()
 
         chapter_extracter = ChapterExtracter(
             parse_result=parse_result, all_text=all_text)
 
         while law_dto_list.step():
+
             if law_dto_list.now.end == None:
                 start = law_dto_list.now.start
             else:
@@ -761,8 +765,8 @@ class Rule(KeywordExtractRule):
 
     def _set_law_positions(self, text, law_dto_list: LawDTOList, lawname, face='', filter_func: Optional[Callable[[str, int], bool]] = None):
 
-        _face = face or lawname
-        start = text.find(_face)
+        target = face or lawname
+        start = text.find(target)
 
         while start != -1:
             if filter_func == None or filter_func(text, start) == False:
@@ -771,7 +775,7 @@ class Rule(KeywordExtractRule):
 
                 law_dto_list.append(dto)
 
-            start = text.find(_face, start + 1)
+            start = text.find(target, start + 1)
 
     def _法律の略称ではない商法をブロックする関数(self, text: str, start: int) -> bool:
         """

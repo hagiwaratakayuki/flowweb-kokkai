@@ -34,12 +34,16 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
             )
 
         if len(results.keywords) == 0:
+
             return []
+
         result_keywords = results.get_keywords()
+
         keyword_objects = [
             result for result in result_keywords if result.is_force == True]
 
         keyword_scores = []
+
         for result_keywords in result_keywords:
 
             if result_keywords.is_force:

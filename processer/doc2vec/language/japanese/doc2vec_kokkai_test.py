@@ -51,7 +51,7 @@ class TestDoc2vec(unittest.TestCase):
         r = list(res)
         print(r)
 
-    def test_aynu(self):
+    def test_ynu(self):
 
         data = DTO()
         data.published = "1999-07-01"
@@ -60,6 +60,7 @@ class TestDoc2vec(unittest.TestCase):
         data.discussion_id = "aynu"
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_sakura(self):
 
