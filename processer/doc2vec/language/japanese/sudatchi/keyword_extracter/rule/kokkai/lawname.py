@@ -2,6 +2,8 @@
 
 import math
 
+from tracemalloc import start
+from turtle import st
 from types import NoneType
 from typing import Any, Callable, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 
@@ -177,9 +179,10 @@ class ChapterExpression:
 
             if not element.chapter_word:
                 if depth < 3:
-                    chapter_string += 章としての区分を表す単語[element.depth]
+                    chapter_string += 章としての区分を表す単語[depth]
             else:
                 chapter_string += element.chapter_word
+
             result_expression.append(chapter_string)
             depth += 1
 
@@ -328,7 +331,7 @@ class ChapterExtracter:
 
     def exec(self, start, end, law_start, law_end, tokens: Set) -> Union[Literal[False], ChapterExpressionList]:
 
-        law_index = -1
+        law_indexs = set()
 
         chapter_expressions = ChapterExpressionList()
 
@@ -337,11 +340,13 @@ class ChapterExtracter:
             token = self.cursor.token
 
             if token.end() <= start:
+
                 continue
             if law_start <= token.begin() < law_end:
+                law_indexs.add(self.cursor.index)
 
-                law_index = self.cursor.index
                 tokens.add(token)
+
                 continue
             if token.end() == end:
                 break
@@ -366,6 +371,7 @@ class ChapterExtracter:
 
                     target_depth = 章の区分と数値の変換表.get(
                         chapter_word_candiate, None)
+
                     if target_depth != None:
 
                         tokens.add(token)
@@ -379,6 +385,7 @@ class ChapterExtracter:
                         if counter_word_possible.matcher(next_token):
 
                             continue
+
                         back_cursor = self.cursor.get_back()
                         is_step_expression = False
                         is_new_expression = False
@@ -389,6 +396,7 @@ class ChapterExtracter:
                         else:
 
                             if comma.matcher(back_cursor.token):
+
                                 back_cursor = back_cursor.get_back()
                                 if back_cursor == False:
                                     continue
@@ -397,7 +405,8 @@ class ChapterExtracter:
                                     is_step_expression = True
                                     is_new_expression = True
 
-                            if back_cursor.index == law_index:
+                            if back_cursor.index in law_indexs:
+
                                 is_step_expression = True
 
                             if not is_step_expression:
@@ -490,18 +499,20 @@ class LawDTO:
     end: Optional[int]
     chapter_expressions: Union[Literal[False], ChapterExpressionList]
 
-    def __init__(self, name: str, start, face=None, is_guass=False):
+    def __init__(self, name: str, start=None, face=None, is_guass=False):
 
         self.name = name
         self.start = start
 
         self.is_reverse = False
-        if face != None:
-            _face = face
-        else:
-            _face = name
 
-        self.end = start + len(_face)
+        _face = face or name
+        if is_guass == False:
+            self.end = start + len(_face)
+        else:
+            self.end = -1
+            self.start = -1
+
         self.is_guass = is_guass
         self.face = _face
         self.chapter_expressions = False
@@ -690,7 +701,7 @@ class Rule(KeywordExtractRule):
 
                 return results
 
-            law_dto = LawDTO(name=法律名, start=0, face='', is_guass=True)
+            law_dto = LawDTO(name=法律名, is_guass=True)
             law_dto_list.append(law_dto)
 
         law_dto_list.prepare()
@@ -706,7 +717,7 @@ class Rule(KeywordExtractRule):
                 law_name = first_law.name
 
             psuedo_law_dto = LawDTO(
-                name=law_name, start=0, face='', is_guass=True)
+                name=law_name, is_guass=True)
 
             law_dto_list.prepend(dto=psuedo_law_dto)
         last_law = law_dto_list.get_last()
@@ -719,10 +730,7 @@ class Rule(KeywordExtractRule):
 
         while law_dto_list.step():
 
-            if law_dto_list.now.end == None:
-                start = law_dto_list.now.start
-            else:
-                start = law_dto_list.now.end
+            start = law_dto_list.now.start
 
             if law_dto_list.next == None:
                 end = len(all_text)
@@ -750,7 +758,7 @@ class Rule(KeywordExtractRule):
 
             if expression_tuples == False:
                 continue
-            print(expression_tuples)
+
             law2chapter[law_dto.name].update(expression_tuples)
 
         results.remove_kewywords(tokens)
@@ -775,12 +783,13 @@ class Rule(KeywordExtractRule):
 
         return results
 
-    def _set_law_positions(self, text, law_dto_list: LawDTOList, lawname, face='', filter_func: Optional[Callable[[str, int], bool]] = None):
+    def _set_law_positions(self, text: str, law_dto_list: LawDTOList, lawname, face='', filter_func: Optional[Callable[[str, int], bool]] = None):
 
         target = face or lawname
         start = text.find(target)
 
         while start != -1:
+
             if filter_func == None or filter_func(text, start) == False:
 
                 dto = LawDTO(lawname, start=start, face=face)
