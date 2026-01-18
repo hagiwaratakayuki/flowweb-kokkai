@@ -510,8 +510,8 @@ class LawDTO:
         if is_guass == False:
             self.end = start + len(_face)
         else:
-            self.end = -1
-            self.start = -1
+            self.end = 0
+            self.start = 0
 
         self.is_guass = is_guass
         self.face = _face
@@ -736,6 +736,7 @@ class Rule(KeywordExtractRule):
                 end = len(all_text)
             else:
                 end = law_dto_list.next.start
+
             chapter_expressions = chapter_extracter.exec(
                 start=start, end=end, law_start=law_dto_list.now.start, law_end=law_dto_list.now.end, tokens=tokens)
 
