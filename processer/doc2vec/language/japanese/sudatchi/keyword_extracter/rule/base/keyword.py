@@ -107,7 +107,7 @@ class WordCanditates:
 
                     return
 
-        canditate_count = len(canditates)
+        canditate_count = self.canditates_count
         if canditate_count == 1:
             token = canditates[0]
             if unuse_word_conditions(token):
@@ -136,6 +136,23 @@ class WordCanditates:
                 break
         if not is_complexable_word:
             return
+        head = canditates[0]
+        if number.matcher(head):
+            index = 0
+
+            while index < canditate_count:
+
+                token = canditates[index]
+                index += 1
+
+                if number.matcher(token) or whole_counter_word.matcher(token):
+                    continue
+                break
+            if index == canditate_count:
+
+                return
+            canditates = canditates[index:]
+
         tail = canditates.pop()
         if count == canditate_count and safix.matcher(tail):
             return
@@ -185,7 +202,7 @@ class Rule(KeywordExtractRule):
     def execute(self, parse_result: SudatchiDTO, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: IndexerCls):
 
         word_canditate = WordCanditates(all_tokens=parse_result.tokens)
-        # all_text = dto.get_text()
+
         position = -1
         for token in parse_result.tokens:
             position += 1

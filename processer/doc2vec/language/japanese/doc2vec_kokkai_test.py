@@ -83,6 +83,7 @@ class TestDoc2vec(unittest.TestCase):
 
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_airgun(self):
 
@@ -97,6 +98,7 @@ class TestDoc2vec(unittest.TestCase):
 
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_kenpou(self):
 
@@ -109,6 +111,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_unionchurch(self):
 
@@ -125,6 +128,7 @@ class TestDoc2vec(unittest.TestCase):
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)
 
     def test_complexword_with_count(self):
 
@@ -137,3 +141,4 @@ class TestDoc2vec(unittest.TestCase):
         data.body = text
         res = doc2vec.exec(mock_pool, [data])
         r = list(res)
+        print(r)

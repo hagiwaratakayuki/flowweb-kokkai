@@ -488,6 +488,7 @@ class ChapterExtracter:
             if cursor.token in parallel_expressions:
                 return True, is_particle, cursor
             return False, is_particle, None
+        return False, False, None
 
 
 class LawDTO:
