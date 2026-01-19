@@ -83,7 +83,7 @@ class WordCanditates:
         if self.canditates_count == 0:
             return
         canditates = self.canditates
-        start = self.start
+
         end = self.end
         self.reset()
 
@@ -108,6 +108,7 @@ class WordCanditates:
                     return
 
         canditate_count = self.canditates_count
+
         if canditate_count == 1:
             token = canditates[0]
             if unuse_word_conditions(token):
@@ -126,7 +127,9 @@ class WordCanditates:
                     self.word_to_tokens[reguraize_rule.apply(
                         splited[-1])].add(token, is_force=True)
                     return
-
+        canditates = self._count_check(canditates, canditate_count)
+        if not canditates:
+            return
         is_complexable_word = False
         count = 0
         for token in canditates:
@@ -136,22 +139,6 @@ class WordCanditates:
                 break
         if not is_complexable_word:
             return
-        head = canditates[0]
-        if number.matcher(head):
-            index = 0
-
-            while index < canditate_count:
-
-                token = canditates[index]
-                index += 1
-
-                if number.matcher(token) or whole_counter_word.matcher(token):
-                    continue
-                break
-            if index == canditate_count:
-
-                return
-            canditates = canditates[index:]
 
         tail = canditates.pop()
         if count == canditate_count and safix.matcher(tail):
@@ -193,6 +180,26 @@ class WordCanditates:
 
         self.word_to_tokens[word].update(canditates)
 
+    def _count_check(self, canditates, canditate_count):
+        head = canditates[0]
+
+        if number.matcher(head):
+            index = 0
+
+            while index < canditate_count:
+
+                token = canditates[index]
+                index += 1
+
+                if number.matcher(token) or whole_counter_word.matcher(token):
+                    continue
+                break
+            if index == canditate_count:
+
+                return False
+            canditates = canditates[index:]
+        return canditates
+
     def get_word_to_token(self):
 
         return self.word_to_tokens
@@ -206,7 +213,8 @@ class Rule(KeywordExtractRule):
         position = -1
         for token in parse_result.tokens:
             position += 1
-            if noun_or_safix_matcher(token) or (word_canditate.canditates_count > 0 and prefix.matcher(token)):
+            print(token, token.part_of_speech())
+            if noun_or_safix_matcher(token) or prefix.matcher(token):
                 word_canditate.add_canditate(token, position=position)
                 continue
             word_canditate.check()

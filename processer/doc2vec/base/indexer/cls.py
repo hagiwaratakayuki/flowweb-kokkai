@@ -27,11 +27,11 @@ class Indexer(IndexerCls):
             return None, None, None, data
 
         specifiable_tokens = set()
-
+        # 長さも取得するように
         word_to_vector = self.vectorizer.get_vectors(reguraized_forms)
 
         specifiable_tokens_vector_list = []
-        index2norm = {}
+        index2reg = {}
         index = -1
         sent_number = -1
         sents_to_specifi_tokens = defaultdict(set)
@@ -49,7 +49,7 @@ class Indexer(IndexerCls):
                 if (token_reguraized not in specifiable_tokens):
                     index += 1
                     specifiable_tokens_vector_list.append(token_vector)
-                    index2norm[index] = token_reguraized
+                    index2reg[index] = token_reguraized
                 specifiable_tokens.add(token_reguraized)
                 sent_to_specifi_tokens.add(token_reguraized)
 
@@ -76,7 +76,7 @@ class Indexer(IndexerCls):
         specifiable_token_to_weight = {}
         for weight in weights:
             index += 1
-            specifiable_token_to_weight[index2norm[index]] = weight
+            specifiable_token_to_weight[index2reg[index]] = weight
         sent_to_weights = {}
         all_sent_weight = 0.0
 
