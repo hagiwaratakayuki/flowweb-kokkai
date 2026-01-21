@@ -18,10 +18,10 @@ class VectorSentiment(SentimentAnarizer):
         self.cache = {}
         for words, key in [(posi_words, 'positive',), (nega_words, 'negative')]:
 
-            projected_dict = vectorizer.get_vectors(words)
+            vectors_lengths = vectorizer.get_vectors(words)
 
             self.sentiment_vecs[key] = (
-                deque(projected_dict.values()), len(words),)
+                deque(vectors_lengths[0].values()), len(words),)
 
     def execute(self, words: Dict[str, np.ndarray]) -> Dict[str, SentimentScoreDict]:
 

@@ -197,7 +197,7 @@ class WordCanditates:
             if index == canditate_count:
 
                 return False
-            canditates = canditates[index:]
+            canditates = canditates[index - 1:]
         return canditates
 
     def get_word_to_token(self):

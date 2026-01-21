@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Dict, Optional
 
+from ginza import norm
 import numpy as np
 from doc2vec.base.indexer.cls import Indexer
 from sudachipy.morpheme import Morpheme
@@ -23,6 +24,9 @@ class SudatchiIndexer(Indexer):
 
     def _get_vector(self, word_to_vector: WordToVecDictType, token: Morpheme) -> Optional[np.ndarray]:
         return word_to_vector.get(self._get_reguraized(token=token))
+
+    def _get_vector_length(self, word_to_vector_length: Dict[str, norm], token: Morpheme) -> Optional[float]:
+        return word_to_vector_length.get(self._get_reguraized(token=token))
 
     def _get_reguraized(self, token: Morpheme) -> str:
         return reguraize_rule.apply(token=token)

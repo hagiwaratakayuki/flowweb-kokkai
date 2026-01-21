@@ -1,17 +1,19 @@
-from email.policy import default
 from typing import Optional, Union
 
 from gensim.models import KeyedVectors
 from collections import deque
+
+from doc2vec.base.protocol import vectorizer as vectorizer_protocol
+
 import numpy as np
 import os
 import logging
 
 from utillib.random_projection import projection
 logging.basicConfig(level=logging.INFO)
-kv: Union[KeyedVectors, None] = None
-projected = {}
 
+projected = {}
+cached_norms = {}
 MODEL_PATH = 'model/cc.ja.300.vec'
 KV: Optional[KeyedVectors] = None
 
@@ -54,7 +56,7 @@ class LoadKeyedVectors(LoderFunctionClass):
 loadKeyedVectors = LoadKeyedVectors(MODEL_PATH)
 
 
-class Vectorizer:
+class Vectorizer(vectorizer_protocol.Vectorizer):
 
     def __init__(self, model_path=None, basepath='', loader: Optional[LoderFunctionClass] = None) -> None:
         self._model_path = model_path or MODEL_PATH
@@ -71,18 +73,18 @@ class Vectorizer:
     def get_vectors(self, words):
         global projected
 
-        ret = {}
+        vectors = {}
+        lengths = {}
         unprojected_vecs = deque()
         unprojected_words = deque()
         unprojected_count = 0
-        hit_count = 0
-        unhit_count = 0
 
         for word in words:
 
             if word in projected is True:
 
-                ret[word] = projected[word]
+                vectors[word] = projected[word]
+                lengths[word] = cached_norms[word]
             elif word not in KV:
 
                 continue
@@ -98,11 +100,17 @@ class Vectorizer:
 
         if unprojected_count > 0:
 
-            unprojected_mat = np.fromiter(
+            unprojected_array = np.fromiter(
                 unprojected_vecs, dtype=(dt, dimn, ), count=unprojected_count)
-            projected_mat = projection(unprojected_mat)
-            for word, projected_vec in zip(unprojected_words, projected_mat):
-                projected[word] = projected_vec
-                ret[word] = projected_vec
 
-        return ret
+            projected_array = projection(unprojected_array)
+            length_array = np.sqrt(
+                np.einsum("ij,ij->i", projected_array, projected_array))
+            for word, projected_vec, norm in zip(unprojected_words, projected_array, length_array):
+                projected[word] = projected_vec
+                lengths[word] = norm
+                cached_norms[word] = norm
+
+                vectors[word] = projected_vec
+
+        return vectors, lengths

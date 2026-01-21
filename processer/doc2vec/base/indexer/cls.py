@@ -4,6 +4,7 @@ import math
 from typing import Any, Deque, Iterable, Optional, Dict, Tuple
 
 import numpy as np
+import scipy as sp
 from doc2vec.base.protocol.vectorizer import Vectorizer, WordToVecDictType
 from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, SentimentVectors, SentimentWeights
 from data_loader.dto import DTO
@@ -27,10 +28,12 @@ class Indexer(IndexerCls):
             return None, None, None, data
 
         specifiable_tokens = set()
-        # 長さも取得するように
-        word_to_vector = self.vectorizer.get_vectors(reguraized_forms)
+
+        word_to_vector, word_to_vector_length = self.vectorizer.get_vectors(
+            reguraized_forms)
 
         specifiable_tokens_vector_list = []
+        specifiable_tokens_vector_length_list = []
         index2reg = {}
         index = -1
         sent_number = -1
@@ -41,19 +44,32 @@ class Indexer(IndexerCls):
             sent_to_specifi_tokens = sents_to_specifi_tokens[sent_number]
 
             for token in sent:
+                if not self._check_specifiable_pos(token):
+                    continue
                 token_vector = self._get_vector(
                     word_to_vector=word_to_vector, token=token)
-                if token_vector is None or not self._check_specifiable_pos(token):
+                if token_vector is None:
                     continue
+                token_vector_length = self._get_vector_length(
+                    word_to_vector_length=word_to_vector_length, token=token)
+
                 token_reguraized = self._get_reguraized(token)
+
                 if (token_reguraized not in specifiable_tokens):
                     index += 1
                     specifiable_tokens_vector_list.append(token_vector)
+                    specifiable_tokens_vector_length_list.append(
+                        token_vector_length)
                     index2reg[index] = token_reguraized
                 specifiable_tokens.add(token_reguraized)
                 sent_to_specifi_tokens.add(token_reguraized)
 
-        specifiable_token_vector = np.array(specifiable_tokens_vector_list)
+        specifiable_tokens_vector_length_avg_ratio = (specifiable_tokens_vector_length_list /
+                                                      np.average(specifiable_tokens_vector_length_list)) ** 2
+
+        specifiable_token_vector = np.einsum(
+            "ij,i->ij", np.array(specifiable_tokens_vector_list), specifiable_tokens_vector_length_avg_ratio)
+
         specifiable_tokens_center = np.average(
             specifiable_token_vector, axis=0)
         specifiable_tokens_distance = np.linalg.norm(
@@ -81,8 +97,9 @@ class Indexer(IndexerCls):
         all_sent_weight = 0.0
 
         for sent_number, sent_to_specifi_tokens in sents_to_specifi_tokens.items():
-            sent_total_weight = 0.0
+
             count = 0.0
+            sent_total_weight = 0.0
 
             for norm in sent_to_specifi_tokens:
                 count += 1.0
@@ -197,6 +214,9 @@ class Indexer(IndexerCls):
         pass
 
     def _get_vector(self, word_to_vector: WordToVecDictType, token: Any) -> Optional[np.ndarray]:
+        pass
+
+    def _get_vector_length(self, word_to_vector_length: Dict[str, float], token: Any) -> Optional[float]:
         pass
 
     def _get_reguraized(self, token) -> str:
