@@ -101,9 +101,9 @@ class Indexer(IndexerCls):
             count = 0.0
             sent_total_weight = 0.0
 
-            for norm in sent_to_specifi_tokens:
+            for rguraized in sent_to_specifi_tokens:
                 count += 1.0
-                sent_total_weight += specifiable_token_to_weight[norm]
+                sent_total_weight += specifiable_token_to_weight[rguraized]
 
             sent_weight = sent_total_weight / (count or 1)
             sent_to_weights[sent_number] = sent_weight

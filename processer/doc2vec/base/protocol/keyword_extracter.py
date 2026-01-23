@@ -19,11 +19,12 @@ EMPTY_SET = set()
 
 
 class ExtractResultDTO:
-    token_2_keyword: Token2Keyword
+    source_2_keyword: Token2Keyword
     keywords: Set[SpecifiedKeyword]
 
     def __init__(self):
-        self.token_2_keyword = defaultdict(set)
+        self.source_2_keyword = defaultdict(set)
+
         self.keywords = set()
 
     def add_keyword(self, keyword: SpecifiedKeyword, is_overwrite_token=True):
@@ -36,7 +37,7 @@ class ExtractResultDTO:
                 target_keyword.source_ids -= keyword.source_ids
 
         for source_id in keyword.source_ids:
-            self.token_2_keyword[source_id].add(keyword)
+            self.source_2_keyword[source_id].add(keyword)
 
     def remove_kewywords(self, source_ids):
 
@@ -51,17 +52,24 @@ class ExtractResultDTO:
     def get_by_source_ids(self, source_ids: Iterable[Any]) -> Set[SpecifiedKeyword]:
         ret: Set[SpecifiedKeyword] = set()
         for source_id in source_ids:
-            ret.update(self.token_2_keyword.get(source_id, []))
+            ret.update(self.source_2_keyword.get(source_id, []))
         return ret
 
     def check_by_source_ids(self, source_ids):
-        return {source_id for source_id in source_ids if source_id in self.token_2_keyword}
+        return {source_id for source_id in source_ids if source_id in self.source_2_keyword}
 
     def substruct_sorce_id(self, keyword: SpecifiedKeyword, source_ids: Set[Any]):
         self.keywords[keyword].source_ids -= source_ids
 
 
-class KeywordExtractRule:
+class KeywordExtractRule(metaclass=ABCMeta):
+    @abstractmethod
+    def execute(self, parse_result: Any, document_vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: Any) -> List[SpecifiedKeyword]:
+        pass
+
+
+class StopwordRule(metaclass=ABCMeta):
+    @abstractmethod
     def execute(self, parse_result: Any, document_vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, indexer: Any) -> List[SpecifiedKeyword]:
 
         pass

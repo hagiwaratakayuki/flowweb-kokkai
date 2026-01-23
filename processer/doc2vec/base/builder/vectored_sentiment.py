@@ -1,5 +1,6 @@
 
 
+import re
 from typing import List, Type
 from doc2vec.base.keyword_extracter.basic import BasicKeywordExtratcer
 from doc2vec.base.builder import basic_indexer
@@ -23,7 +24,7 @@ class BuilderClass(basic_indexer.Builder):
             model_path=model_path, basepath=basepath, loader=loader)
         return self
 
-    def build_keyword_extracter(self, rules, keyword_limit=5):
+    def build_keyword_extracter(self, rules, stopword_rules, keyword_limit=5, result_class=None):
         self.keyword_extracter = self.keyword_extracter_class(
-            rules=rules, keyword_limit=keyword_limit)
+            rules=rules, stopword_rules=stopword_rules, keyword_limit=keyword_limit, result_class=result_class)
         return self
