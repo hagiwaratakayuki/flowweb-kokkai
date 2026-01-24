@@ -14,5 +14,9 @@ stopword_set.update(stopword.auxiliary_verb)
 stopword_set.update(stopword.adjective)
 
 
-def list_remover(words):
+def remove_stopwords(words):
     return [word for word in words if word not in stopword_set]
+
+
+def check_is_stopword(word):
+    return word in stopword_set
