@@ -10,7 +10,7 @@ from doc2vec.util.specified_keyword import SpecifiedKeyword
 
 class WordStopRule(metaclass=ABCMeta):
     @abstractmethod
-    def execute(self, word: str, tokens: List[Any]) -> List[Any]:
+    def __call__(self, word: str, tokens: List[Any]) -> List[Any]:
         pass
 
 

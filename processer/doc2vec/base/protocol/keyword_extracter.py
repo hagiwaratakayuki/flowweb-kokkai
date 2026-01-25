@@ -81,5 +81,5 @@ class KeywordExtracterClass(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
+    def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, reguraied_2_score: Dict[Any, float], indexer: Any) -> KeywordsType:
         pass

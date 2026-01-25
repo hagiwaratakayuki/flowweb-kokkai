@@ -15,6 +15,7 @@ SpecifiablePos = MainPos | adjective.matcher
 
 
 class SudatchiIndexer(Indexer):
+    _reguraize_rule = reguraize_rule
 
     def _check_specifiable_pos(self, token: Morpheme) -> bool:
         return SpecifiablePos(token)
@@ -29,4 +30,4 @@ class SudatchiIndexer(Indexer):
         return word_to_vector_length.get(self._get_reguraized(token=token))
 
     def _get_reguraized(self, token: Morpheme) -> str:
-        return reguraize_rule.apply(token=token)
+        return self._reguraize_rule.apply(token=token)

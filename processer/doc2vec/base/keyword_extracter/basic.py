@@ -59,7 +59,7 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
             if result_keywords.is_force:
                 continue
             score = 0.0
-            for source_id in result_keywords.source_ids:
+            for source_id in self._get_score_keys(result_keywords.source_ids):
                 score += token_2_score[source_id]
             keyword_scores.append((result_keywords, score, ))
         keyword_scores.sort(key=SCORE_KEY, reverse=True)
@@ -81,3 +81,6 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
                 keywords.append(keyword)
 
         return keywords
+
+    def _get_score_keys(self, sorce_ids):
+        pass

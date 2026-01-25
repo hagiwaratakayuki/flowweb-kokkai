@@ -18,5 +18,5 @@ def remove_stopwords(words):
     return [word for word in words if word not in stopword_set]
 
 
-def check_is_stopword(word):
+def check_is_stopword(word, *ars, **kwargs):
     return word in stopword_set

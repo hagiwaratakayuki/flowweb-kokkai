@@ -1,5 +1,5 @@
 
-from processer.doc2vec.base.keyword_extracter.stopwords import check_token_include
+from doc2vec.base.keyword_extracter.stopwords import check_token_include
 from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.base.stopwords.include import chapter
 from sudachipy.morpheme import Morpheme
 surface_stopwords = chapter.words
