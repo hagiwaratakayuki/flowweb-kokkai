@@ -2,7 +2,7 @@ from doc2vec.language.japanese.sudatchi.keyword_extracter.rule.base.stopwords im
 from doc2vec.util.listed_function import true_break
 from sudachipy.morpheme import Morpheme
 stopword_rules = [
-    include.rule
+    # include.rule
 ]
 
 

@@ -1,10 +1,9 @@
-from operator import index
-from turtle import st
+
 from doc2vec.base.builder import vectored_sentiment
 from doc2vec.language.japanese.builder import default_sentiment
 from doc2vec.language.japanese.sudatchi.indexer import SudatchiIndexer
 from doc2vec.language.japanese.sudatchi.tokenizer.cls import SudatchiTokenizer
-from processer.doc2vec.language.japanese.sudatchi.keyword_extractor import SudatchiKeywordExtarctor
+from doc2vec.language.japanese.sudatchi.keyword_extractor import SudatchiKeywordExtarctor
 
 DefaultModelPath = 'model/chive-1.3-mc90.kv'
 

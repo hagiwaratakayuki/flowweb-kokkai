@@ -58,9 +58,15 @@ class BasicKeywordExtratcer(KeywordExtracterClass):
 
             if result_keywords.is_force:
                 continue
-            score = 0.0
-            for source_id in self._get_score_keys(result_keywords.source_ids):
-                score += token_2_score[source_id]
+
+            scores = [token_2_score[source_id]
+                      for source_id in result_keywords.source_ids if source_id in token_2_score]
+            len_scores = float(len(scores))
+            if len_scores == 0.0:
+                score = 0.0
+
+            else:
+                score = sum(scores) / len_scores
             keyword_scores.append((result_keywords, score, ))
         keyword_scores.sort(key=SCORE_KEY, reverse=True)
         count = 0
