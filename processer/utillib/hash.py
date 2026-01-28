@@ -1,19 +1,24 @@
+from ast import mod
 import math
+
+from numpy import mat
 start = ord('!')
 BASE32 = [chr(i + start) for i in range(32)]
 
 
-def encode(x, y, order=20):
+def encode(x, y, x_range=3000, y_range=3000, order=20):
     x_axis = 0
     y_axis = 0
 
     index_number = 1
     codes = []
+    step_number = 2
     while order >= index_number:
         x_side = int(x > x_axis)
         y_side = int(y > y_axis)
-        x_axis += (2 * x_side - 1) / 2 ** index_number
-        y_axis += (2 * y_side - 1) / 2 ** index_number
+        x_axis += x_range * (2 * x_side - 1) / step_number
+        y_axis += y_range * (2 * y_side - 1) / step_number
+        step_number *= 2
 
         codes.append(x_side)
         codes.append(y_side)
