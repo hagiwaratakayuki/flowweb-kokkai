@@ -1,6 +1,7 @@
 
 from collections import defaultdict, deque
 import math
+import re
 from typing import Any, Deque, Iterable, Optional, Dict, Tuple
 
 import numpy as np
@@ -64,8 +65,8 @@ class Indexer(IndexerCls):
                 specifiable_tokens.add(token_reguraized)
                 sent_to_specifi_tokens.add(token_reguraized)
 
-        specifiable_tokens_vector_length_avg_ratio = (specifiable_tokens_vector_length_list /
-                                                      np.average(specifiable_tokens_vector_length_list)) ** 2
+        specifiable_tokens_vector_length_avg_ratio = specifiable_tokens_vector_length_list / \
+            np.average(specifiable_tokens_vector_length_list)
 
         specifiable_token_vector = np.einsum(
             "ij,i->ij", np.array(specifiable_tokens_vector_list), specifiable_tokens_vector_length_avg_ratio)
@@ -130,20 +131,28 @@ class Indexer(IndexerCls):
         scored_vectors_deque = deque()
 
         token_2_score = defaultdict(set)
+
+        scores = 0.0
         for scored_sent in scored_sents:
             for token, score in scored_sent:
+                scores += score
 
                 reguraized_score = score / total_score
+
                 token_vector = self._get_vector(
                     word_to_vector=word_to_vector, token=token)
+
                 if token_vector is None:
                     token_vector = self._get_zero_array()
+
                 token_vector *= reguraized_score
+
                 token_2_score[token].add(reguraized_score)
 
                 scored_vectors_deque.append(token_vector)
-        scored_vectors = np.vstack(scored_vectors_deque).T
-        document_vector = np.sum(scored_vectors.T, axis=0)
+
+        scored_vectors = np.array(scored_vectors_deque)
+        document_vector = np.sum(scored_vectors, axis=0)
 
         default_score = {"positive": 0.5, "negative": 0.5, "neutral": 0.5}
         sentiment_vectors = SentimentVectors()
@@ -163,7 +172,7 @@ class Indexer(IndexerCls):
                     polarity_sentiment_scores.append(sentiment_score)
                     polarity_score += sentiment_score
             sentiment_vector = np.sum(
-                (scored_vectors * polarity_sentiment_scores).T / (polarity_score or 1.0), axis=0)
+                np.einsum('ij,i->ij', scored_vectors, polarity_sentiment_scores) / (polarity_score or 1.0), axis=0)
             setattr(sentiment_vectors, polarity, sentiment_vector)
             polarity_scores[polarity] = polarity_score
             if polarity != "neutral":
@@ -208,7 +217,7 @@ class Indexer(IndexerCls):
             position += step_count
             result.append((token, score, ))
 
-        return result, score
+        return result, total_score
 
     def _check_specifiable_pos(self, token) -> bool:
         pass
