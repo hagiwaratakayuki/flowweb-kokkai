@@ -9,8 +9,9 @@ from doc2vec.base.protocol.vectorizer import WordToVecDictType
 from doc2vec.language.japanese.sudatchi.util import reguraize_rule
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import adjective, counter_word, counter_word_possible, noun, number, verb
 
-MainPos = noun.matcher | verb.matcher - \
-    counter_word.matcher - counter_word_possible.matcher - number.matcher
+MainPos = (noun.matcher - counter_word.matcher -
+           counter_word_possible.matcher - number.matcher) | verb.matcher
+
 SpecifiablePos = MainPos | adjective.matcher
 
 
@@ -18,6 +19,7 @@ class SudatchiIndexer(Indexer):
     _reguraize_rule = reguraize_rule
 
     def _check_specifiable_pos(self, token: Morpheme) -> bool:
+
         return SpecifiablePos(token)
 
     def _check_main_pos(self, token: Morpheme) -> bool:

@@ -213,7 +213,7 @@ class Rule(KeywordExtractRule):
         position = -1
         for token in parse_result.tokens:
             position += 1
-            print(token, token.part_of_speech())
+
             if noun_or_safix_matcher(token) or prefix.matcher(token):
                 word_canditate.add_canditate(token, position=position)
                 continue

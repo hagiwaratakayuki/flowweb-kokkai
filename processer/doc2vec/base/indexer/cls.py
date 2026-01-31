@@ -47,23 +47,25 @@ class Indexer(IndexerCls):
             for token in sent:
                 if not self._check_specifiable_pos(token):
                     continue
+
                 token_vector = self._get_vector(
                     word_to_vector=word_to_vector, token=token)
                 if token_vector is None:
                     continue
-                token_vector_length = self._get_vector_length(
-                    word_to_vector_length=word_to_vector_length, token=token)
 
                 token_reguraized = self._get_reguraized(token)
 
                 if (token_reguraized not in specifiable_tokens):
                     index += 1
+                    token_vector_length = self._get_vector_length(
+                        word_to_vector_length=word_to_vector_length, token=token)
+
                     specifiable_tokens_vector_list.append(token_vector)
                     specifiable_tokens_vector_length_list.append(
                         token_vector_length)
                     index2reg[index] = token_reguraized
-                specifiable_tokens.add(token_reguraized)
-                sent_to_specifi_tokens.add(token_reguraized)
+                    specifiable_tokens.add(token_reguraized)
+                    sent_to_specifi_tokens.add(token_reguraized)
 
         specifiable_tokens_vector_length_avg_ratio = specifiable_tokens_vector_length_list / \
             np.average(specifiable_tokens_vector_length_list)
@@ -73,27 +75,19 @@ class Indexer(IndexerCls):
 
         specifiable_tokens_center = np.average(
             specifiable_token_vector, axis=0)
-        specifiable_tokens_distance = np.linalg.norm(
-            specifiable_token_vector - specifiable_tokens_center, axis=1)
-        specifiable_tokens_distance_avg = np.average(
-            specifiable_tokens_distance)
-        specifiable_tokens_distance_std = np.std(specifiable_tokens_distance)
+        specifiable_tokens_center_length = np.linalg.norm(
+            specifiable_tokens_center)
+        specifiable_tokens_distance_vector = specifiable_token_vector - \
+            specifiable_tokens_center
+        weights = np.abs(np.dot(specifiable_tokens_distance_vector, specifiable_tokens_center) / (
+                         np.linalg.norm(specifiable_tokens_distance_vector, axis=1) * specifiable_tokens_center_length))
 
-        # sigmoid function,  avg - std to avge + std →　0 to 1, (tanh(ax/2) +1) / 2,  a = 4
-        if specifiable_tokens_distance_std != 0:
-            weights = 1 - (np.tanh(2 * (specifiable_tokens_distance -
-                                        specifiable_tokens_distance_avg) / specifiable_tokens_distance_std) + 1) / 2
-        else:
-            weights = (specifiable_tokens_distance -
-                       specifiable_tokens_distance / 2) / 2
-        # 0.1 to 1.0
-        weights *= 1.8
-        weights += 0.1
         index = -1
         specifiable_token_to_weight = {}
         for weight in weights:
             index += 1
             specifiable_token_to_weight[index2reg[index]] = weight
+
         sent_to_weights = {}
         all_sent_weight = 0.0
 

@@ -104,8 +104,7 @@ class Vectorizer(vectorizer_protocol.Vectorizer):
                 unprojected_vecs, dtype=(dt, dimn, ), count=unprojected_count)
 
             projected_array = projection(unprojected_array)
-            print(np.einsum("ij,ij->i", projected_array, projected_array),
-                  np.einsum("ij,ij->i", unprojected_array, unprojected_array))
+
             length_array = np.sqrt(
                 np.einsum("ij,ij->i", projected_array, projected_array))
             for word, projected_vec, norm in zip(unprojected_words, projected_array, length_array):

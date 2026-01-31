@@ -1,7 +1,4 @@
-from ast import mod
-import math
 
-from numpy import mat
 start = ord('!')
 BASE32 = [chr(i + start) for i in range(32)]
 
