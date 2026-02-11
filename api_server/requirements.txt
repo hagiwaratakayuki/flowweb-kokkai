@@ -1,0 +1,7 @@
+
+google-cloud-datastore==2.18.0
+numpy
+fastapi
+uvicorn
+nltk
+pydantic

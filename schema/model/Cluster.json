@@ -1,0 +1,1 @@
+{"properties": {"title": {"default": "", "title": "Title", "type": "string"}, "member_count": {"title": "Member Count", "type": "integer"}, "short_keywords": {"items": {"type": "string"}, "title": "Short Keywords", "type": "array"}}, "required": ["member_count", "short_keywords"], "title": "Cluster", "type": "object"}

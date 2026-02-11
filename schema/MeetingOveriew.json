@@ -1,0 +1,1 @@
+{"properties": {"id": {"title": "Id"}, "session": {"title": "Session", "type": "integer"}, "issue": {"title": "Issue", "type": "integer"}, "name": {"title": "Name", "type": "string"}, "house": {"title": "House", "type": "string"}}, "required": ["id", "session", "issue", "name", "house"], "title": "MeetingOveriew", "type": "object"}

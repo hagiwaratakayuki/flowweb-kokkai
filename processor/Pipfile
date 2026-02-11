@@ -1,0 +1,37 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+gensim = "==4.3.3"
+ginza = "==5.2.0"
+google-api-core = "==2.21.0"
+google-auth = "==2.35.0"
+google-cloud-audit-log = "==0.3.0"
+google-cloud-core = "==2.4.1"
+google-cloud-datastore = "==2.18.0"
+google-cloud-logging = "==3.11.3"
+google-cloud-storage = "==2.18.2"
+google-cloud-tasks = "==2.17.0"
+google-crc32c = "==1.6.0"
+google-re2 = "==1.1.20240702"
+google-resumable-media = "==2.7.2"
+numpy = "==1.26.4"
+regex = "==2024.9.11"
+scipy = "==1.13.1"
+spacy = "==3.8.4"
+spacy-legacy = "==3.0.12"
+spacy-loggers = "==1.0.5"
+typing-inspect = "==0.9.0"
+get-metadata = "*"
+nltk = "*"
+scikit-learn = "*"
+ja-ginza = "*"
+sudachipy = "*"
+sudachidict-core = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

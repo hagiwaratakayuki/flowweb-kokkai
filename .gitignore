@@ -1,0 +1,18 @@
+.vscode*
+google-cloud*
+Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+nasa_sti
+
+
+/tools/emurater_data/WEB-INF/appengine-generated/local_db.bin
+/processor/model
+/processor/model/cc.ja.300.vec
+/processor/model/chive-1.3-mc90.kv
+/processor/model/chive-1.3-mc90.kv.vectors.npy
+/processer/model
+/processer/model/cc.ja.300.vec
+/processer/model/chive-1.3-mc90.kv
+/processer/model/chive-1.3-mc90.kv.vectors.npy

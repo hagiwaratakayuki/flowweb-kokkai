@@ -1,0 +1,1 @@
+{"properties": {"name": {"title": "Name"}, "id": {"title": "Id"}}, "required": ["name", "id"], "title": "InitalSpeaker", "type": "object"}

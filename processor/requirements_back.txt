@@ -1,0 +1,11 @@
+
+google-api-core==2.11.1
+google-auth==2.23.0
+google-cloud-core==2.3.3
+google-cloud-datastore==2.18.0
+numpy==1.26.0
+oseti
+emoji==1.7
+
+scikit-learn
+gensim

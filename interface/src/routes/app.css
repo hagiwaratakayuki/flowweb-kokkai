@@ -1,0 +1,78 @@
+#container {
+    margin-top: 5%;
+}
+body {
+    background-color: #fbfaf5 !important;
+    font-family:"UD デジタル 教科書体 NK-R" system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
+}
+.section_header {
+    border-left: solid 0.25em #00062a;
+    padding: 0.25em 0.5em 0.25em 0.25em;
+    margin-bottom: 0.5em;
+    
+    
+}
+.division {
+    background-color: white;
+    border: ridge 1px #f5f6fb;
+    padding: 0.5em;
+
+
+}
+.flow {
+    height: 80vh;
+    width: 100%;
+    
+
+}
+
+.flow .sidebar {
+    height: 80vh;
+    width: 100%;
+
+}
+
+
+
+.arrow {
+    cursor: default;
+}
+
+.horizontal-scroll:hover {
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+}
+
+
+@media (min-width: 768px) {
+    .h-80vh {
+        height:80vh
+    }
+    .h-40vh {
+        height:40vh
+    }
+    .sticky {
+        height: 0px;
+        position: sticky;
+        top: 0;
+    }
+    .vertical-scroll {
+        height: 100%;
+        scrollbar-width: none;
+        overflow-y: scroll;
+    }
+
+    .vertical-scroll:hover {
+        scrollbar-width: thin;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: none;
+    }
+
+   
+}
+.void {
+    margin:0;
+    padding:0;
+}

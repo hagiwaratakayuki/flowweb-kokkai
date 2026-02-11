@@ -1,0 +1,1 @@
+{"properties": {"linked_from": {"title": "Linked From"}, "link_to": {"title": "Link To"}, "linked_count": {"title": "Linked Count", "type": "integer"}, "published": {"format": "date-time", "title": "Published", "type": "string"}}, "required": ["linked_from", "link_to", "linked_count", "published"], "title": "Edge", "type": "object"}

@@ -1,0 +1,1 @@
+nohup bash invorker.sh &
