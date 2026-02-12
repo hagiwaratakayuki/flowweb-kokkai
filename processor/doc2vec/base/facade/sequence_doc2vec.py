@@ -8,9 +8,11 @@ from doc2vec.base.protocol.tokenizer import TokenizerCls
 from multiprocessing.pool import Pool
 from typing import Iterable
 
+from processor.doc2vec.base.protocol.pipeline_keyord_extractor import AbstractPipelineKeywordExtractor
+
 
 class Doc2Vec:
-    def __init__(self, tokenaizer: TokenizerCls, document_vectoraizer: AbstractDocumentVectoraizer, keyword_extractor: AbstractKeywordExtractor, chunksize=1000) -> None:
+    def __init__(self, tokenaizer: TokenizerCls, document_vectoraizer: AbstractDocumentVectoraizer, keyword_extractor: AbstractPipelineKeywordExtractor, chunksize=1000) -> None:
         self._tokenaizer = tokenaizer
         self._document_vectoraizer = document_vectoraizer
         self._keyword_extractor = keyword_extractor

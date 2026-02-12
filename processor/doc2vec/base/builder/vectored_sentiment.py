@@ -9,12 +9,12 @@ from doc2vec.base.vectorizer.gensim import Vectorizer
 from doc2vec.base.sentiment.vector_sentiment import VectorSentiment
 
 
-class BuilderClass(basic_postBuilder):
+class BuilderClass(basic_postprocessorBuilder):
     sentiment_anarizer_class: Type[VectorSentiment] = VectorSentiment
     vectorizer_class: Type[Vectorizer] = Vectorizer
     keyword_extractor_class: Type[BasicKeywordExtractor] = BasicKeywordExtractor
 
-    def __init__(self, postprocessor_clsss=basic_postPostprocessor, keyword_extractor_class=None, sentiment_anarizer_class=None, vectorizer_class=None) -> None:
+    def __init__(self, postprocessor_clsss=basic_postprocessorPostprocessor, keyword_extractor_class=None, sentiment_anarizer_class=None, vectorizer_class=None) -> None:
         if keyword_extractor_class is not None:
             self.keyword_extractor_class = keyword_extractor_class
         if sentiment_anarizer_class is not None:

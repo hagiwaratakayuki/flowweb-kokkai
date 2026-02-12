@@ -7,7 +7,7 @@ from spacy.tokens import Doc
 from data_loader.dto import DTO
 
 
-from doc2vec.spacy.components.postcls import BasicPostprocessor
+from doc2vec.spacy.components.postprocessor.cls import BasicPostprocessor
 from doc2vec.spacy.components.keyword_extractor.cls import BasicKeywordExtratcer
 from doc2vec.spacy.components.sentiment.cls import BasicSentiment
 from doc2vec.spacy.components.commons.projections import project_vector
@@ -44,7 +44,7 @@ class SpacyDoc2Vec:
                 doc, data)
 
             keywords = self.keyword_extractor.exec(
-                doc=doc, vector=vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score)
+                parse_result=doc, vector=vector, sentiment_results=sentiment_results, dto=data, token_2_score=token_2_score)
             ret.append((vector, sentiment_results, keywords, data,))
 
         return ret

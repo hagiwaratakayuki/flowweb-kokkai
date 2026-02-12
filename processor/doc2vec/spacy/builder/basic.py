@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from pydoc import Doc
 from typing import Callable, Type
 
-from doc2vec.base.builder.doc2vec.tokenaizer_postdoc2vec_builder import TokenaierPostprocessorDoc2VecBuilder
+from doc2vec.base.builder.doc2vec.tokenaizer_postprocessordoc2vec_builder import TokenaierPostprocessorDoc2VecBuilder
 from doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
 
 

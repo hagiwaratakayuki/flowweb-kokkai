@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 from .save import buildModel, Logic
 import numpy as np
 from data_loader.dto import DTO
-from doc2vec.base.postdto import build_mock_sentiment_result
+from doc2vec.base.postprocessor.dto import build_mock_sentiment_result
 import random
 import datetime
 import calendar

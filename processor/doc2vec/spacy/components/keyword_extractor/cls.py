@@ -17,12 +17,12 @@ class BasicKeywordExtratcer:
         self.rules = rules
         self.keyword_limit = keyword_limit
 
-    def exec(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
+    def exec(self, parse_result: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
 
         results = ExtractResultDTO()
         for rule in self.rules:
             results = rule.execute(
-                parse_results=doc,
+                parse_results=parse_result,
                 vector=vector,
                 sentiment_results=sentiment_results,
                 dto=dto,

@@ -1,0 +1,1 @@
+class SequenceDoc2VecBuilder()

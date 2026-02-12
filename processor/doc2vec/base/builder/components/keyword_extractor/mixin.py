@@ -1,6 +1,6 @@
 from typing import Type
 from doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
-from doc2vec.base.builder.doc2vec.tokenaizer_postroot import TokenaizerPostprocessMixinRoot
+from doc2vec.base.builder.doc2vec.tokenaizer_postprocessor.root import TokenaizerPostprocessMixinRoot
 
 
 class KeywordExtractorMixin(TokenaizerPostprocessMixinRoot):
