@@ -2,7 +2,7 @@ from typing import Dict, Optional
 
 from ginza import norm
 import numpy as np
-from doc2vec.base.postprocessor.cls import Postprocessor
+from doc2vec.base.postcls import Postprocessor
 from sudachipy.morpheme import Morpheme
 
 from doc2vec.base.protocol.vectorizer import WordToVecDictType

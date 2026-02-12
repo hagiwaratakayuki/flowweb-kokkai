@@ -5,9 +5,9 @@ from fastapi import params
 from doc2vec.base.doc2vec import Doc2Vec
 
 from .root import TokenaizerPostprocessMixinRoot
-from processor.doc2vec.base.postprocessor.cls import Postprocessor
-from processor.doc2vec.base.protocol.postprocessor import AbstractPostprocessorCls
-from processor.doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.postcls import Postprocessor
+from doc2vec.base.protocol.postprocessor import AbstractPostprocessorCls
+from doc2vec.base.protocol.tokenizer import TokenizerCls
 
 
 class TokenaierPostprocessorDoc2VecBuilder(TokenaizerPostprocessMixinRoot):

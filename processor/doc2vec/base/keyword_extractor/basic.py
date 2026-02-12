@@ -8,10 +8,10 @@ import numpy as np
 
 from doc2vec.base.protocol.sentiment import SentimentResult
 from data_loader.dto import DTO
-from processor.doc2vec.base.protocol.keyword_extractor import KeywordExtractRule, ExtractResultDTO, KeywordExtractorClass, StopwordRule
+from doc2vec.base.protocol.keyword_extractor import KeywordExtractRule, ExtractResultDTO, AbstractKeywordExtractor, StopwordRule
 
-from processor.doc2vec.base.protocol.postprocessor import DocVectorType, KeywordsType
-from doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.postprocessor import DocVectorType, KeywordsType
+from doc2vec.base.protocol.vectorizer import WordVectorizer
 from doc2vec.base.protocol.tokenizer import TokenDTO
 
 from doc2vec.util.specified_keyword import SpecifiedKeyword
@@ -20,10 +20,10 @@ from doc2vec.util.specified_keyword import SpecifiedKeyword
 SCORE_KEY = itemgetter(1)
 
 
-class BasicKeywordExtractor(KeywordExtractorClass):
-    vectoraizer: Vectorizer
+class BasicKeywordExtractor(AbstractKeywordExtractor):
+    vectoraizer: WordVectorizer
 
-    def __init__(self, rules: List[KeywordExtractRule], stopword_rules: List[StopwordRule], vectoraizer: Vectorizer, keyword_limit=5, result_class: Optional[Type[ExtractResultDTO]] = None, ):
+    def __init__(self, rules: List[KeywordExtractRule], stopword_rules: List[StopwordRule], vectoraizer: WordVectorizer, keyword_limit=5, result_class: Optional[Type[ExtractResultDTO]] = None, ):
         self.rules = rules
         self.keyword_limit = keyword_limit
         self.result_class = result_class or ExtractResultDTO

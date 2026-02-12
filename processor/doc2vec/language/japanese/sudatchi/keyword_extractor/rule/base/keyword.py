@@ -5,8 +5,8 @@ from typing import DefaultDict, Deque, Dict, Iterable, List, Optional, Set
 
 
 from data_loader.dto import DTO
-from processor.doc2vec.base.protocol.postprocessor import DocVectorType, PostprocessorBase
-from processor.doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
+from doc2vec.base.protocol.postprocessor import DocVectorType, PostprocessorBase
+from doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 

@@ -3,18 +3,18 @@
 import re
 from typing import List, Type
 from doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
-from processor.doc2vec.base.builder import basic_postprocessor
+from doc2vec.base.builder import basic_postprocessor
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
 from doc2vec.base.vectorizer.gensim import Vectorizer
 from doc2vec.base.sentiment.vector_sentiment import VectorSentiment
 
 
-class BuilderClass(basic_postprocessor.Builder):
+class BuilderClass(basic_postBuilder):
     sentiment_anarizer_class: Type[VectorSentiment] = VectorSentiment
     vectorizer_class: Type[Vectorizer] = Vectorizer
     keyword_extractor_class: Type[BasicKeywordExtractor] = BasicKeywordExtractor
 
-    def __init__(self, postprocessor_clsss=basic_postprocessor.Postprocessor, keyword_extractor_class=None, sentiment_anarizer_class=None, vectorizer_class=None) -> None:
+    def __init__(self, postprocessor_clsss=basic_postPostprocessor, keyword_extractor_class=None, sentiment_anarizer_class=None, vectorizer_class=None) -> None:
         if keyword_extractor_class is not None:
             self.keyword_extractor_class = keyword_extractor_class
         if sentiment_anarizer_class is not None:

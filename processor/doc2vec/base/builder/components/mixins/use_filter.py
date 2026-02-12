@@ -1,5 +1,5 @@
 from typing import Dict, List
-from processor.doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
+from doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
 
 
 class UseFilterMixin:

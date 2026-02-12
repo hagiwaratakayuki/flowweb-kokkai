@@ -6,6 +6,6 @@ import numpy as np
 WordToVecDictType = Dict[str, np.ndarray]
 
 
-class Vectorizer:
+class WordVectorizer:
     def get_vectors(self, words) -> Tuple[Dict[str, np.ndarray], Dict[str, float]]:
         pass

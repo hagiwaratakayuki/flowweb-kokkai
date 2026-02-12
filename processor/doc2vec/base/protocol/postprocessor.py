@@ -6,7 +6,7 @@ from numpy import ndarray
 from data_loader.dto import DTO
 
 from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult
-from doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.vectorizer import WordVectorizer
 from .tokenizer import TokenDTO
 
 
@@ -23,4 +23,4 @@ class AbstractPostprocessorCls(metaclass=ABCMeta):
 
 class PostprocessorBase(AbstractPostprocessorCls):
     sentiment_anaraizer: SentimentAnarizer
-    vectorizer: Vectorizer
+    vectorizer: WordVectorizer

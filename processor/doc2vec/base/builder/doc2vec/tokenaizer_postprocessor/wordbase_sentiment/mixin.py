@@ -1,6 +1,6 @@
 from typing import Type
-from processor.doc2vec.base.builder.doc2vec.tokenaizer_postprocessor.root import TokenaizerPostprocessMixinRoot
-from processor.doc2vec.base.builder.doc2vec.tokenaizer_postprocessor.wordbase_sentiment.filter import WordbaseSentimentFilter
+from doc2vec.base.builder.doc2vec.tokenaizer_postroot import TokenaizerPostprocessMixinRoot
+from doc2vec.base.builder.doc2vec.tokenaizer_postwordbase_sentiment.filter import WordbaseSentimentFilter
 
 
 class WordbaseSentimentMixin(TokenaizerPostprocessMixinRoot):

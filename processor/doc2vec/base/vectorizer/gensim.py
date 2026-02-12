@@ -56,7 +56,7 @@ class LoadKeyedVectors(LoderFunctionClass):
 loadKeyedVectors = LoadKeyedVectors(MODEL_PATH)
 
 
-class Vectorizer(vectorizer_protocol.Vectorizer):
+class Vectorizer(vectorizer_protocol.WordVectorizer):
 
     def __init__(self, model_path=None, basepath='', loader: Optional[LoderFunctionClass] = None) -> None:
         self._model_path = model_path or MODEL_PATH

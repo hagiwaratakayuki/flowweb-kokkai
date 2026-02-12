@@ -12,7 +12,7 @@ from spacy.tokens import Doc, Token, Span
 from data_loader.dto import DTO
 
 from doc2vec.base.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
-from processor.doc2vec.spacy.components.commons.projections import project_vector
+from doc2vec.spacy.components.commons.projections import project_vector
 from ..sentiment.cls import BasicSentiment
 
 from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS

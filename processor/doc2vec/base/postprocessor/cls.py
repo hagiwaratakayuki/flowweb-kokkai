@@ -6,17 +6,17 @@ from typing import Any, Deque, Iterable, Optional, Dict, Tuple
 
 import numpy as np
 from scipy import special
-from doc2vec.base.protocol.vectorizer import Vectorizer, WordToVecDictType
+from doc2vec.base.protocol.vectorizer import WordVectorizer, WordToVecDictType
 from doc2vec.base.protocol.sentiment import SentimentAnarizer, SentimentResult, SentimentVectors, SentimentWeights
 from data_loader.dto import DTO
 from doc2vec.base.protocol.tokenizer import TokenDTO
 
-from processor.doc2vec.base.protocol.postprocessor import ExecResponseType, PostprocessorBase
-from processor.doc2vec.base.protocol.keyword_extractor import KeywordExtractorClass
+from doc2vec.base.protocol.postprocessor import ExecResponseType, PostprocessorBase
+from doc2vec.base.protocol.keyword_extractor import AbstractKeywordExtractor
 
 
 class Postprocessor(PostprocessorBase):
-    def __init__(self, vectorizer: Vectorizer, sentiment_anarizer: SentimentAnarizer, keyword_extractor: KeywordExtractorClass):
+    def __init__(self, vectorizer: WordVectorizer, sentiment_anarizer: SentimentAnarizer, keyword_extractor: AbstractKeywordExtractor):
         self.sentiment_anaraizer = sentiment_anarizer
         self.vectorizer = vectorizer
         self.keyword_extractor = keyword_extractor

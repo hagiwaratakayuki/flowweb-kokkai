@@ -1,13 +1,13 @@
 from typing import Type
-from doc2vec.base.postprocessor.cls import Postprocessor
+from doc2vec.base.postcls import Postprocessor
 from doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
-from doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.vectorizer import WordVectorizer
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
 
 
 class Builder:
     sentiment_anarizer: SentimentAnarizer
-    vectorizer: Vectorizer
+    vectorizer: WordVectorizer
     keyword_extractor: BasicKeywordExtractor
     postprocessor_class: Type[Postprocessor]
 

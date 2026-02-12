@@ -18,7 +18,7 @@ from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 
 from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
-from processor.doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
+from doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 
 

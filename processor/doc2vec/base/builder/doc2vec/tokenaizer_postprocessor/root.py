@@ -1,7 +1,7 @@
 from typing import List
 
-from processor.doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
-from processor.doc2vec.base.builder.components.mixins.use_filter import UseFilterMixin
+from doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
+from doc2vec.base.builder.components.mixins.use_filter import UseFilterMixin
 
 
 class TokenaizerPostprocessMixinRoot(UseFilterMixin):

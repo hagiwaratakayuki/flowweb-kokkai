@@ -7,7 +7,7 @@ from spacy.tokens import Doc
 from data_loader.dto import DTO
 
 
-from doc2vec.spacy.components.postprocessor.cls import BasicPostprocessor
+from doc2vec.spacy.components.postcls import BasicPostprocessor
 from doc2vec.spacy.components.keyword_extractor.cls import BasicKeywordExtratcer
 from doc2vec.spacy.components.sentiment.cls import BasicSentiment
 from doc2vec.spacy.components.commons.projections import project_vector

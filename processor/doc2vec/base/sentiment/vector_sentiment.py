@@ -3,7 +3,7 @@ from typing import Deque, Dict, List, Tuple
 
 import numpy as np
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
-from doc2vec.base.protocol.vectorizer import Vectorizer
+from doc2vec.base.protocol.vectorizer import WordVectorizer
 from doc2vec.spacy.components.sentiment.cls import SentimentBaseDict, SentimentScoreDict
 
 
@@ -13,7 +13,7 @@ class VectorSentiment(SentimentAnarizer):
     cache: Dict
     sentiment_vecs: Dict[str, Tuple[Deque[np.ndarray], int]]
 
-    def __init__(self, posi_words: List[str], nega_words: List[str], vectorizer: Vectorizer):
+    def __init__(self, posi_words: List[str], nega_words: List[str], vectorizer: WordVectorizer):
         self.sentiment_vecs = {}
         self.cache = {}
         for words, key in [(posi_words, 'positive',), (nega_words, 'negative')]:

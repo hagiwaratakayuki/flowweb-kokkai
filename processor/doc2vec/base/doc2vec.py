@@ -1,6 +1,6 @@
 from collections import deque
 from data_loader.dto import DTO
-from processor.doc2vec.base.protocol.postprocessor import PostprocessorBase
+from doc2vec.base.protocol.postprocessor import PostprocessorBase
 from doc2vec.base.protocol.tokenizer import TokenizerCls
 
 from .vectorizer.gensim import MODEL_PATH, Vectorizer
@@ -23,7 +23,7 @@ class Doc2Vec:
 
         for parse_result, data_id in pool.imap(func=self._tokenaizer.parse, iterable=generater, chunksize=self._chunk_size):
             dto = dto_map[data_id]
-            yield self._postprocessor.exec(parse_result, dto)
+            yield self._postexec(parse_result, dto)
 
     def get_data_itr(self, dtos: Iterable[DTO], data_map):
 

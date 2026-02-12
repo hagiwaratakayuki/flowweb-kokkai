@@ -1,11 +1,17 @@
 import keyword
 from multiprocessing import cpu_count
+from pydoc import Doc
 from typing import Callable, Type
 
-from processor.doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
+from doc2vec.base.builder.doc2vec.tokenaizer_postdoc2vec_builder import TokenaierPostprocessorDoc2VecBuilder
+from doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
 
 
-class SpacyBasicBuilder:
+class SpacyBuilder(TokenaierPostprocessorDoc2VecBuilder):
+    doc2vec_class = TokenaierPostprocessorDoc2VecBuilder
+
+
+class Builder:
     keyword_extractor: Type[BasicKeywordExtractor] = B
     projector: Callable
 

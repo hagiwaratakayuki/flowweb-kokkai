@@ -7,7 +7,7 @@ import numpy as np
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.protocol import SpacySpecifiedKeyword as SpacySpecifiedKeywordType
-from processor.doc2vec.base.protocol.postprocessor import DocVectorType
+from doc2vec.base.protocol.postprocessor import DocVectorType
 
 
 type Token2Keyword = Dict[Token, Set[SpacySpecifiedKeywordType]]

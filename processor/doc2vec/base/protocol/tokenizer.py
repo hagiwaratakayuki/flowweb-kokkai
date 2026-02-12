@@ -42,6 +42,7 @@ class TokenDTO(metaclass=ABCMeta):
         pass
 
 
-class TokenizerCls:
+class TokenizerCls(metaclass=ABCMeta):
+    @abstractmethod
     def parse(self, arg: Tuple[str, Any]) -> Tuple[TokenDTO, Any]:
         pass

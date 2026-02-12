@@ -5,7 +5,7 @@ import re
 from typing import Any, Iterable, List, Literal, Union, Optional
 
 from data_loader.dto import DTO
-from processor.doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
+from doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
 from doc2vec.util.specified_keyword import BindSpecifiedKeyword, BindSpecifiedKeywordType, SpecifiedKeyword, SpecifiedKeywordType, BindSpecifiedKeywordType
 
 OutputWord = Optional[Union[str, Iterable[str]]]

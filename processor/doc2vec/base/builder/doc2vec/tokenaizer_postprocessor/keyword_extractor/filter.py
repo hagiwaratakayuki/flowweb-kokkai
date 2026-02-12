@@ -1,7 +1,7 @@
 from tracemalloc import stop
 from typing import Any, Dict
-from processor.doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
-from processor.doc2vec.spacy.japanese_language.components import keyword_extract
+from doc2vec.base.builder.components.mixins.filter.protocol import AbstractFilter
+from doc2vec.spacy.japanese_language.components import keyword_extract
 
 
 class KeywordExtractorFilter(AbstractFilter):

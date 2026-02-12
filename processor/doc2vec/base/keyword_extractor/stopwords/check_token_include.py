@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Iterable, List, Tuple
 from numpy import ndarray
 from regex import W
-from processor.doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, StopwordRule
+from doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, StopwordRule
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.util.specified_keyword import SpecifiedKeyword

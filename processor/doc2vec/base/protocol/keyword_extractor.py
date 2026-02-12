@@ -8,7 +8,7 @@ import numpy as np
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 
-from processor.doc2vec.base.protocol.postprocessor import DocVectorType, KeywordsType
+from doc2vec.base.protocol.postprocessor import DocVectorType, KeywordsType
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 
 SpecifiedKeyword
@@ -75,7 +75,7 @@ class StopwordRule(metaclass=ABCMeta):
         pass
 
 
-class KeywordExtractorClass(metaclass=ABCMeta):
+class AbstractKeywordExtractor(metaclass=ABCMeta):
 
     @abstractmethod
     def exec(self, parse_result: Any, document_vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_vector: Dict[Any, float], specifiable_word_weight: Dict[str, float], postprocessor: Any, mean_center: Any) -> KeywordsType:
