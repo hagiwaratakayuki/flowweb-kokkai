@@ -5,13 +5,13 @@ from typing import Any, Tuple
 import spacy
 import spacy.tokens
 
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
 
 nlp = spacy.load('ja_ginza')
 
 
-class SudatchiTokenizer(TokenizerCls):
+class SudatchiTokenizer(AbstarctTokenizerClass):
 
     def parse(self, arg: Tuple[str, Any]):
 

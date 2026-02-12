@@ -2,7 +2,7 @@
 from collections import deque
 from typing import Any, Tuple
 
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
 from sudachipy import tokenizer, dictionary, Morpheme
 
@@ -14,7 +14,7 @@ TokenizerObject = SudachiDictionary.create()
 DefaultMode = tokenizer.Tokenizer.SplitMode.C
 
 
-class SudatchiTokenizer(TokenizerCls):
+class SudatchiTokenizer(AbstarctTokenizerClass):
     def __init__(self, mode=DefaultMode):
         self.mode = mode
 

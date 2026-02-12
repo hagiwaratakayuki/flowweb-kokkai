@@ -2,7 +2,7 @@ from collections import deque
 from data_loader.dto import DTO
 from doc2vec.base.protocol.document_vectoraizor import AbstractDocumentVectoraizer
 from doc2vec.base.protocol.keyword_extractor import AbstractKeywordExtractor
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
 
 from multiprocessing.pool import Pool
@@ -12,7 +12,7 @@ from processor.doc2vec.base.protocol.pipeline_keyord_extractor import AbstractPi
 
 
 class Doc2Vec:
-    def __init__(self, tokenaizer: TokenizerCls, document_vectoraizer: AbstractDocumentVectoraizer, keyword_extractor: AbstractPipelineKeywordExtractor, chunksize=1000) -> None:
+    def __init__(self, tokenaizer: AbstarctTokenizerClass, document_vectoraizer: AbstractDocumentVectoraizer, keyword_extractor: AbstractPipelineKeywordExtractor, chunksize=1000) -> None:
         self._tokenaizer = tokenaizer
         self._document_vectoraizer = document_vectoraizer
         self._keyword_extractor = keyword_extractor

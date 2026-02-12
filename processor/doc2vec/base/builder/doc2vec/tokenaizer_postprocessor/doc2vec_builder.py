@@ -7,14 +7,14 @@ from doc2vec.base.doc2vec import Doc2Vec
 from .root import TokenaizerPostprocessMixinRoot
 from doc2vec.base.postprocessor.cls import Postprocessor
 from doc2vec.base.protocol.postprocessor import AbstractPostprocessorCls
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
 
 class TokenaierPostprocessorDoc2VecBuilder(TokenaizerPostprocessMixinRoot):
 
     doc2vec_class: Type[Doc2Vec] = Doc2Vec
     postprocessor_class: Type[AbstractPostprocessorCls] = Postprocessor
-    tokennaizer_class: Type[TokenizerCls]
+    tokennaizer_class: Type[AbstarctTokenizerClass]
     postprocessor_params: Dict
     tokenizer_params: Dict
 

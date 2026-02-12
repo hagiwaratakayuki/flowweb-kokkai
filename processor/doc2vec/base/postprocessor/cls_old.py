@@ -4,7 +4,7 @@ import math
 from typing import Dict
 import numpy as np
 
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 from doc2vec.base.protocol.vectorizer import WordVectorizer
 
 from ..protocol.sentiment import SentimentAnarizer, SentimentVectors, SentimentWeights
@@ -62,7 +62,7 @@ def WeightMap():
 
 
 class postprocesser:
-    def __init__(self, tokenaizer: TokenizerCls, sentimentAnalyzer: SentimentAnarizer, vectorizer: WordVectorizer) -> None:
+    def __init__(self, tokenaizer: AbstarctTokenizerClass, sentimentAnalyzer: SentimentAnarizer, vectorizer: WordVectorizer) -> None:
         self._tokenaizer = tokenaizer
         self._sentimentAnalyzer = sentimentAnalyzer
 

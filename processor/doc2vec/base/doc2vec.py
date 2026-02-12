@@ -1,7 +1,7 @@
 from collections import deque
 from data_loader.dto import DTO
 from doc2vec.base.protocol.postprocessor import PostprocessorBase
-from doc2vec.base.protocol.tokenizer import TokenizerCls
+from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
 from .vectorizer.gensim import MODEL_PATH, Vectorizer
 
@@ -11,7 +11,7 @@ from typing import Iterable
 
 
 class Doc2Vec:
-    def __init__(self, postprocessor: PostprocessorBase, tokenaizer: TokenizerCls, chunksize=1000) -> None:
+    def __init__(self, postprocessor: PostprocessorBase, tokenaizer: AbstarctTokenizerClass, chunksize=1000) -> None:
         self._tokenaizer = tokenaizer
         self._postprocessor = postprocessor
 
