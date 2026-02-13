@@ -1,0 +1,6 @@
+from processor.doc2vec.base.keyword_extractor.builder_mixin.sequence_doc2vec.mixin import SequenceDoc2vecKeywordExtractorBuilderMixin
+from processor.doc2vec.spacy.components.keyword_extractor.cls import SpacyBasicKeywordExtractor
+
+
+class SpacyKeywordExtractorSequenceDoc2VecBuilderMixin(SequenceDoc2vecKeywordExtractorBuilderMixin):
+    keyword_extractor_class = SpacyBasicKeywordExtractor

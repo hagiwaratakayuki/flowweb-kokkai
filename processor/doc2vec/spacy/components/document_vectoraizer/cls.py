@@ -13,17 +13,17 @@ from data_loader.dto import DTO
 
 from doc2vec.base.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
 from doc2vec.spacy.components.commons.projections import project_vector
-from ..sentiment.cls import BasicSentiment
+from doc2vec.base.document_vectoraizer.protocol import AbstractDocumentVectoraizer
+from ..sentiment.cls import SpacyBasicSentiment
 
 from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS
 
 
-class BasicPostprocessor:
+class SpacyBasicDocumentVectoraizer(AbstractDocumentVectoraizer):
 
-    def initialize(self, sentiment_analaizer: BasicSentiment, projecter: project_vector, token_weight_rules=[]):
+    def initialize(self, sentiment_analaizer: SpacyBasicSentiment, projecter: project_vector = project_vector):
         self.sentiment = sentiment_analaizer
         self.projecter = projecter
-        self.token_weight_rules = token_weight_rules
 
     def exec(self, doc: Doc, data: DTO):
 

@@ -1,7 +1,7 @@
 import unittest
 from operator import itemgetter
 from unittest.mock import patch, MagicMock, call
-from doc2vec.base.doc2vec import Doc2Vec
+from doc2vec.base.facade.tokenaizer_postprocess_doc2vec.facade_class import Doc2Vec
 import numpy as np
 from multiprocessing import Pool
 from data_loader.dto import DTO

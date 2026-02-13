@@ -1,6 +1,6 @@
 
 
-from doc2vec.base.doc2vec import Doc2Vec
+from doc2vec.base.facade.tokenaizer_postprocess_doc2vec.facade_class import Doc2Vec
 from doc2vec.language.japanese.sudatchi import builder
 from doc2vec.language.japanese.sudatchi.keyword_extractor.rule import kokkai
 

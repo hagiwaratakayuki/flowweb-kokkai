@@ -5,7 +5,7 @@ from typing import List, Type
 from doc2vec.base.keyword_extractor.basic import BasicKeywordExtractor
 from doc2vec.base.builder import basic_postprocessor
 from doc2vec.base.protocol.sentiment import SentimentAnarizer
-from doc2vec.base.vectorizer.gensim import Vectorizer
+from doc2vec.base.word_vectorizer.gensim import Vectorizer
 from doc2vec.base.sentiment.vector_sentiment import VectorSentiment
 
 

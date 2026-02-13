@@ -3,7 +3,7 @@ from data_loader.dto import DTO
 from doc2vec.base.protocol.postprocessor import PostprocessorBase
 from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 
-from .vectorizer.gensim import MODEL_PATH, Vectorizer
+from ...word_vectorizer.gensim import MODEL_PATH, Vectorizer
 
 
 from multiprocessing.pool import Pool

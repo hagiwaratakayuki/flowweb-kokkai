@@ -21,11 +21,11 @@ class SentimentScoreDict(TypedDict):
     neutral: float
 
 
-class BasicSentiment:
+class SpacyBasicSentiment:
     sentiment_vecs: SentimentBaseDict
     cache: Dict[any, SentimentScoreDict]
 
-    def __init__(self, posiwords, negwords, projecter: Callable, nlp: Language, punct=' '):
+    def __init__(self, posiwords, negwords, nlp: Language, projecter: project_vector = project_vector, punct=' '):
         self.cache = {}
         self.posiwords = posiwords
         self.negwords = negwords

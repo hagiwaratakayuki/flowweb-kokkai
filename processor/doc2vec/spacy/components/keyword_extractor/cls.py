@@ -1,6 +1,6 @@
 from collections import defaultdict
 from operator import itemgetter
-from typing import Callable, Dict, List
+from typing import Dict, List
 from spacy.tokens import Doc, Token
 import numpy as np
 
@@ -12,10 +12,11 @@ from doc2vec.util.specified_keyword import SpecifiedKeyword
 SCORE_KEY = itemgetter(1)
 
 
-class BasicKeywordExtratcer:
-    def __init__(self, rules: List[KeywordExtractRule], keyword_limit=5):
+class SpacyBasicKeywordExtractor:
+    def __init__(self, rules: List[KeywordExtractRule], stopword_rules=[], keyword_limit=5):
         self.rules = rules
         self.keyword_limit = keyword_limit
+        self.stopword_rules = stopword_rules
 
     def exec(self, parse_result: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
 

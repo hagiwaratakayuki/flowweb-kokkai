@@ -7,18 +7,18 @@ from spacy.tokens import Doc
 from data_loader.dto import DTO
 
 
-from doc2vec.spacy.components.postprocessor.cls import BasicPostprocessor
-from doc2vec.spacy.components.keyword_extractor.cls import BasicKeywordExtratcer
-from doc2vec.spacy.components.sentiment.cls import BasicSentiment
+from doc2vec.spacy.components.document_vectoraizer.cls import SpacyBasicDocumentVectoraizer
+from doc2vec.spacy.components.keyword_extractor.cls import BasicKeywordExtractor
+from doc2vec.spacy.components.sentiment.cls import SpacyBasicSentiment
 from doc2vec.spacy.components.commons.projections import project_vector
 
 
 class SpacyDoc2Vec:
 
-    def __init__(self, name, keyword_extractor: BasicKeywordExtratcer, sentiment: BasicSentiment, vectoraizer: Optional[BasicPostprocessor] = None, projecter=project_vector, batch_size=None, n_process=-1, delimiter=".\n", spacy_cofing={}):
+    def __init__(self, name, keyword_extractor: BasicKeywordExtractor, sentiment: SpacyBasicSentiment, vectoraizer: Optional[SpacyBasicDocumentVectoraizer] = None, projecter=project_vector, batch_size=None, n_process=-1, delimiter=".\n", spacy_cofing={}):
         self.nlp = spacy.load(name=name, **spacy_cofing)
         self.delimiter = delimiter
-        self.vectoraizer = vectoraizer or BasicPostprocessor()
+        self.vectoraizer = vectoraizer or SpacyBasicDocumentVectoraizer()
 
         sentiment.initialize(nlp=self.nlp, projecter=projecter)
         self.vectoraizer.initialize(
