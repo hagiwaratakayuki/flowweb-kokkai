@@ -159,15 +159,15 @@ def example(nlp):
     print('sub', sum(sub_tokens_norms) / len(sub_tokens_norms))
 
 
-# nlp = loadnlp('ja_ginza')
-
-nlp = spacy.load('ja_ginza')
+nlp = loadnlp('ja_ginza')
 
 
 class ExampleClass:
+    def get_nlp(self):
+        return loadnlp('ja_ginza')
 
-    def exec(self, pool):
-        example(nlp)
+    def exec(self, i):
+        example(self.get_nlp())
 
 
 class Caller:

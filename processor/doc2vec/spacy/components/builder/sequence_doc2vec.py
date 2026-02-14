@@ -1,15 +1,17 @@
-from processor.doc2vec.base.facade.sequence_doc2vec.builder.basic_implement import SequenceDoc2VecBuilder
-from processor.doc2vec.spacy.components.document_vectoraizer.builder_mixin.mixin import SpacyDocumentVectoraizerBuilderMixin
-from processor.doc2vec.spacy.components.keyword_extractor.builder_plugin.sequence_doc2vec import SpacyKeywordExtractorSequenceDoc2VecBuilderMixin
-from processor.doc2vec.spacy.components.sentiment.builder_mixin import SpacySentimentBuilderMixin
+from doc2vec.base.facade.sequence_doc2vec.builder.basic_implement import SequenceDoc2VecBuilder
+from doc2vec.spacy.components.document_vectoraizer.builder_mixin.mixin import SpacyDocumentVectoraizerBuilderMixin
+from doc2vec.spacy.components.keyword_extractor.builder_plugin.sequence_doc2vec import SpacyKeywordExtractorSequenceDoc2VecBuilderMixin
+from doc2vec.spacy.components.sentiment.builder_mixin import SpacySentimentBuilderMixin
+from doc2vec.spacy.components.tokenaizer.builder_mixin.sequence_doc2vec import SpacyTokenizerSequenceDoc2VecBuilderMixin
+from doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.mixin import SpacyNLPSquenceDoc2VecBuilderMixin
 
 
 class SpacySequenceDoc2VecBuilder(
     SequenceDoc2VecBuilder,
     SpacyDocumentVectoraizerBuilderMixin,
     SpacySentimentBuilderMixin,
-    SpacyKeywordExtractorSequenceDoc2VecBuilderMixin
+    SpacyKeywordExtractorSequenceDoc2VecBuilderMixin,
+    SpacyTokenizerSequenceDoc2VecBuilderMixin,
+    SpacyNLPSquenceDoc2VecBuilderMixin
 ):
-
-    def set_model_name(self, model_name, configure_key='model'):
-        pass
+    pass

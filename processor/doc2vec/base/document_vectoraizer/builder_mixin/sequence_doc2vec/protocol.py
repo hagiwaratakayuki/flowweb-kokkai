@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from processor.doc2vec.base.facade.sequence_doc2vec.builder.root import SequenceDoc2VecBuilderRoot
+from doc2vec.base.facade.sequence_doc2vec.builder.root import SequenceDoc2VecBuilderRoot
 
 
 class DocumentVectoraizerSequenceDoc2VecMixin(SequenceDoc2VecBuilderRoot, metaclass=ABCMeta):

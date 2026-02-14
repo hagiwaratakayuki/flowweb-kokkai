@@ -5,6 +5,8 @@ from typing import Callable, Dict, Iterable, Tuple, Optional, TypedDict
 from spacy.language import Language
 import numpy as np
 
+from ..nlp.mixin import SpacyNLPMixin
+
 
 from ..commons.const import MAIN_POS
 from ..commons.projections import project_vector
@@ -21,15 +23,17 @@ class SentimentScoreDict(TypedDict):
     neutral: float
 
 
-class SpacyBasicSentiment:
+class SpacyBasicSentiment(SpacyNLPMixin):
     sentiment_vecs: SentimentBaseDict
     cache: Dict[any, SentimentScoreDict]
 
-    def __init__(self, posiwords, negwords, nlp: Language, projecter: project_vector = project_vector, punct=' '):
+    def __init__(self, posiwords, negwords, model_name, projecter: project_vector = project_vector, punct=' '):
         self.cache = {}
         self.posiwords = posiwords
         self.negwords = negwords
         self.punct = punct
+        self._set_model_name(model_name)
+        nlp = self._get_language()
         pdoc = nlp(self.punct.join(self.posiwords))
         ndoc = nlp(self.punct.join(self.negwords))
         self.sentiment_vecs = {}

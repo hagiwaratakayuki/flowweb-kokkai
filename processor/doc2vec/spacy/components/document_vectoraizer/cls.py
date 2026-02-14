@@ -14,6 +14,7 @@ from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult, SentimentVectors, SentimentWeights
 from doc2vec.spacy.components.commons.projections import project_vector
 from doc2vec.base.document_vectoraizer.protocol import AbstractDocumentVectoraizer
+from ..nlp.mixin import SpacyNLPMixin
 from ..sentiment.cls import SpacyBasicSentiment
 
 from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS
@@ -21,9 +22,10 @@ from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS
 
 class SpacyBasicDocumentVectoraizer(AbstractDocumentVectoraizer):
 
-    def initialize(self, sentiment_analaizer: SpacyBasicSentiment, projecter: project_vector = project_vector):
+    def initialize(self, model_name, sentiment_analaizer: SpacyBasicSentiment, projecter: project_vector = project_vector):
         self.sentiment = sentiment_analaizer
         self.projecter = projecter
+        self._set_model_name(model_name)
 
     def exec(self, doc: Doc, data: DTO):
 
