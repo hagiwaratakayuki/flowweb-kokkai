@@ -11,7 +11,7 @@ from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 nlp = spacy.load('ja_ginza')
 
 
-class SudatchiTokenizer(AbstarctTokenizerClass):
+class GinzaTokenizer(AbstarctTokenizerClass):
 
     def parse(self, arg: Tuple[str, Any]):
 

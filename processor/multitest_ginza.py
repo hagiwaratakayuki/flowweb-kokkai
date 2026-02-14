@@ -4,7 +4,7 @@ from tkinter import N
 import spacy
 import ginza
 from data_loader.kokkai_reguraizer.kyujitai import convert
-from singletontest import nlp
+from singletontest import loadnlp
 import time
 
 # from doc2vec.spacy.components.commons.const import MAIN_POS
@@ -28,7 +28,7 @@ text = """
 """
 
 
-def example(i):
+def example(nlp):
 
     texts = []
     # print(nlp.batch_size)
@@ -159,22 +159,47 @@ def example(i):
     print('sub', sum(sub_tokens_norms) / len(sub_tokens_norms))
 
 
+# nlp = loadnlp('ja_ginza')
+
+nlp = spacy.load('ja_ginza')
+
+
 class ExampleClass:
 
-    def exec(self, i):
+    def exec(self, pool):
         example(nlp)
+
+
+class Caller:
+    funcclass = ExampleClass()
+
+    def exec(self, pool):
+        imap = pool.imap_unordered(
+            self.funcclass.exec, range(100), chunksize=25)
+        list(imap)
 
 
 def main():
     instance = ExampleClass()
     start = time.perf_counter_ns()
+    caller = Caller()
     with Pool(4) as pool:
-        imap = pool.imap_unordered(instance.exec, range(100), chunksize=10)
+        caller.exec(pool)
+        print((time.perf_counter_ns() - start) / 10 ** 9)
+        caller.exec(pool)
+        print((time.perf_counter_ns() - start) / 10 ** 9)
+        """
+        imap = pool.imap_unordered(instance.exec, range(100), chunksize=25)
         list(imap)
+
+        print((time.perf_counter_ns() - start) / 10 ** 9)
+        imap = pool.imap_unordered(instance.exec, range(100), chunksize=25)
+        list(imap)
+        print((time.perf_counter_ns() - start) / 10 ** 9)
+        """
 
     # start = time.perf_counter_ns()
     # example(1)
-    print((time.perf_counter_ns() - start) / 10 ** 9)
 
 
 if __name__ == '__main__':

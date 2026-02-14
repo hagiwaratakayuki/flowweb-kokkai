@@ -1,8 +1,8 @@
 
 
 from typing import Dict
-from .basic import BasicJapaneseLanguageDoc2Vec
-from ..components.keyword_extract.kokkai import KokkaiKeywordExtractor
+from .cls import BasicJapaneseLanguageDoc2Vec
+from ..components.keyword_extractor.kokkai_rule import KokkaiKeywordExtractor
 
 
 CONFIG = {}

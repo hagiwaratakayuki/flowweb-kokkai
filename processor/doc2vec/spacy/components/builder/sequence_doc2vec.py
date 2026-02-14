@@ -10,4 +10,6 @@ class SpacySequenceDoc2VecBuilder(
     SpacySentimentBuilderMixin,
     SpacyKeywordExtractorSequenceDoc2VecBuilderMixin
 ):
-    pass
+
+    def set_model_name(self, model_name, configure_key='model'):
+        pass
