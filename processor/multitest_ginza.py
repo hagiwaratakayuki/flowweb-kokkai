@@ -159,7 +159,7 @@ def example(nlp):
     print('sub', sum(sub_tokens_norms) / len(sub_tokens_norms))
 
 
-nlp = loadnlp('ja_ginza')
+# nlp = loadnlp('ja_ginza')
 
 
 class ExampleClass:
@@ -175,7 +175,7 @@ class Caller:
 
     def exec(self, pool):
         imap = pool.imap_unordered(
-            self.funcclass.exec, range(100), chunksize=25)
+            self.funcclass.exec, range(100), chunksize=10)
         list(imap)
 
 

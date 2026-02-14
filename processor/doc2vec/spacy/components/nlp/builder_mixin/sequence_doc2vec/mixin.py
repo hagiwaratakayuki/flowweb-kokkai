@@ -1,6 +1,5 @@
 from pyexpat import model
 from .root import SpacyNLPSquenceDoc2VecBuilderMixinRoot
-from ...loader import loadnlp
 
 
 class SpacyNLPSquenceDoc2VecBuilderMixin(SpacyNLPSquenceDoc2VecBuilderMixinRoot):
@@ -11,4 +10,3 @@ class SpacyNLPSquenceDoc2VecBuilderMixin(SpacyNLPSquenceDoc2VecBuilderMixinRoot)
             raise 'init_param_key is not set'
         self.model_name = model_name
         self.init_param_key = init_param_key
-        loadnlp(model_name)
