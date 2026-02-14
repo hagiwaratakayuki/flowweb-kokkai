@@ -1,5 +1,5 @@
 from doc2vec.base.tokenaizer.builder_mixin.sequence_doc2vec.protocol import TokenaizerSequenceDoc2VecBuilderMixin
-from processor.doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
+from ...nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
 
 
 class SpacyTokenizerSequenceDoc2VecBuilderMixin(TokenaizerSequenceDoc2VecBuilderMixin, SpacyNLPSequenceDoc2VecBuilderApplyMixin):

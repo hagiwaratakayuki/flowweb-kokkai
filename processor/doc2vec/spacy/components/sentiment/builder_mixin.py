@@ -1,7 +1,7 @@
 from csv import Error
 from typing import TypedDict
 from doc2vec.base.sentiment.builder_mixin.wordbase_sentiment.sequence_doc2vec.mixin import SequenceDoc2vecWordbaseSentimentMixin
-from processor.doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
+from doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
 from doc2vec.spacy.components.nlp.mixin import SpacyNLPMixin
 from .cls import SpacyBasicSentiment
 

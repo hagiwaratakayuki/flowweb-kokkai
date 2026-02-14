@@ -1,6 +1,6 @@
 from turtle import mode
 
-from processor.doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.root import SpacyNLPSequenceDoc2VecBuilderMixinRoot
+from doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.root import SpacyNLPSequenceDoc2VecBuilderMixinRoot
 
 
 class SpacyNLPSequenceDoc2VecBuilderApplyMixin(SpacyNLPSequenceDoc2VecBuilderMixinRoot):
