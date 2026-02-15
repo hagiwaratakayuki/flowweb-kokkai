@@ -60,5 +60,5 @@ class ExtractResultDTO:
 
 
 class KeywordExtractRule:
-    def execute(self, parse_results: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], postprocessor: Any, results: ExtractResultDTO) -> List[SpacySpecifiedKeywordType]:
+    def execute(self, parse_results: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], postprocessor: Any, results: ExtractResultDTO, model_name: str) -> List[SpacySpecifiedKeywordType]:
         pass

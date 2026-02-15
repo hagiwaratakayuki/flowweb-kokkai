@@ -13,10 +13,11 @@ SCORE_KEY = itemgetter(1)
 
 
 class SpacyBasicKeywordExtractor:
-    def __init__(self, rules: List[KeywordExtractRule], stopword_rules=[], keyword_limit=5):
+    def __init__(self, model_name, rules: List[KeywordExtractRule], stopword_rules=[], keyword_limit=5):
         self.rules = rules
         self.keyword_limit = keyword_limit
         self.stopword_rules = stopword_rules
+        self.model_name = model_name
 
     def exec(self, parse_result: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Token, float]):
 
@@ -28,6 +29,8 @@ class SpacyBasicKeywordExtractor:
                 sentiment_results=sentiment_results,
                 dto=dto,
                 results=results,
+                model_name=self.model_name,
+
 
             )
 

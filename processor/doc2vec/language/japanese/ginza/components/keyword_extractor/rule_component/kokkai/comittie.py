@@ -6,7 +6,7 @@ import numpy as np
 
 from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
-from doc2vec.spacy.japanese_language.components.keyword_extract.util.tag_check import is_popular_noun
+from doc2vec.language.japanese.ginza.components.keyword_extractor.util.tag_check import is_popular_noun
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from doc2vec.spacy.components.keyword_extractor.protocol import ExtractResultDTO, KeywordExtractRule
 from spacy.tokens import Doc, Token, Span
@@ -27,7 +27,7 @@ class Rule(KeywordExtractRule):
     def __init__(self):
         self.context = DiscussionContext()
 
-    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO):
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, model_name: str):
         before_chunks: List[Span] = []
         before_chunks_len = 0
         committies = defaultdict(set)

@@ -51,7 +51,7 @@ type Nouns = DefaultDict[str, Set[Token]]
 
 
 class Rule(KeywordExtractRule):
-    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO) -> List[SpecifiedKeyword]:
+    def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO, model_name: str) -> List[SpecifiedKeyword]:
         complex_word_tokens: Dict[str,
                                   ComplexWordDTO] = defaultdict(ComplexWordDTO)
         noun_vectors: NounVectors = {}

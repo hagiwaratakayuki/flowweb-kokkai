@@ -287,7 +287,7 @@ class Rule(KeywordExtractRule):
         law_list.sort(key=startkey)
 
         law_list_len = len(law_list)
-
+        doc_len = len(doc)
         is_context_added = False
         position_list = PositionList()
         if law_list_len == 0:
