@@ -1,7 +1,7 @@
 import unittest
 
 from data_loader.util import list_runner
-from .cls import BasicJapaneseLanguageDoc2Vec
+from .base import BasicJapaneseLanguageDoc2Vec
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from data_loader.dto import DTO
 

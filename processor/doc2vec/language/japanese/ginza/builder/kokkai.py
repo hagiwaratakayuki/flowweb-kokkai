@@ -1,24 +1,10 @@
 
 
-from typing import Dict
-from .cls import BasicJapaneseLanguageDoc2Vec
-from ..components.keyword_extractor.kokkai_rule import KokkaiKeywordExtractor
+from ..components.keyword_extractor.kokkai_rule import KokkaiExtractRules
+from .base import SpacyGinzaJapaneseLanguageDoc2VecBuilderBase
 
 
-CONFIG = {}
-
-
-class KokkaiJapaneseLanguageDoc2Vec(BasicJapaneseLanguageDoc2Vec):
-    def __init__(self, keyword_extractor_class=KokkaiKeywordExtractor, vectoraizer=None, sentiment=None, n_process=None, batch_size=1000, spacy_cofing={}):
-
-        super().__init__(keyword_extractor=keyword_extractor_class(), vectoraizer=vectoraizer,
-                         sentiment=sentiment, n_process=n_process, batch_size=batch_size, spacy_cofing=spacy_cofing)
-
-
-def updateConfig(config: Dict):
-    global CONFIG
-    CONFIG.update(config)
-
-
-def builder():
-    return KokkaiJapaneseLanguageDoc2Vec(**CONFIG)
+class SpacyGinzaJapaneseLanguageDoc2VecBuilderKokkai(SpacyGinzaJapaneseLanguageDoc2VecBuilderBase):
+    def __init__(self, rules=KokkaiExtractRules, stopword_rules=[], keyword_limit=5, chulknsize=25):
+        super().__init__(rules, stopword_rules, keyword_limit)
+        self.use_facade(chuknsize=chulknsize)
