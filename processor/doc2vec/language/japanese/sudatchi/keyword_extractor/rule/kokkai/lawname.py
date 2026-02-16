@@ -21,9 +21,9 @@ import json
 from operator import attrgetter, itemgetter
 from collections import defaultdict, deque
 from data_loader.kokkai import DTO
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.discussion_context import DiscussionContext
 
 
-from doc2vec.spacy.japanese_language.components.keyword_extract.rule.kokkai.discussion_context import DiscussionContext
 from doc2vec.base.protocol.keyword_extractor import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.sudatchi.tokenizer.dto import SudatchiDTO
 from doc2vec.language.japanese.sudatchi.util.matcher.preset import number

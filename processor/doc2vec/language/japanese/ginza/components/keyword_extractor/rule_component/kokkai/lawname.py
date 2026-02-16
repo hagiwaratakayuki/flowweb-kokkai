@@ -1,6 +1,7 @@
 
 
-from typing import Deque, Iterator, List, Optional, Set, Tuple
+from calendar import c
+from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 
 
 import numpy as np
@@ -10,20 +11,24 @@ from doc2vec.util.specified_keyword import SpecifiedKeyword, EqIn
 import regex as re
 
 from spacy.tokens import Token, Doc, Span
-import os
+from spacy.matcher import Matcher
 import json
+import os
+from collections import defaultdict
 from operator import attrgetter, itemgetter
 from collections import Counter, defaultdict, deque
 from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extractor.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.discussion_context import DiscussionContext
+from processor.doc2vec.spacy.components.nlp.loader import load_matcher
 
 
 startkey = attrgetter('start')
 zerogetter = itemgetter(0)
-
-章としての区分を表す単語 = r"編章条項節款目"
+章としての区分を表す単語 = r"条項号"
+グループ分け単語 = set('編章節款目')
+章とグループ分けの単語 = set(章としての区分を表す単語) | グループ分け単語
 区分の最大深さ = len(章としての区分を表す単語) - 1
 カナ区分の深さ = 区分の最大深さ + 1
 
@@ -76,6 +81,70 @@ law_standard_phrases = ['法の下の平等', '法の支配']
     re.compile('び$')
 ]
 DUMMY_SET = {0}
+カタカナ一文字 = {'イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
+           'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
+chapter_expression_matcher: Optional[Matcher] = None
+vocab = None
+chapter_title_set = set(章としての区分を表す単語)
+
+REGULAR_PATTERN_ID = "regular_pattern"
+COUNT_ONLY_PATTERN_ID = "count_only_pattern"
+カタカナの可能性のあるパターンID = "カタカナの可能性のあるパターン"
+
+
+def get_chapter_expression_matcher(model_name):
+    global chapter_expression_matcher, vocab
+    if chapter_expression_matcher != None:
+        return chapter_expression_matcher, vocab
+    chapter_expression_matcher = load_matcher(model_name)
+    regular_pattern = [
+        [{"POS": "NUM"}, {"TEXT": {"IN": list(章としての区分を表す単語)}}]
+    ]
+
+    chapter_expression_matcher.add(REGULAR_PATTERN_ID, regular_pattern)
+    count_only_pattern = [
+        [{"POS": "NUM"}, {"POS": "ADP"}],
+        [{"POS": "NUM"}, {"POS": "PUNCT"}],
+        [{"POS": "NUM"}, {"POS": "AUX"}]
+    ]
+    chapter_expression_matcher.add(COUNT_ONLY_PATTERN_ID, count_only_pattern)
+    カタカナの可能性のあるパターン = [
+        [{"LENGTH": 1}, {"POS": "ADP"}],
+        [{"LENGTH": 1}, {"POS": "PUNCT"}],
+        [{"LENGTH": 1}, {"POS": "AUX"}]
+    ]
+    chapter_expression_matcher.add(
+        カタカナの可能性のあるパターンID, カタカナの可能性のあるパターン)
+
+    return chapter_expression_matcher, vocab
+
+
+class NumberTokenList:
+    index: int
+    sequence: List[Tuple[int, int, int]]
+    len: int
+    doc: Doc
+    now: Tuple[Span, Union[Token, False]]
+    vocab: Any
+
+    def __init__(self, doc, model_name) -> None:
+        self.index = -1
+        self.doc = doc
+        matcher, vocab = get_chapter_expression_matcher(model_name)
+        self.sequence = matcher(doc)
+        self.len = len(self.sequence)
+        self.vocab = vocab
+
+    def step(self):
+        self.index += 1
+        if self.index < self.len:
+            match_id, start, end = self.sequence[self.index]
+            now_span = self.doc[start:end]
+            next_token = self.doc[end]
+            self.now = (self.vocab[match_id], now_span, next_token, )
+
+            return True
+        return False
 
 
 class EqInShorter:
@@ -86,11 +155,21 @@ class EqInShorter:
         return __value in self.value
 
 
+IsCountChapterFlag = 0
+
+CountChapterType = Tuple[IsCountChapterFlag, int, Union[str, False]]
+カタカナ章表現を示すフラグ = 1
+カタカナ章表現の型 = Tuple[カタカナ章表現を示すフラグ, str]
+
+
 class LawDTO:
     start: int
     is_reverse: bool
     face: str
     name: str
+    chapter_canditates: List[Union[CountChapterType, カタカナ章表現の型]]
+    len: int
+    end: int
 
     def __init__(self, name, start, face=''):
         self.name = name
@@ -102,36 +181,6 @@ class LawDTO:
 
     def get_face(self):
         return self.face or self.name
-
-
-class PositionList:
-    positions: List[Tuple[float, float]]
-    index: int
-    now_start: int
-    now_end: int
-
-    def __init__(self):
-        self.positions = []
-        self.index = -1
-
-    def append_position(self, start, end):
-        self.positions.append((start, end,))
-
-    def prepare(self):
-        self.positions.sort(key=zerogetter)
-        self.limit = len(self.positions) - 1
-        return self.step()
-
-    def step(self):
-
-        self.index += 1
-        if self.limit < self.index:
-
-            return False
-        start, end = self.positions[self.index]
-        self.now_start = start
-        self.now_end = end
-        return True
 
 
 class Cursor:
@@ -163,6 +212,35 @@ class Cursor:
             return True
 
         return False
+
+
+class LawDTOList:
+    index: int
+    sequence: List
+    now: LawDTO
+    len: int
+
+    def __init__(self) -> None:
+        self.index = -1
+        self.len = 0
+        self.sequence = []
+
+    def append(self, lawdto: LawDTO):
+        self.sequence.append(lawdto)
+        self.len += 1
+
+    def step(self):
+        self.index += 1
+        if self.index < self.len:
+            self.now = self.sequence[self.index]
+            return True
+        return False
+
+    def is_last(self):
+        return self.index == self.len - 1
+
+    def get_next(self):
+        return self.sequence[self.index + 1]
 
 
 class Rule(KeywordExtractRule):
@@ -205,7 +283,7 @@ class Rule(KeywordExtractRule):
 
         canditates_set = set()
         ryakusyou_canditates_set = set()
-        law_list: List[LawDTO] = []
+        law_list = LawDTOList()
         アイヌ新法が含まれるか = アイヌ新法 in doc.text
 
         if アイヌ新法が含まれるか is True:
@@ -289,7 +367,6 @@ class Rule(KeywordExtractRule):
         law_list_len = len(law_list)
 
         is_context_added = False
-        position_list = PositionList()
         if law_list_len == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:

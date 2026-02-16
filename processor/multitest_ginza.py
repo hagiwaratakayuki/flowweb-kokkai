@@ -175,12 +175,14 @@ class Caller:
 
     def exec(self, pool):
         imap = pool.imap_unordered(
-            self.funcclass.exec, range(100), chunksize=10)
+            self.funcclass.exec, range(10), chunksize=2)
         list(imap)
 
 
 def main():
+
     instance = ExampleClass()
+
     start = time.perf_counter_ns()
     caller = Caller()
     with Pool(4) as pool:
