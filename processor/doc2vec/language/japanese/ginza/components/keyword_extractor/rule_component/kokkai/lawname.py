@@ -4,6 +4,7 @@ from calendar import c
 from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 
 
+from more_itertools import first
 import numpy as np
 
 
@@ -170,17 +171,31 @@ class LawDTO:
     chapter_canditates: List[Union[CountChapterType, カタカナ章表現の型]]
     len: int
     end: int
+    is_guess: bool
 
-    def __init__(self, name, start, face=''):
+    def __init__(self, name, start, face='', is_guess=False, end=None):
         self.name = name
         self.start = start
         self.face = face
         self.is_reverse = False
         self.len = len(self.get_face())
-        self.end = self.start + self.len - 1
+        if end == None:
+
+            self.end = self.start + self.len - 1
+        else:
+            self.end = end
+        self.is_guess = is_guess
+        self.chapter_canditates = []
 
     def get_face(self):
         return self.face or self.name
+
+    def is_chapter_exist(self):
+        return len(self.chapter_canditates) > 0
+
+    def get_chapters(self) -> List:
+        # TODO 章表現の抽出を実装
+        pass
 
 
 class Cursor:
@@ -214,9 +229,15 @@ class Cursor:
         return False
 
 
+class ChaptersAndTokens:
+    def __init__(self) -> None:
+        self.tokens = deque()
+        self.chapters = deque()
+
+
 class LawDTOList:
     index: int
-    sequence: List
+    sequence: List[LawDTO]
     now: LawDTO
     len: int
 
@@ -225,8 +246,18 @@ class LawDTOList:
         self.len = 0
         self.sequence = []
 
+    def sort(self):
+        self.sequence.sort(key=startkey)
+
+    def get_first(self):
+        return self.sequence[0]
+
     def append(self, lawdto: LawDTO):
         self.sequence.append(lawdto)
+        self.len += 1
+
+    def prepend(self, lawdto: LawDTO):
+        self.sequence.insert(0, lawdto)
         self.len += 1
 
     def step(self):
@@ -242,6 +273,9 @@ class LawDTOList:
     def get_next(self):
         return self.sequence[self.index + 1]
 
+    def rewind(self):
+        self.index = -1
+
 
 class Rule(KeywordExtractRule):
     context: DiscussionContext
@@ -251,9 +285,8 @@ class Rule(KeywordExtractRule):
 
     def execute(self, doc: Doc, vector: np.ndarray, sentiment_results: SentimentResult, dto: DTO, results: ExtractResultDTO):
 
-        law_index = defaultdict(set)
         reverse_dict = defaultdict(set)
-        sent_number = -1
+
         all_text = doc.text
         law_count = all_text.count('法')
         if law_count == 0 and self.context.get_data(dto=dto)[0] == False:
@@ -278,8 +311,6 @@ class Rule(KeywordExtractRule):
         商売の方法または金商法の略称の一部としての商法である = False
 
         target_tokens = deque()
-
-        sent_number += 1
 
         canditates_set = set()
         ryakusyou_canditates_set = set()
@@ -362,23 +393,22 @@ class Rule(KeywordExtractRule):
         # line_laws.extend((m.group(0), m.start(), section_rank[m.group(1)], )
         #             )
 
-        law_list.sort(key=startkey)
-
-        law_list_len = len(law_list)
-
         is_context_added = False
-        if law_list_len == 0:
+
+        if law_list.len == 0:
             is_context_exist, 法律名 = self.context.get_data(dto=dto)
             if not is_context_exist:
                 return results
-            law_dto = LawDTO(name=法律名, start=0)
+            law_dto = LawDTO(name=法律名, start=0, end=0, is_guess=True)
             law_list.append(law_dto)
-            position_list.append_position(law_dto.start, law_dto.end)
-            is_context_added = True
-            law_list_len = 1
+
         else:
-            for law_dto in law_list:
-                position_list.append_position(law_dto.start, law_dto.end)
+            law_list.sort()
+            first = law_list.get_first()
+            if first.start != 0:
+                law_dto = LawDTO(name=first.name, start=0,
+                                 end=0, is_guess=True)
+                law_list.prepend(law_dto)
 
         cursor = Cursor(doc)
         段階表現のリスト = []
@@ -405,7 +435,6 @@ class Rule(KeywordExtractRule):
                 段階表現のリスト.append(
                     (match.start(), 分割パターン.findall(all_text), 倒置表現である, ))
                 段階表現と位置のインデックス[match.start()] = index
-                position_list.append_position(match.start(), match.end())
 
         法律名のインデックス = -1
         for law_dto in law_list:
@@ -436,27 +465,11 @@ class Rule(KeywordExtractRule):
             段階表現のリスト=段階表現のリスト, law_list_len=law_list_len, law_list=law_list)
 
         self.context.set_data(data=law_list[-1].name, dto=dto)
-        is_positions_exist = position_list.prepare()
-        if not is_positions_exist:
-            return results
 
         tokens = set()
         is_in = False
         position = 0
         prev_token = ''
-        for token in doc:
-
-            position += len(prev_token)
-            prev_token = token
-
-            if position_list.now_start <= position <= position_list.now_end:
-                is_in = True
-
-                tokens.add(token)
-            elif is_in:
-                is_in = False
-                if not position_list.step():
-                    break
 
         results.remove_kewywords(tokens)
 
@@ -557,6 +570,37 @@ class Rule(KeywordExtractRule):
 
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
         return 法律名と段階表現の対応表, 法律名の一覧
+
+    def _apply_token_to_law(self, doc: Doc, law_dto_list: LawDTOList):
+        # 書きかけ
+        law_dto_list.rewind()
+        law_dto_list.step()
+        law_name_to_chapters_and_tokens = defaultdict(ChaptersAndTokens)
+
+        has_next = True
+        while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
+            has_next = law_dto_list.step()
+        now = law_dto_list.now
+        law_name_to_chapters_and_tokens[now.name].chapters.extend(
+            now.get_chapters())
+        is_entered = False
+        for token in doc:
+            if not now.start <= token.idx < now.end:
+                if is_entered == True:
+                    is_entered = False
+                    if law_dto_list.step() == False:
+                        break
+                    has_next = True
+                    while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
+                        has_next = law_dto_list.step()
+                        now = law_dto_list.now
+                    law_name_to_chapters_and_tokens[now.name].chapters.extend(
+                        now.get_chapters())
+
+                continue
+            is_entered = True
+            law_name_to_chapters_and_tokens[now.name].tokens.append(token)
+        return law_name_to_chapters_and_tokens
 
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 末尾はカナ表現か, 現在の章表現=None, 法律名と段階表現の対応表={}, 現在の法律名=''):
 
