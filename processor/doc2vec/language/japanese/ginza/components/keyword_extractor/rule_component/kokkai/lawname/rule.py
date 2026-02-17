@@ -11,23 +11,24 @@ import numpy as np
 from doc2vec.util.specified_keyword import SpecifiedKeyword, EqIn
 import regex as re
 
-from spacy.tokens import Token, Doc, Span
-from spacy.matcher import Matcher
+from spacy.tokens import Doc
+
 import json
 import os
 from collections import defaultdict
-from operator import attrgetter, itemgetter
+from operator import itemgetter
 from collections import Counter, defaultdict, deque
 from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extractor.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.discussion_context import DiscussionContext
+from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.chapter import 章としての区分を表す単語
+from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.dtos import LawDTO, LawDTOList
+from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import IsCountChapterFlag, カタカナ章表現を示すフラグ
 from processor.doc2vec.spacy.components.nlp.loader import load_matcher
 
 
-startkey = attrgetter('start')
 zerogetter = itemgetter(0)
-章としての区分を表す単語 = r"条項号"
 グループ分け単語 = set('編章節款目')
 章とグループ分けの単語 = set(章としての区分を表す単語) | グループ分け単語
 区分の最大深さ = len(章としての区分を表す単語) - 1
@@ -38,12 +39,6 @@ zerogetter = itemgetter(0)
      re.compile(r'(\d+|の、?\p{Katakana}+)([' + 章としての区分を表す単語 + r'、]?)'),)
 
 ]
-
-章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
-
-
-スーパー301条対策のパターン = re.compile('ス.パ.')
-委員会 = "委員会"
 
 
 アイヌ新法 = "アイヌ新法"
@@ -82,70 +77,6 @@ law_standard_phrases = ['法の下の平等', '法の支配']
     re.compile('び$')
 ]
 DUMMY_SET = {0}
-カタカナ一文字 = {'イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
-           'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
-chapter_expression_matcher: Optional[Matcher] = None
-vocab = None
-chapter_title_set = set(章としての区分を表す単語)
-
-REGULAR_PATTERN_ID = "regular_pattern"
-COUNT_ONLY_PATTERN_ID = "count_only_pattern"
-カタカナの可能性のあるパターンのID = "カタカナの可能性のあるパターン"
-
-
-def get_chapter_expression_matcher(model_name):
-    global chapter_expression_matcher, vocab
-    if chapter_expression_matcher != None:
-        return chapter_expression_matcher, vocab
-    chapter_expression_matcher = load_matcher(model_name)
-    regular_pattern = [
-        [{"POS": "NUM"}, {"TEXT": {"IN": list(章としての区分を表す単語)}}]
-    ]
-
-    chapter_expression_matcher.add(REGULAR_PATTERN_ID, regular_pattern)
-    count_only_pattern = [
-        [{"POS": "NUM"}, {"POS": "ADP"}],
-        [{"POS": "NUM"}, {"POS": "PUNCT"}],
-        [{"POS": "NUM"}, {"POS": "AUX"}]
-    ]
-    chapter_expression_matcher.add(COUNT_ONLY_PATTERN_ID, count_only_pattern)
-    カタカナの可能性のあるパターン = [
-        [{"LENGTH": 1}, {"POS": "ADP"}],
-        [{"LENGTH": 1}, {"POS": "PUNCT"}],
-        [{"LENGTH": 1}, {"POS": "AUX"}]
-    ]
-    chapter_expression_matcher.add(
-        カタカナの可能性のあるパターンのID, カタカナの可能性のあるパターン)
-
-    return chapter_expression_matcher, vocab
-
-
-class ChapterExpressionMatches:
-    index: int
-    sequence: List[Tuple[int, int, int]]
-    len: int
-    doc: Doc
-    now: Tuple[str, Span, Union[Token, False]]
-    vocab: Any
-
-    def __init__(self, doc, model_name) -> None:
-        self.index = -1
-        self.doc = doc
-        matcher, vocab = get_chapter_expression_matcher(model_name)
-        self.sequence = matcher(doc)
-        self.len = len(self.sequence)
-        self.vocab = vocab
-
-    def step(self):
-        self.index += 1
-        if self.index < self.len:
-            match_id, start, end = self.sequence[self.index]
-            now_span = self.doc[start:end]
-            next_token = self.doc[end]
-            self.now = (self.vocab[match_id], now_span, next_token, )
-
-            return True
-        return False
 
 
 class EqInShorter:
@@ -154,48 +85,6 @@ class EqInShorter:
 
     def __eq__(self, __value: object) -> bool:
         return __value in self.value
-
-
-IsCountChapterFlag = 0
-
-CountChapterType = Tuple[IsCountChapterFlag, int, Union[str, False]]
-カタカナ章表現を示すフラグ = 1
-カタカナ章表現の型 = Tuple[カタカナ章表現を示すフラグ, str]
-
-
-class LawDTO:
-    start: int
-    is_reverse: bool
-    face: str
-    name: str
-    chapter_canditates: List[Union[CountChapterType, カタカナ章表現の型]]
-    len: int
-    end: int
-    is_guess: bool
-
-    def __init__(self, name, start, face='', is_guess=False, end=None):
-        self.name = name
-        self.start = start
-        self.face = face
-        self.is_reverse = False
-        self.len = len(self.get_face())
-        if end == None:
-
-            self.end = self.start + self.len - 1
-        else:
-            self.end = end
-        self.is_guess = is_guess
-        self.chapter_canditates = []
-
-    def get_face(self):
-        return self.face or self.name
-
-    def is_chapter_exist(self):
-        return len(self.chapter_canditates) > 0
-
-    def get_chapters(self) -> List:
-        # TODO 章表現の抽出を実装
-        pass
 
 
 class Cursor:
@@ -233,49 +122,6 @@ class ChaptersAndTokens:
     def __init__(self) -> None:
         self.tokens = deque()
         self.chapters = deque()
-
-
-class LawDTOList:
-    index: int
-    sequence: List[LawDTO]
-    now: LawDTO
-    len: int
-
-    def __init__(self) -> None:
-        self.index = -1
-        self.len = 0
-        self.sequence = []
-
-    def sort(self):
-        self.sequence.sort(key=startkey)
-
-    def get_first(self):
-        return self.sequence[0]
-
-    def append(self, lawdto: LawDTO):
-        self.sequence.append(lawdto)
-        self.len += 1
-
-    def prepend(self, lawdto: LawDTO):
-        self.sequence.insert(0, lawdto)
-        self.len += 1
-
-    def step(self):
-        self.index += 1
-        if self.index < self.len:
-            self.now = self.sequence[self.index]
-            return True
-        return False
-
-    def is_last(self):
-        return self.index == self.len - 1
-
-    def get_next(self):
-
-        return self.sequence[self.index + 1]
-
-    def rewind(self):
-        self.index = -1
 
 
 class Rule(KeywordExtractRule):
@@ -538,7 +384,7 @@ class Rule(KeywordExtractRule):
                     if 倒置の直後である:
                         倒置の直後である = False
                         末尾はカナ表現か = False
-
+                """
                 if 段階表現[0][1] not in 章の区分と数値の変換表:
                     if 現在の段階表現の基準深さ == -1:
                         未判定の段階表現のdeque.appendleft(段階表現)
@@ -570,59 +416,8 @@ class Rule(KeywordExtractRule):
                     break
 
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
+                """
         return 法律名と段階表現の対応表, 法律名の一覧
-
-    def _extract_chapter_expressions(self, doc: Doc, law_dto_list: LawDTOList, model_name):
-        law_dto_list.rewind()
-        has_next, is_last, next_law = self._step_law_dto_list_with_flags(
-            law_dto_list)
-        if not has_next:
-            return
-        chapter_expression_matches = ChapterExpressionMatches(
-            doc=doc, model_name=model_name)
-        while chapter_expression_matches.step():
-            match_id, span, next_token = chapter_expression_matches.now
-
-            if not is_last:
-                if next_law.start <= span.start_char:
-                    has_next, is_last, next_law = self._step_law_dto_list_with_flags(
-                        law_dto_list)
-
-            # TODO 章段階の判定と並列、倒置判定を実装
-            if match_id == REGULAR_PATTERN_ID:
-
-                num = span[0].norm_
-                word = span[1].text
-                law_dto_list.now.chapter_canditates.append(
-                    (IsCountChapterFlag, num, word))
-
-            elif match_id == COUNT_ONLY_PATTERN_ID:
-                #
-                num = span[0].norm_
-                law_dto_list.now.chapter_canditates.append(
-                    (IsCountChapterFlag, num, False))
-
-            elif match_id == カタカナの可能性のあるパターンのID:
-                # イ、ロ、ハ 形式
-                char = span[0].text
-                if not char in カタカナ一文字:
-                    continue
-                law_dto_list.now.chapter_canditates.append(
-                    (カタカナ章表現を示すフラグ, char))
-
-    def _step_law_dto_list_with_flags(self, law_dto_list: LawDTOList):
-        has_next = law_dto_list.step()
-        is_last = False
-        next_law = None
-        if not has_next:
-            return has_next, is_last, next_law
-
-        is_last = law_dto_list.is_last()
-        next_law = None
-        if not is_last:
-            next_law = law_dto_list.get_next()
-
-        return has_next, is_last, next_law
 
     def _apply_token_to_law(self, doc: Doc, law_dto_list: LawDTOList):
 
@@ -686,7 +481,7 @@ class Rule(KeywordExtractRule):
 
                 continue
             一つ前の深さ = 現在の数値深さ
-            現在の数値深さ = 章の区分と数値の変換表.get(深さ, 現在の数値深さ + 1)
+            # 現在の数値深さ = 章の区分と数値の変換表.get(深さ, 現在の数値深さ + 1)
 
             if 現在の数値深さ < 2:
                 continue
