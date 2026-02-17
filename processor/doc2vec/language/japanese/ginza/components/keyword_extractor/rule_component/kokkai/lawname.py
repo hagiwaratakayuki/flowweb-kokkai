@@ -1,7 +1,7 @@
 
 
 from calendar import c
-from typing import Any, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, DefaultDict, Deque, Iterator, List, Literal, Optional, Set, Tuple, Union
 
 
 from more_itertools import first
@@ -90,7 +90,7 @@ chapter_title_set = set(章としての区分を表す単語)
 
 REGULAR_PATTERN_ID = "regular_pattern"
 COUNT_ONLY_PATTERN_ID = "count_only_pattern"
-カタカナの可能性のあるパターンID = "カタカナの可能性のあるパターン"
+カタカナの可能性のあるパターンのID = "カタカナの可能性のあるパターン"
 
 
 def get_chapter_expression_matcher(model_name):
@@ -115,17 +115,17 @@ def get_chapter_expression_matcher(model_name):
         [{"LENGTH": 1}, {"POS": "AUX"}]
     ]
     chapter_expression_matcher.add(
-        カタカナの可能性のあるパターンID, カタカナの可能性のあるパターン)
+        カタカナの可能性のあるパターンのID, カタカナの可能性のあるパターン)
 
     return chapter_expression_matcher, vocab
 
 
-class NumberTokenList:
+class ChapterExpressionMatches:
     index: int
     sequence: List[Tuple[int, int, int]]
     len: int
     doc: Doc
-    now: Tuple[Span, Union[Token, False]]
+    now: Tuple[str, Span, Union[Token, False]]
     vocab: Any
 
     def __init__(self, doc, model_name) -> None:
@@ -271,6 +271,7 @@ class LawDTOList:
         return self.index == self.len - 1
 
     def get_next(self):
+
         return self.sequence[self.index + 1]
 
     def rewind(self):
@@ -571,36 +572,95 @@ class Rule(KeywordExtractRule):
                 段階表現のスタート, 段階表現, 倒置表現フラグ = 段階表現のリスト[段階表現リストの行番号]
         return 法律名と段階表現の対応表, 法律名の一覧
 
-    def _apply_token_to_law(self, doc: Doc, law_dto_list: LawDTOList):
-        # 書きかけ
+    def _extract_chapter_expressions(self, doc: Doc, law_dto_list: LawDTOList, model_name):
         law_dto_list.rewind()
-        law_dto_list.step()
-        law_name_to_chapters_and_tokens = defaultdict(ChaptersAndTokens)
+        has_next, is_last, next_law = self._step_law_dto_list_with_flags(
+            law_dto_list)
+        if not has_next:
+            return
+        chapter_expression_matches = ChapterExpressionMatches(
+            doc=doc, model_name=model_name)
+        while chapter_expression_matches.step():
+            match_id, span, next_token = chapter_expression_matches.now
 
-        has_next = True
-        while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
-            has_next = law_dto_list.step()
-        now = law_dto_list.now
-        law_name_to_chapters_and_tokens[now.name].chapters.extend(
-            now.get_chapters())
+            if not is_last:
+                if next_law.start <= span.start_char:
+                    has_next, is_last, next_law = self._step_law_dto_list_with_flags(
+                        law_dto_list)
+
+            # TODO 章段階の判定と並列、倒置判定を実装
+            if match_id == REGULAR_PATTERN_ID:
+
+                num = span[0].norm_
+                word = span[1].text
+                law_dto_list.now.chapter_canditates.append(
+                    (IsCountChapterFlag, num, word))
+
+            elif match_id == COUNT_ONLY_PATTERN_ID:
+                #
+                num = span[0].norm_
+                law_dto_list.now.chapter_canditates.append(
+                    (IsCountChapterFlag, num, False))
+
+            elif match_id == カタカナの可能性のあるパターンのID:
+                # イ、ロ、ハ 形式
+                char = span[0].text
+                if not char in カタカナ一文字:
+                    continue
+                law_dto_list.now.chapter_canditates.append(
+                    (カタカナ章表現を示すフラグ, char))
+
+    def _step_law_dto_list_with_flags(self, law_dto_list: LawDTOList):
+        has_next = law_dto_list.step()
+        is_last = False
+        next_law = None
+        if not has_next:
+            return has_next, is_last, next_law
+
+        is_last = law_dto_list.is_last()
+        next_law = None
+        if not is_last:
+            next_law = law_dto_list.get_next()
+
+        return has_next, is_last, next_law
+
+    def _apply_token_to_law(self, doc: Doc, law_dto_list: LawDTOList):
+
+        law_dto_list.rewind()
+
+        law_name_to_chapters_and_tokens = defaultdict(ChaptersAndTokens)
+        now = self._step_skip_law_dto_list(
+            law_name_to_chapters_and_tokens, law_dto_list)
+        if now == False:
+            return law_name_to_chapters_and_tokens
+
         is_entered = False
         for token in doc:
             if not now.start <= token.idx < now.end:
                 if is_entered == True:
                     is_entered = False
-                    if law_dto_list.step() == False:
+                    now = self._step_skip_law_dto_list(
+                        law_name_to_chapters_and_tokens, law_dto_list)
+                    if now == False:
                         break
-                    has_next = True
-                    while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
-                        has_next = law_dto_list.step()
-                        now = law_dto_list.now
-                    law_name_to_chapters_and_tokens[now.name].chapters.extend(
-                        now.get_chapters())
 
                 continue
             is_entered = True
             law_name_to_chapters_and_tokens[now.name].tokens.append(token)
         return law_name_to_chapters_and_tokens
+
+    def _step_skip_law_dto_list(self, law_name_to_chapters_and_tokens: DefaultDict[str, ChaptersAndTokens], law_dto_list: LawDTOList):
+        has_next = law_dto_list.step()
+        while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
+            has_next = law_dto_list.step()
+        if has_next == False:
+            return False
+
+        now = law_dto_list.now
+        law_name_to_chapters_and_tokens[now.name].chapters.extend(
+            now.get_chapters())
+
+        return now
 
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 末尾はカナ表現か, 現在の章表現=None, 法律名と段階表現の対応表={}, 現在の法律名=''):
 
