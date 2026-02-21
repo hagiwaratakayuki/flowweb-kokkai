@@ -419,44 +419,6 @@ class Rule(KeywordExtractRule):
                 """
         return 法律名と段階表現の対応表, 法律名の一覧
 
-    def _apply_token_to_law(self, doc: Doc, law_dto_list: LawDTOList):
-
-        law_dto_list.rewind()
-
-        law_name_to_chapters_and_tokens = defaultdict(ChaptersAndTokens)
-        now = self._step_skip_law_dto_list(
-            law_name_to_chapters_and_tokens, law_dto_list)
-        if now == False:
-            return law_name_to_chapters_and_tokens
-
-        is_entered = False
-        for token in doc:
-            if not now.start <= token.idx < now.end:
-                if is_entered == True:
-                    is_entered = False
-                    now = self._step_skip_law_dto_list(
-                        law_name_to_chapters_and_tokens, law_dto_list)
-                    if now == False:
-                        break
-
-                continue
-            is_entered = True
-            law_name_to_chapters_and_tokens[now.name].tokens.append(token)
-        return law_name_to_chapters_and_tokens
-
-    def _step_skip_law_dto_list(self, law_name_to_chapters_and_tokens: DefaultDict[str, ChaptersAndTokens], law_dto_list: LawDTOList):
-        has_next = law_dto_list.step()
-        while has_next and law_dto_list.now.is_guess == True and law_dto_list.now.is_chapter_exist() == False:
-            has_next = law_dto_list.step()
-        if has_next == False:
-            return False
-
-        now = law_dto_list.now
-        law_name_to_chapters_and_tokens[now.name].chapters.extend(
-            now.get_chapters())
-
-        return now
-
     def _infer_level(self, 段階表現: List[Tuple[str, str]], 末尾はカナ表現か, 現在の章表現=None, 法律名と段階表現の対応表={}, 現在の法律名=''):
 
         result = list(現在の章表現 or [])

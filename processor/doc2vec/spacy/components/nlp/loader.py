@@ -1,4 +1,5 @@
-from ast import Tuple
+from typing import Tuple
+
 import spacy
 from spacy.matcher import Matcher
 from spacy.vocab import Vocab

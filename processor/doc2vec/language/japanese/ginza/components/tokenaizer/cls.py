@@ -5,18 +5,15 @@ from typing import Any, Tuple
 import spacy
 import spacy.tokens
 
-from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
+from doc2vec.spacy.components.tokenaizer.cls import SpacyToknaizer
 
 
-nlp = spacy.load('ja_ginza')
-
-
-class GinzaTokenizer(AbstarctTokenizerClass):
+class GinzaTokenizer(SpacyToknaizer):
 
     def parse(self, arg: Tuple[str, Any]):
 
         text, data_id = arg
-
+        nlp = self._get_language()
         splited = text.split('。')
         parse_result = deque()
         byte_length = 0

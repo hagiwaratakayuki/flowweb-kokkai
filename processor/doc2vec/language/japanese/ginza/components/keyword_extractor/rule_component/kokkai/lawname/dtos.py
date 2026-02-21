@@ -1,9 +1,10 @@
 
 
 from operator import attrgetter
-from typing import List, Union
+from spacy.tokens import Span
+from typing import List, Set, Union
 
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import CountChapterType, カタカナ章表現の型
+from .types import CountChapterType, カタカナ章表現の型
 
 
 class LawDTO:
@@ -15,6 +16,7 @@ class LawDTO:
     len: int
     end: int
     is_guess: bool
+    tokens: Span
 
     def __init__(self, name, start, face='', is_guess=False, end=None):
         self.name = name
@@ -22,6 +24,7 @@ class LawDTO:
         self.face = face
         self.is_reverse = False
         self.len = len(self.get_face())
+
         if end == None:
 
             self.end = self.start + self.len - 1
