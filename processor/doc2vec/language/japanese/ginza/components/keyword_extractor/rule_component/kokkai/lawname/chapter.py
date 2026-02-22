@@ -1,4 +1,5 @@
 
+from operator import is_
 import re
 from typing import List, Optional, Set, Tuple, Union, Any
 
@@ -104,7 +105,52 @@ class ChapterExpressionMatches:
             return True
         return False
 
-# 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
+
+ChapterNodeType = Tuple[str, Optional[str]]
+
+
+class ChapterPathData:
+    base_path: List[ChapterNodeType]
+    path: List[ChapterNodeType]
+    start_level: int
+    node_count: int
+    is_relative: bool
+
+    def __init__(self, is_relative=False) -> None:
+        self.base_path = []
+        self.path = []
+        self.start_level = 0
+        self.node_count = 0
+        self.is_relative = is_relative
+
+
+class ChapterPat(ChapterPathData):
+
+    def __init__(self, base_path_data: Optional[ChapterPathData] = None, is_relative: Optional[bool] = None) -> None:
+
+        if is_relative != None:
+            super().__init__(is_relative=is_relative)
+        else:
+            super().__init__()
+
+        if base_path_data != None:
+
+            self.start_level = base_path_data.start_level
+            self.node_count = base_path_data.node_count
+            self.base_path = base_path_data.base_path[:]
+            self.path = base_path_data.path[:]
+            self.is_relative = base_path_data.is_relative
+
+    def append_node(self, chapter_count, level_expression=None):
+        self.path.append((chapter_count, level_expression, ))
+
+    def prepend_node(self, chapter_count, level_expression=None):
+        self.path.insert(0, (chapter_count, level_expression, ))
+
+    def resolve(self):
+        pass
+
+        # 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
 
 
 def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
