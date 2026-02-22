@@ -3,6 +3,7 @@ from operator import is_
 import re
 from typing import List, Optional, Set, Tuple, Union, Any
 
+from sklearn import base
 from spacy.matcher import Matcher
 from spacy.tokens import Doc, Span, Token
 
@@ -15,6 +16,7 @@ from processor.doc2vec.spacy.components.nlp.loader import load_matcher, loadnlp
 グループ分け単語 = set('編章節款目')
 
 章としての区分を表す単語 = r"条項号"
+最大深さ = len(章としての区分を表す単語)  # 条項号+イロハ
 章の区分と数値の変換表 = {章としての区分を表す単語[i]: i for i in range(len(章としての区分を表す単語))}
 カタカナ一文字 = {'イ', 'ロ', 'ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'チ', 'リ', 'ヌ', 'ル', 'ヲ', 'ワ', 'カ', 'ヨ', 'タ', 'レ', 'ソ', 'ツ', 'ネ', 'ナ', 'ラ', 'ム',
            'ウ', 'ヰ', 'ノ', 'オ', 'ク', 'ヤ', 'マ', 'ケ', 'フ', 'コ', 'エ', 'テ', 'ア', 'サ', 'キ', 'ユ', 'メ', 'ミ', 'シ', 'ヱ', 'ヒ', 'モ', 'セ', 'ス', 'ン'}
@@ -79,7 +81,7 @@ class ChapterExpressionMatches:
         self.sentence_len = len(self.senetnce_sequence)
         self.vocab = vocab
 
-    def step_sent(self):
+    def step_sentence(self):
         self.sentence_index += 1
 
         if self.sentence_index < self.sentence_len:
@@ -119,12 +121,12 @@ class ChapterPathData:
     def __init__(self, is_relative=False) -> None:
         self.base_path = []
         self.path = []
-        self.start_level = 0
+        self.start_level = -1
         self.node_count = 0
         self.is_relative = is_relative
 
 
-class ChapterPat(ChapterPathData):
+class ChapterPath(ChapterPathData):
 
     def __init__(self, base_path_data: Optional[ChapterPathData] = None, is_relative: Optional[bool] = None) -> None:
 
@@ -135,20 +137,36 @@ class ChapterPat(ChapterPathData):
 
         if base_path_data != None:
 
-            self.start_level = base_path_data.start_level
             self.node_count = base_path_data.node_count
-            self.base_path = base_path_data.base_path[:]
-            self.path = base_path_data.path[:]
+            if base_path_data.start_level != -1:
+                self.base_path = base_path_data.base_path[:base_path_data.start_level]
+            else:
+                self.base_path = base_path_data.base_path[:]
+
+            self.start_level = base_path_data.start_level
+            self.base_path.extend(base_path_data.path)
+            self.path = []
             self.is_relative = base_path_data.is_relative
 
     def append_node(self, chapter_count, level_expression=None):
         self.path.append((chapter_count, level_expression, ))
+        self.node_count += 1
 
     def prepend_node(self, chapter_count, level_expression=None):
         self.path.insert(0, (chapter_count, level_expression, ))
 
     def resolve(self):
-        pass
+        len_base = len(self.base_path)
+
+        total_depth = len_base + self.node_count
+        depth_diff = total_depth - 最大深さ
+        if depth_diff > 0:
+            chapter_path = self.base_path[:-depth_diff]
+        else:
+            chapter_path = self.base_path
+        chapter_path.extend(self.path)
+        for node in chapter_path:
+            pass
 
         # 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
 
@@ -163,8 +181,11 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
     chapter_expression_matches = ChapterExpressionMatches(
         doc=doc, model_name=model_name)
     now_path: Optional[Set[Token]] = None
-    while chapter_expression_matches.step_sent():
+    now_chapter_path: ChapterPath = None
+    while chapter_expression_matches.step_sentence():
+        before_hit: Span = None
         while chapter_expression_matches.step_sentence_matches():
+
             match_id, span = chapter_expression_matches.now
 
             if not is_last:
@@ -179,23 +200,14 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                 if span[0].norm_ == "301" and span.start_char >= 4 and スーパー301条対策のパターン.match(doc.text[span.start_char - 4:span.start]):
                     continue
 
-            # TODO 段階の深さが違った場合、あるいはあるいは相対表記の途中で登場した場合の処理を実装
-            if match_id == REGULAR_PATTERN_ID:
-
-                num = span[0].norm_
-                word = span[1].text
-                law_dto_list.now.chapter_canditates.append(
-                    (IsCountChapterFlag, num, word))
-
-            elif match_id == COUNT_ONLY_PATTERN_ID:
-                # 『○○の1、」みたいなパターン
-                is_new_path = False
-                for token in span:
-                    _now_path = path_index.get(token, None)
-                    if _now_path != now_path:
-                        is_new_path = True
-                        now_path = _now_path
-                        break
+            head_token = span[0]
+            is_new_path = False
+            for token in span:
+                _now_path = path_index.get(token, None)
+                if _now_path != now_path:
+                    is_new_path = True
+                    now_path = _now_path
+                    break
                 if not is_new_path:
 
                     pass
@@ -203,17 +215,44 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                 else:
                     pass
 
-                num = span[0].norm_
-                law_dto_list.now.chapter_canditates.append(
-                    (IsCountChapterFlag, num, False))
+            # TODO 段階の深さが違った場合、あるいはあるいは相対表記の途中で登場した場合の処理を実装
+            if match_id == REGULAR_PATTERN_ID:
+                if now_path == None:
+                    now_chapter_path = ChapterPath()
+                else:
+                    now_chapter_path
+                word = span[1].text
 
-            elif match_id == カタカナの可能性のあるパターンのID:
-                # イ、ロ、ハ 形式
-                char = span[0].text
-                if not char in カタカナ一文字:
-                    continue
-                law_dto_list.now.chapter_canditates.append(
-                    (カタカナ章表現を示すフラグ, char))
+            else:
+                is_parallel = False
+
+                if before_hit != None and before_hit[-1] == doc[head_token.i - 1] and before_hit[-1].is_punct:
+                    is_parallel = True
+                else:
+                    parallel_matcher, max_back = get_parallel_matcher(
+                        model_name)
+                    if head_token.is_left_punct == True:
+                        max_back + 1
+                    target_span = doc[max(
+                        0, head_token.i - max_back):head_token.i]
+                    parallel_matches = parallel_matcher(target_span)
+                    if len(parallel_matches) > 0:
+                        is_parallel = True
+
+                if match_id == COUNT_ONLY_PATTERN_ID:
+                    # 『○○の1、」みたいなパターン
+
+                    num = head_token.norm_
+                    law_dto_list.now.chapter_canditates.append(
+                        (IsCountChapterFlag, num, False))
+
+                elif match_id == カタカナの可能性のあるパターンのID:
+                    # イ、ロ、ハ 形式
+                    char = span[0].text
+                    if not char in カタカナ一文字:
+                        continue
+                    law_dto_list.now.chapter_canditates.append(
+                        (カタカナ章表現を示すフラグ, char))
 
 
 def _step_law_dto_list_with_flags(law_dto_list: LawDTOList):
@@ -271,17 +310,28 @@ def _generate_path_index(start_span: Span, next_law_dto: Optional[LawDTO]):
 ]
 
 
-def _generate_check_pattern(pattern_strings: List[str], model_name, precondition=None, postcondition=None):
+_parallel_pattern = None
+
+
+def get_parallel_matcher(model_name) -> Tuple[Matcher, int]:
+    global _parallel_pattern
+    if _parallel_pattern != None:
+        return _parallel_pattern
+    _parallel_pattern = _generate_check_pattern(
+        並列を表す日本語のパターン, 'paralel_pattern', model_name)
+    return _parallel_pattern
+
+
+def _generate_check_pattern(pattern_strings, match_name, model_name):
     nlp = loadnlp(model_name)
+    matcher, vocab = load_matcher(model_name)
     pattern = []
+    max_token_count = 0
     for pattern_string in pattern_strings:
         parsed = nlp(pattern_string)
-        conditions = []
-        if precondition != None:
-            conditions.append(precondition)
-        for token in parsed:
-            conditions.append({'NORM': token.norm_})
-        if postcondition != None:
-            conditions.append(postcondition)
-        pattern.append(conditions)
-    return pattern
+        len_parsed = len(parsed)
+        max_token_count = max(max_token_count, len_parsed)
+        pattern.append(([{"NORM": token.norm} for token in parsed]))
+    matcher.add(match_name, pattern)
+
+    return pattern, max_token_count
