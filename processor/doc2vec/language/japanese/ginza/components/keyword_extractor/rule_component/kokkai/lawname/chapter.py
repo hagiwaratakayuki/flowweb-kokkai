@@ -114,14 +114,14 @@ ChapterNodeType = Tuple[str, Optional[str]]
 class ChapterPathData:
     base_path: List[ChapterNodeType]
     path: List[ChapterNodeType]
-    start_level: int
+    start_level: Optional[int]
     node_count: int
     is_relative: bool
 
     def __init__(self, is_relative=False) -> None:
         self.base_path = []
         self.path = []
-        self.start_level = -1
+        self.start_level = None
         self.node_count = 0
         self.is_relative = is_relative
 
@@ -138,10 +138,8 @@ class ChapterPath(ChapterPathData):
         if base_path_data != None:
 
             self.node_count = base_path_data.node_count
-            if base_path_data.start_level != -1:
-                self.base_path = base_path_data.base_path[:base_path_data.start_level]
-            else:
-                self.base_path = base_path_data.base_path[:]
+
+            self.base_path = base_path_data.base_path[:base_path_data.start_level]
 
             self.start_level = base_path_data.start_level
             self.base_path.extend(base_path_data.path)
@@ -149,6 +147,13 @@ class ChapterPath(ChapterPathData):
             self.is_relative = base_path_data.is_relative
 
     def append_node(self, chapter_count, level_expression=None):
+        if self.start_level == None and level_expression != None:
+            estimated_level = -1
+            if level_expression in 章の区分と数値の変換表:
+                estimated_level = 章の区分と数値の変換表[level_expression]
+            if level_expression in カタカナ一文字:
+                estimated_level = 最大深さ
+            self.start_level = max(0, estimated_level - self.node_count)
         self.path.append((chapter_count, level_expression, ))
         self.node_count += 1
 
@@ -165,8 +170,20 @@ class ChapterPath(ChapterPathData):
         else:
             chapter_path = self.base_path
         chapter_path.extend(self.path)
-        for node in chapter_path:
-            pass
+        depth = -1
+        result = []
+        for count_expression, level_expression in chapter_path:
+            depth += 1
+            if level_expression == None:
+                if count_expression in カタカナ一文字:
+                    level_expression = ''
+                else:
+                    if depth >= 最大深さ:
+                        return False
+
+                    level_expression = 章としての区分を表す単語[depth]
+            result.append((count_expression, level_expression, ))
+        return result
 
         # 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
 
