@@ -125,10 +125,13 @@ class ChapterPathData:
         self.node_count = 0
         self.is_relative = is_relative
 
+    def get_path(self):
+        return self.base_path + self.path
+
 
 class ChapterPath(ChapterPathData):
 
-    def __init__(self, base_path_data: Optional[ChapterPathData] = None, is_relative: Optional[bool] = None) -> None:
+    def __init__(self, base_path_data: Optional[ChapterPathData] = None, is_relative: Optional[bool] = None, start_level=None, from_level: Optional[int] = None) -> None:
 
         if is_relative != None:
             super().__init__(is_relative=is_relative)
@@ -139,23 +142,33 @@ class ChapterPath(ChapterPathData):
 
             self.node_count = base_path_data.node_count
 
-            self.base_path = base_path_data.base_path[:base_path_data.start_level]
+            self.base_path = base_path_data.get_path()[:from_level]
 
-            self.start_level = base_path_data.start_level
-            self.base_path.extend(base_path_data.path)
+            self.start_level = (base_path_data.start_level or 0)
+            if from_level == None:
+                self.start_level += base_path_data.node_count
+
+            else:
+                if from_level > 0:
+                    self.start_level += from_level - 1
+                else:
+                    self.start_level += max(0,
+                                            base_path_data.node_count + from_level)
+        else:
+
             self.path = []
             self.is_relative = base_path_data.is_relative
+        if start_level != None:
+            self.start_level = start_level
 
     def append_node(self, chapter_count, level_expression=None):
-        if self.start_level == None and level_expression != None:
-            estimated_level = -1
-            if level_expression in 章の区分と数値の変換表:
-                estimated_level = 章の区分と数値の変換表[level_expression]
-            if level_expression in カタカナ一文字:
-                estimated_level = 最大深さ
-            self.start_level = max(0, estimated_level - self.node_count)
         self.path.append((chapter_count, level_expression, ))
         self.node_count += 1
+
+    def check_le_from_level(self, level_expression):
+
+        level_count = 章の区分と数値の変換表.get(level_expression)
+        return (self.start_level or 0) + self.node_count > level_count
 
     def prepend_node(self, chapter_count, level_expression=None):
         self.path.insert(0, (chapter_count, level_expression, ))
@@ -182,6 +195,11 @@ class ChapterPath(ChapterPathData):
                         return False
 
                     level_expression = 章としての区分を表す単語[depth]
+            else:
+                estimate_depth = 章の区分と数値の変換表.get(level_expression)
+                if estimate_depth == None or estimate_depth != depth:
+                    return False
+
             result.append((count_expression, level_expression, ))
         return result
 
@@ -199,6 +217,7 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
         doc=doc, model_name=model_name)
     now_path: Optional[Set[Token]] = None
     now_chapter_path: ChapterPath = None
+    chapter_paths = []
     while chapter_expression_matches.step_sentence():
         before_hit: Span = None
         while chapter_expression_matches.step_sentence_matches():
@@ -225,19 +244,16 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                     is_new_path = True
                     now_path = _now_path
                     break
-                if not is_new_path:
 
-                    pass
-
-                else:
-                    pass
-
-            # TODO 段階の深さが違った場合、あるいはあるいは相対表記の途中で登場した場合の処理を実装
             if match_id == REGULAR_PATTERN_ID:
                 if now_path == None:
                     now_chapter_path = ChapterPath()
+                    chapter_paths.append(now_chapter_path)
                 else:
-                    now_chapter_path
+                    if now_chapter_path.is_relative or now_chapter_path.check_le_from_level(span[1].norm_):
+                        now_chapter_path = ChapterPath(
+                            base_path_data=now_chapter_path)
+
                 word = span[1].text
 
             else:
@@ -259,17 +275,21 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                 if match_id == COUNT_ONLY_PATTERN_ID:
                     # 『○○の1、」みたいなパターン
 
-                    num = head_token.norm_
-                    law_dto_list.now.chapter_canditates.append(
-                        (IsCountChapterFlag, num, False))
+                    chapter_count = head_token.norm_
 
                 elif match_id == カタカナの可能性のあるパターンのID:
                     # イ、ロ、ハ 形式
-                    char = span[0].text
-                    if not char in カタカナ一文字:
+                    chapter_count = span[0].text
+                    if not chapter_count in カタカナ一文字:
                         continue
-                    law_dto_list.now.chapter_canditates.append(
-                        (カタカナ章表現を示すフラグ, char))
+
+                if not is_parallel and (is_new_path or now_chapter_path == None):
+                    now_chapter_path = ChapterPath(is_relative=True)
+                elif is_parallel:
+                    now_chapter_path = ChapterPath(
+                        base_path_data=now_chapter_path, is_relative=True)
+
+                now_chapter_path.append_node(chapter_count=chapter_count)
 
 
 def _step_law_dto_list_with_flags(law_dto_list: LawDTOList):
