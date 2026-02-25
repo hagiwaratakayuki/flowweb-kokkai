@@ -203,7 +203,12 @@ class ChapterPath(ChapterPathData):
             result.append((count_expression, level_expression, ))
         return result
 
-        # 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
+    def resolve_inversion(self, chapter_path: List):
+        self.base_path = chapter_path[:].extend(self.base_path)
+        self.start_level += len(chapter_path)
+
+
+# 倒置表現対応。数値のみ場合は数値トークン、イロハ表記の場合はイロハ、条項トークンがついている場合は条項トークンからたどって倒置先の条項トークンまたは法律に繋がれば倒置＝待機
 
 
 def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
