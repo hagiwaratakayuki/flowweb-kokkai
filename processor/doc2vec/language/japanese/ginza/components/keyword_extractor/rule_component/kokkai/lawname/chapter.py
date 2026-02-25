@@ -319,9 +319,8 @@ UnchangablePos = {"NUM", "PUNCT"}
 
 
 def _generate_path_index(start_span: Span, next_law_dto: Optional[LawDTO]):
-    path_index = {}
-    path = set()
-
+    group_index = {}
+    group = set()
     for token in start_span:
         for ancestor in token.ancestors:
 
@@ -331,13 +330,13 @@ def _generate_path_index(start_span: Span, next_law_dto: Optional[LawDTO]):
                 break
 
             if ancestor.pos_ in UnchangablePos or ancestor.norm_ in chapter_title_set:
-                path.add(ancestor)
-                path_index[ancestor] = path
+                group.add(ancestor)
+                group_index[ancestor] = group
                 continue
 
-            path = set()
+            group = set()
 
-    return path_index
+    return group_index
 
 
 並列を表す日本語のパターン = [
@@ -377,3 +376,25 @@ def _generate_check_pattern(pattern_strings, match_name, model_name):
     matcher.add(match_name, pattern)
 
     return pattern, max_token_count
+
+
+_non_invers_pos = {'PROPN', 'NOUN'}
+
+
+def check_inverse_exception(base_span: Span, end_id: int, sentence: Span, doc: Doc):
+    target_span = doc[base_span.end + 1:end_id + 1]
+    target_span_len = len(target_span)
+    if target_span_len == 1:
+        return sentence.end == end_id and target_span.text == 'の'
+    if target_span_len == 2 and target_span.text == 'の、':
+        return False
+
+    if target_span[0].norm_ != 'の':
+        return False
+
+    for target_token in target_span:
+        if target_token.is_punct:
+            break
+        if target_token.pos_ in _non_invers_pos:
+            return False
+    return True
