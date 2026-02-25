@@ -1,5 +1,5 @@
 
-from operator import is_
+from operator import is_, le
 import re
 from typing import List, Optional, Set, Tuple, Union, Any
 
@@ -140,8 +140,6 @@ class ChapterPath(ChapterPathData):
 
         if base_path_data != None:
 
-            self.node_count = base_path_data.node_count
-
             self.base_path = base_path_data.get_path()[:from_level]
 
             self.start_level = (base_path_data.start_level or 0)
@@ -149,11 +147,11 @@ class ChapterPath(ChapterPathData):
                 self.start_level += base_path_data.node_count
 
             else:
-                if from_level > 0:
-                    self.start_level += from_level - 1
+                if from_level >= 0:
+                    self.start_level = from_level - 1
+
                 else:
-                    self.start_level += max(0,
-                                            base_path_data.node_count + from_level)
+                    self.start_level = self
         else:
 
             self.path = []
@@ -233,9 +231,10 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                 if next_law.start <= span.start_char:
                     step_success, is_last, next_law, path_index = _step_law_dto_list_with_flags(
                         law_dto_list)
-            if match_id == カタカナの可能性のあるパターンのID and span[0] not in カタカナ一文字:
-                continue
-            if match_id == REGULAR_PATTERN_ID:
+            if match_id == カタカナの可能性のあるパターンのID:
+                if span[0] not in カタカナ一文字:
+                    continue
+            elif match_id == REGULAR_PATTERN_ID:
                 if span.text == "百条" and doc.text[span.start_char:span.start_char + 5] == "百条委員会":
                     continue
                 if span[0].norm_ == "301" and span.start_char >= 4 and スーパー301条対策のパターン.match(doc.text[span.start_char - 4:span.start]):
@@ -251,15 +250,18 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                     break
 
             if match_id == REGULAR_PATTERN_ID:
+                chapter_expression = span[1].norm_
                 if now_path == None:
                     now_chapter_path = ChapterPath()
                     chapter_paths.append(now_chapter_path)
                 else:
-                    if now_chapter_path.is_relative or now_chapter_path.check_le_from_level(span[1].norm_):
+                    if now_chapter_path.check_le_from_level(chapter_expression):
                         now_chapter_path = ChapterPath(
-                            base_path_data=now_chapter_path)
+                            base_path_data=now_chapter_path, from_level=max(0, 章の区分と数値の変換表.get(chapter_expression, 0)))
+                        chapter_paths.append(now_chapter_path)
 
-                word = span[1].text
+                now_chapter_path.append_node(
+                    head_token.norm_, chapter_expression)
 
             else:
                 is_parallel = False
@@ -276,25 +278,23 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                     parallel_matches = parallel_matcher(target_span)
                     if len(parallel_matches) > 0:
                         is_parallel = True
-
+                chapter_count = head_token.norm_
                 if match_id == COUNT_ONLY_PATTERN_ID:
-                    # 『○○の1、」みたいなパターン
-
-                    chapter_count = head_token.norm_
+                    level_expression = None
 
                 elif match_id == カタカナの可能性のあるパターンのID:
                     # イ、ロ、ハ 形式
-                    chapter_count = span[0].text
-                    if not chapter_count in カタカナ一文字:
-                        continue
+                    level_expression = ''
 
                 if not is_parallel and (is_new_path or now_chapter_path == None):
                     now_chapter_path = ChapterPath(is_relative=True)
                 elif is_parallel:
                     now_chapter_path = ChapterPath(
-                        base_path_data=now_chapter_path, is_relative=True)
+                        base_path_data=now_chapter_path, is_relative=True, from_level=-1)
+                    chapter_paths.append(now_chapter_path)
 
-                now_chapter_path.append_node(chapter_count=chapter_count)
+                now_chapter_path.append_node(
+                    chapter_count=chapter_count, level_expression=level_expression)
 
 
 def _step_law_dto_list_with_flags(law_dto_list: LawDTOList):
