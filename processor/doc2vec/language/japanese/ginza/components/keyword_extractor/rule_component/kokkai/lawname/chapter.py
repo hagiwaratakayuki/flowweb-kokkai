@@ -1,8 +1,10 @@
 
 from operator import is_, le
 import re
+from turtle import mode
 from typing import List, Optional, Set, Tuple, Union, Any
 
+from regex import T
 from sklearn import base
 from spacy.matcher import Matcher
 from spacy.tokens import Doc, Span, Token
@@ -71,6 +73,7 @@ class ChapterExpressionMatches:
     doc: Doc
     now: Tuple[str, Span]
     vocab: Any
+    prev_match: Optional[Tuple[int, int, int]]
 
     def __init__(self, doc: Doc, model_name) -> None:
         self.sentence_index = -1
@@ -80,9 +83,12 @@ class ChapterExpressionMatches:
         self.senetnce_sequence = [(sent, matcher(sent),) for sent in doc.sents]
         self.sentence_len = len(self.senetnce_sequence)
         self.vocab = vocab
+        self.prev_match = None
 
     def step_sentence(self):
         self.sentence_index += 1
+        self.prev_match = None
+        self.now = None
 
         if self.sentence_index < self.sentence_len:
 
@@ -98,6 +104,7 @@ class ChapterExpressionMatches:
     def step_sentence_matches(self):
         self.sentence_matches_index += 1
         if self.sentence_matches_index < self.sentence_matches_len:
+            self.prev_match = self.now
 
             match_id, start, end = self.senetnce_matches[self.sentence_matches_len]
             now_span = self.doc[start:end]
@@ -269,15 +276,7 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
                 if before_hit != None and before_hit[-1] == doc[head_token.i - 1] and before_hit[-1].is_punct:
                     is_parallel = True
                 else:
-                    parallel_matcher, max_back = get_parallel_matcher(
-                        model_name)
-                    if head_token.is_left_punct == True:
-                        max_back + 1
-                    target_span = doc[max(
-                        0, head_token.i - max_back):head_token.i]
-                    parallel_matches = parallel_matcher(target_span)
-                    if len(parallel_matches) > 0:
-                        is_parallel = True
+                    check_is_parallel()
                 chapter_count = head_token.norm_
                 if match_id == COUNT_ONLY_PATTERN_ID:
                     level_expression = None
@@ -342,9 +341,10 @@ def _generate_path_index(start_span: Span, next_law_dto: Optional[LawDTO]):
 並列を表す日本語のパターン = [
     'と',
     '並びに',
-    'ならびに',
+    'ならびに'
     '及び',
-    'それと'
+    'それと',
+
 
 
 
@@ -352,6 +352,20 @@ def _generate_path_index(start_span: Span, next_law_dto: Optional[LawDTO]):
 
 
 _parallel_pattern = None
+
+
+def check_is_parallel(target_span: Span, model_name):
+    matcher = get_parallel_matcher(model_name)
+    matches = matcher(target_span)
+    if len(matches) == 0:
+        return False
+    target_tokens = target_span[max([m[1] for m in matches]):]
+    if len(target_tokens) == 0:
+        return True
+    for token in target_tokens:
+        if not _check_is_abstract(token=token):
+            return False
+    return True
 
 
 def get_parallel_matcher(model_name) -> Tuple[Matcher, int]:
@@ -370,31 +384,52 @@ def _generate_check_pattern(pattern_strings, match_name, model_name):
     max_token_count = 0
     for pattern_string in pattern_strings:
         parsed = nlp(pattern_string)
-        len_parsed = len(parsed)
-        max_token_count = max(max_token_count, len_parsed)
+
         pattern.append(([{"NORM": token.norm} for token in parsed]))
     matcher.add(match_name, pattern)
 
     return pattern, max_token_count
 
 
-_non_invers_pos = {'PROPN', 'NOUN'}
+_non_abstract_pos = {'PROPN', 'NOUN'}
+助詞のと句読点または第 = {'の、', 'の第'}
+助詞のと句読点と第 = 'の、第'
 
 
-def check_inverse_exception(base_span: Span, end_id: int, sentence: Span, doc: Doc):
+def check_inverse_exception(base_span: Span, end_id: int, sentence: Span, doc: Doc, ):
     target_span = doc[base_span.end + 1:end_id + 1]
+
     target_span_len = len(target_span)
+
     if target_span_len == 1:
         return sentence.end == end_id and target_span.text == 'の'
-    if target_span_len == 2 and target_span.text == 'の、':
+    if target_span_len == 2 and target_span.text in 助詞のと句読点または第:
         return False
-
-    if target_span[0].norm_ != 'の':
+    if target_span_len == 3 and target_span.text == 助詞のと句読点と第:
         return False
+    助詞のが無くてもいいかのフラグ = False
 
+    base_head = base_span[0]
+
+    if base_head.id >= 2:
+        first_back_token = doc[base_head.i - 1]
+        second_back_token = doc[base_head.i - 2]
+        助詞のが無くてもいいかのフラグ = (first_back_token.is_punct or first_back_token.pos_ ==
+                           "ADP") and second_back_token.pos_ == "PRON"
+        助詞のが無くてもいいかのフラグ |= first_back_token.pos_ == "PRON"
+
+    is_first = True
+    のが見つかったか = False
     for target_token in target_span:
-        if target_token.is_punct:
+        if not is_first and target_token.is_punct:
             break
-        if target_token.pos_ in _non_invers_pos:
+        is_first = False
+        のが見つかったか |= target_token.norm_ == 'の'
+        if target_token.pos_ in _non_abstract_pos:
             return False
-    return True
+
+    return のが見つかったか or 助詞のが無くてもいいかのフラグ
+
+
+def _check_is_abstract(token: Token):
+    return token.pos_ == 'PROPN' or (token.pos_ == 'NOUN' and token.tag_.index('数詞') == -1 and token.norm_.index('気') != 0)
