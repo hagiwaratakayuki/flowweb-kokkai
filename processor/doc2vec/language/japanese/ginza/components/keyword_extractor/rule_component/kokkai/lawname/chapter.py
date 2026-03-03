@@ -84,12 +84,15 @@ class ChapterExpressionMatches:
         self.sentence_len = len(self.senetnce_sequence)
         self.vocab = vocab
         self.prev_match = None
+        self._prev_to_now_span = None
+        self._now_to_next_span = None
 
     def step_sentence(self):
         self.sentence_index += 1
         self.prev_match = None
         self.now = None
-
+        self._prev_to_now_span = None
+        self._now_to_next_span = None
         if self.sentence_index < self.sentence_len:
 
             self.sentence_matches_index = -1
@@ -103,6 +106,8 @@ class ChapterExpressionMatches:
 
     def step_sentence_matches(self):
         self.sentence_matches_index += 1
+        self._prev_to_now_span = None
+        self._now_to_next_span = None
         if self.sentence_matches_index < self.sentence_matches_len:
             self.prev_match = self.now
 
@@ -113,6 +118,27 @@ class ChapterExpressionMatches:
 
             return True
         return False
+
+    def get_prev_to_now_span(self, prev_start=None):
+
+        if self._prev_to_now_span == None:
+            if prev_start == None:
+                if self.prev_match != None:
+                    prev_start = self.prev_match[2]
+                else:
+                    prev_start = self.sentence_now.start
+            self._prev_to_now_span = self.doc[prev_start:self.now[1].start]
+        return self._prev_to_now_span
+
+    def get_now_to_next_span(self):
+        if self._now_to_next_span == None:
+            start = self.now[1].end
+            if self.sentence_matches_len - 1 > self.sentence_matches_index:
+                end = self.sentence_matches[self.sentence_matches_index + 1][2]
+            else:
+                end = self.sentence_now.end
+            self._now_to_next_span = self.doc[start:end]
+        return self._now_to_next_span
 
 
 ChapterNodeType = Tuple[str, Optional[str]]
