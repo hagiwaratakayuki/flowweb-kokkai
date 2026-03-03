@@ -255,7 +255,7 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
     now_chapter_path: ChapterPath = None
     chapter_paths = []
     while chapter_expression_matches.step_sentence():
-        before_hit: Span = None
+
         while chapter_expression_matches.step_sentence_matches():
 
             match_id, span = chapter_expression_matches.now
@@ -299,10 +299,23 @@ def extract_chapter_expressions(doc: Doc, law_dto_list: LawDTOList, model_name):
             else:
                 is_parallel = False
 
-                if before_hit != None and before_hit[-1] == doc[head_token.i - 1] and before_hit[-1].is_punct:
-                    is_parallel = True
+                if chapter_expression_matches.prev_match != None:
+                    if chapter_expression_matches.prev_match[2] == span.start - 1:
+                        is_parallel = span[1].is_left_punct
+                    if chapter_expression_matches.prev_match[1] > law_dto_list.now.start:
+                        target_span = chapter_expression_matches.get_prev_to_now_span(
+                            0)
+
+                    is_parallel = check_is_parallel(
+                        target_span=target_span, model_name=model_name)
+
                 else:
-                    check_is_parallel()
+
+                    target_span = chapter_expression_matches.get_prev_to_now_span(
+                        0)
+
+                    is_parallel = check_is_parallel(
+                        target_span=target_span, model_name=model_name)
                 chapter_count = head_token.norm_
                 if match_id == COUNT_ONLY_PATTERN_ID:
                     level_expression = None
