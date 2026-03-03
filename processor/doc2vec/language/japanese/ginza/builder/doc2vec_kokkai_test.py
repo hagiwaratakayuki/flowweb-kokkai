@@ -1,14 +1,14 @@
 import unittest
 
 from data_loader.util import list_runner
-from .kokkai import KokkaiJapaneseLanguageDoc2Vec
+from .kokkai import SpacyGinzaJapaneseLanguageDoc2VecBuilderKokkai
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from data_loader.kokkai import DTO
 
 
 from data_loader.kokkai_reguraizer import reguraizers
 
-doc2vec = KokkaiJapaneseLanguageDoc2Vec(batch_size=1, n_process=1)
+doc2vec = SpacyGinzaJapaneseLanguageDoc2VecBuilderKokkai().build()
 
 
 class TestDoc2vec(unittest.TestCase):

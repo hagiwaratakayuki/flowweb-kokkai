@@ -7,5 +7,6 @@ class SpacyTokenizerSequenceDoc2VecBuilderMixin(TokenaizerSequenceDoc2VecBuilder
         _kwargs = self._apply_model_configure(model_name, init_param_key)
         _kwargs.update(kwargs)
 
-        self.tokenizer_params.update(_kwargs)
+        self.tokenaizer_params.update(_kwargs)
+
         return self

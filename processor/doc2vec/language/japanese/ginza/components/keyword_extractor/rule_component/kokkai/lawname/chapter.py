@@ -10,9 +10,9 @@ from spacy.matcher import Matcher
 from spacy.tokens import Doc, Span, Token
 
 
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.dtos import LawDTOList, LawDTO
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import IsCountChapterFlag, カタカナ章表現を示すフラグ
-from processor.doc2vec.spacy.components.nlp.loader import load_matcher, loadnlp
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.dtos import LawDTOList, LawDTO
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import IsCountChapterFlag, カタカナ章表現を示すフラグ
+from doc2vec.spacy.components.nlp.loader import load_matcher, loadnlp
 スーパー301条対策のパターン = re.compile('ス.パ.')
 
 グループ分け単語 = set('編章節款目')
@@ -63,7 +63,7 @@ def get_chapter_expression_matcher(model_name):
 
 
 class ChapterExpressionMatches:
-    senetnce_sequence: List[Span, Tuple[List[Tuple[int, int, int]]]]
+    senetnce_sequence: List[Tuple[Span, List[Tuple[int, int, int]]]]
     sentence_index: int
     sentence_len: int
     sentence_matches_index: int

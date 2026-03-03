@@ -22,10 +22,9 @@ from ..commons.const import MAIN_DEP, MAIN_POS, SPECIFIABLE_POS
 
 class SpacyBasicDocumentVectoraizer(AbstractDocumentVectoraizer):
 
-    def initialize(self, model_name, sentiment_analaizer: SpacyBasicSentiment, projecter: project_vector = project_vector):
-        self.sentiment = sentiment_analaizer
+    def __init__(self, sentiment: SpacyBasicSentiment, projecter: project_vector = project_vector):
+        self.sentiment = sentiment
         self.projecter = projecter
-        self._set_model_name(model_name)
 
     def exec(self, doc: Doc, data: DTO):
 

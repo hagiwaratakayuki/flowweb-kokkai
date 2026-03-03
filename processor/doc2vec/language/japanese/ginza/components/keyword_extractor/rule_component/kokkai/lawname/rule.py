@@ -22,10 +22,10 @@ from data_loader.kokkai import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
 from doc2vec.spacy.components.keyword_extractor.protocol import ExtractResultDTO, KeywordExtractRule
 from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.discussion_context import DiscussionContext
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.chapter import 章としての区分を表す単語
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.dtos import LawDTO, LawDTOList
-from processor.doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import IsCountChapterFlag, カタカナ章表現を示すフラグ
-from processor.doc2vec.spacy.components.nlp.loader import load_matcher
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.chapter import 章としての区分を表す単語
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.dtos import LawDTO, LawDTOList
+from doc2vec.language.japanese.ginza.components.keyword_extractor.rule_component.kokkai.lawname.types import IsCountChapterFlag, カタカナ章表現を示すフラグ
+from doc2vec.spacy.components.nlp.loader import load_matcher
 
 
 zerogetter = itemgetter(0)

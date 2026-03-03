@@ -14,4 +14,6 @@ class SpacySequenceDoc2VecBuilder(
     SpacyTokenizerSequenceDoc2VecBuilderMixin,
     SpacyNLPSequenceDoc2VecBuilderMixin
 ):
-    pass
+    def build(self):
+        self.use_tokenizer()
+        return super().build()

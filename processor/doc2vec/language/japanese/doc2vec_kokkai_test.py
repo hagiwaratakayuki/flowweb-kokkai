@@ -2,14 +2,15 @@ from typing import Callable, Iterable
 import unittest
 
 from data_loader.util import list_runner
-from .builder import kokkai_builder
+from .ginza.builder.kokkai import SpacyGinzaJapaneseLanguageDoc2VecBuilderKokkai
+# from .builder import kokkai_builder
 from doc2vec.util.specified_keyword import SpecifiedKeyword
 from data_loader.kokkai import DTO
 
 
 from data_loader.kokkai_reguraizer import reguraizers
 
-doc2vec = kokkai_builder.build()
+doc2vec = SpacyGinzaJapaneseLanguageDoc2VecBuilderKokkai().build()
 
 
 class MockPool:

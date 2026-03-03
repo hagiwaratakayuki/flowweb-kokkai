@@ -1,4 +1,6 @@
-from doc2vec.spacy.japanese_language.components.keyword_extract.util.tag_check import is_sahen
+
+from doc2vec.language.japanese.ginza.components.keyword_extractor.util.tag_check import is_sahen
+
 from .base import BaseCheck, Token, CheckResult
 
 

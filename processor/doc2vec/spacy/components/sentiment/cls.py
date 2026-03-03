@@ -27,15 +27,15 @@ class SpacyBasicSentiment(SpacyNLPMixin):
     sentiment_vecs: SentimentBaseDict
     cache: Dict[any, SentimentScoreDict]
 
-    def __init__(self, posiwords, negwords, model_name, projecter: project_vector = project_vector, punct=' '):
+    def __init__(self, posi_words, nega_words, model_name, projecter: project_vector = project_vector, punct=' '):
         self.cache = {}
-        self.posiwords = posiwords
-        self.negwords = negwords
+        self.posi_words = posi_words
+        self.nega_words = nega_words
         self.punct = punct
         self._set_model_name(model_name)
         nlp = self._get_language()
-        pdoc = nlp(self.punct.join(self.posiwords))
-        ndoc = nlp(self.punct.join(self.negwords))
+        pdoc = nlp(self.punct.join(self.posi_words))
+        ndoc = nlp(self.punct.join(self.nega_words))
         self.sentiment_vecs = {}
 
         for doc, key in [(pdoc, 'positive',), (ndoc, 'negative')]:

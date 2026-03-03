@@ -9,7 +9,7 @@ from doc2vec.base.protocol.tokenizer import AbstarctTokenizerClass
 class SequenceDoc2VecBuilderRoot:
     keyword_extractor_class: Type[BasicKeywordExtractor] = BasicKeywordExtractor
     keyword_extractor_params: Dict
-    tokenaier_class: Type[AbstarctTokenizerClass]
-    tokenaier_params: Dict
+    tokenaizer_class: Type[AbstarctTokenizerClass]
+    tokenaizer_params: Dict
     document_vectoraizer_class: Type[AbstractDocumentVectoraizer]
     document_vectoraier_params: Dict

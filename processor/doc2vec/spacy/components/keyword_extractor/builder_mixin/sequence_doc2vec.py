@@ -1,7 +1,7 @@
 from typing import Dict
 from doc2vec.base.keyword_extractor.builder_mixin.sequence_doc2vec.mixin import SequenceDoc2vecKeywordExtractorBuilderMixin
 from doc2vec.spacy.components.keyword_extractor.cls import SpacyBasicKeywordExtractor
-from processor.doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
+from doc2vec.spacy.components.nlp.builder_mixin.sequence_doc2vec.apply_mixin import SpacyNLPSequenceDoc2VecBuilderApplyMixin
 
 
 class SpacyKeywordExtractorSequenceDoc2VecBuilderMixin(SequenceDoc2vecKeywordExtractorBuilderMixin, SpacyNLPSequenceDoc2VecBuilderApplyMixin):
