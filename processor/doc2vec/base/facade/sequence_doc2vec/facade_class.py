@@ -25,6 +25,7 @@ class Doc2Vec:
         ret = deque()
 
         for parse_result, data_id in pool.imap(func=self._tokenaizer.parse, iterable=generater, chunksize=self._chunk_size):
+
             dto = dto_map[data_id]
             vector, sentiment_results, token_2_score = self._document_vectoraizer.exec(
                 parse_result, dto)

@@ -7,5 +7,5 @@ class SpacyNLPMixin:
     def _set_model_name(self, model_name):
         self.model_name = model_name
 
-    def _get_language(self):
+    def _get_language_model(self):
         return loadnlp(self.model_name)

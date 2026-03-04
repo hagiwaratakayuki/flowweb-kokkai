@@ -33,7 +33,7 @@ class SpacyBasicSentiment(SpacyNLPMixin):
         self.nega_words = nega_words
         self.punct = punct
         self._set_model_name(model_name)
-        nlp = self._get_language()
+        nlp = self._get_language_model()
         pdoc = nlp(self.punct.join(self.posi_words))
         ndoc = nlp(self.punct.join(self.nega_words))
         self.sentiment_vecs = {}

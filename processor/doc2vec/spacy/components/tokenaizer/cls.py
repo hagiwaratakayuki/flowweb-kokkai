@@ -9,5 +9,6 @@ class SpacyToknaizer(AbstarctTokenizerClass, SpacyNLPMixin):
 
     def parse(self, arg: Tuple[str, Any]):
         text, data_id = arg
-        nlp = self._get_language()
+        nlp = self._get_language_model()
+
         return nlp(text), data_id

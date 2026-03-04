@@ -24,7 +24,7 @@ class SpacyBasicKeywordExtractor:
         results = ExtractResultDTO()
         for rule in self.rules:
             results = rule.execute(
-                parse_results=parse_result,
+                doc=parse_result,
                 vector=vector,
                 sentiment_results=sentiment_results,
                 dto=dto,

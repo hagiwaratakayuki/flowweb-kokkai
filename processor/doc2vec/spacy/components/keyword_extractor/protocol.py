@@ -1,8 +1,9 @@
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Set, Union
+
+from typing import Any, Dict, Iterable, List, Set
 from spacy.tokens import Doc, Token
-import numpy as np
 
 from data_loader.dto import DTO
 from doc2vec.base.protocol.sentiment import SentimentResult
@@ -59,6 +60,7 @@ class ExtractResultDTO:
         self.keywords[keyword].source_ids -= source_ids
 
 
-class KeywordExtractRule:
-    def execute(self, parse_results: Any, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], postprocessor: Any, results: ExtractResultDTO, model_name: str) -> List[SpacySpecifiedKeywordType]:
+class KeywordExtractRule(metaclass=ABCMeta):
+    @abstractmethod
+    def execute(self, doc: Doc, vector: DocVectorType, sentiment_results: SentimentResult, dto: DTO, token_2_score: Dict[Any, float], postprocessor: Any, results: ExtractResultDTO, model_name: str) -> List[SpacySpecifiedKeywordType]:
         pass

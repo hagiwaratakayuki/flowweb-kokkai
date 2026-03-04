@@ -4,4 +4,6 @@ from doc2vec.base.facade.sequence_doc2vec.builder.root import SequenceDoc2VecBui
 
 
 class TokenaizerSequenceDoc2VecBuilderMixin(SequenceDoc2VecBuilderRoot, metaclass=ABCMeta):
-    pass
+    @abstractmethod
+    def use_tokenizer(self, *args, **kwargs):
+        pass

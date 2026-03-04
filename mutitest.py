@@ -14,28 +14,10 @@ import time
 
 from sklearn import base
 import spacy
-text = 'spaCy はオープンソースの自然言語処理ライブラリです。学習済みの統計モデルと単語ベクトルが付属しています。'
+text = 'spaCy はオープンソースの自然言語処理ライブラリです。学習済みの統計モデルと単語ベクトルが付属しています。' * (49149 + 1)
 nlp = spacy.load('ja_ginza')
 start = time.perf_counter_ns()
 nlp(text)
-end = time.perf_counter_ns()
-base = end - start
-print((end - start) / 10 ** 9)
-texts = [text for i in range(100)]
-start = time.perf_counter_ns()
-[nlp(text) for text in texts]
-end = time.perf_counter_ns()
-
-print((end - start - base) / 10 ** 9)
-start = time.perf_counter_ns()
-list(nlp.pipe(texts))
-end = time.perf_counter_ns()
-print((end - start - base) / 10 ** 9)
-target = ''.join(texts)
-start = time.perf_counter_ns()
-nlp.pipe(target)
-end = time.perf_counter_ns()
-print((end - start) / 10 ** 9)
 
 
 async def test():
